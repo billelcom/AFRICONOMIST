@@ -140,12 +140,13 @@ export default function App() {
       <footer className="border-t border-slate-800 bg-[#060910] text-slate-400 text-xs py-10 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-6 border-b border-slate-800/80">
-            <div className="flex items-center gap-3">
-              <div className="w-7 h-7 rounded bg-amber-500 flex items-center justify-center text-slate-950 font-black text-sm">
-                AB
-              </div>
-              <span className="font-bold text-white font-mono text-sm">
-                {isAr ? 'بلومبرغ لأفريقيا | AfroBloomberg' : 'AFRO BLOOMBERG INTELLIGENCE'}
+            <div className="flex items-center gap-2">
+              <span className="font-extrabold text-white font-mono text-base tracking-tight">
+                {isAr ? 'آفريكونوميست' : 'AFRICONOMIST'}
+              </span>
+              <span className="text-amber-500 font-bold">·</span>
+              <span className="text-slate-400 font-mono text-xs">
+                {isAr ? 'منصة الصحافة الاقتصادية الأفريقية' : 'African Economic Intelligence'}
               </span>
             </div>
 
@@ -174,11 +175,11 @@ export default function App() {
           <div className="flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400 gap-2">
             <p>
               {isAr
-                ? '© 2026 منصة بلومبرغ لأفريقيا. جميع المؤشرات الاقتصادية وأسعار الصرف مستخلصة وفق بروتوكول فحص الحقائق الصارم.'
-                : '© 2026 AfroBloomberg Platform. All macroeconomic feeds and indices verified under Zero-Trust human-in-the-loop protocols.'}
+                ? '© 2026 منصة آفريكونوميست (Africonomist). جميع المؤشرات الاقتصادية وأسعار الصرف مستخلصة وفق بروتوكول فحص الحقائق الصارم.'
+                : '© 2026 Africonomist Platform. All macroeconomic feeds and indices verified under Zero-Trust human-in-the-loop protocols.'}
             </p>
             <p className="font-mono text-slate-400">
-              Zero-Trust AI Financial Architecture v2.4
+              Zero-Trust AI Financial Architecture v2.4 · GitHub Ready
             </p>
           </div>
         </div>

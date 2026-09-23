@@ -44,7 +44,7 @@ export const ArchitectureView: React.FC<ArchitectureViewProps> = ({ lang }) => {
   };
 
   // Commands
-  const createNextAppCmd = `npx create-next-app@latest afro-bloomberg \\
+  const createNextAppCmd = `npx create-next-app@latest africonomist \\
   --typescript \\
   --tailwind \\
   --eslint \\
@@ -60,9 +60,18 @@ npm install -D @types/dompurify`;
 # إضافة مكونات shadcn/ui الأساسية التي تحتاجها المنصة:
 npx shadcn@latest add button card badge tabs dialog table dropdown-menu input textarea`;
 
+  const gitPushCmd = `# ربط المشروع بـ GitHub ودفع الأكواد
+git init
+git add .
+git commit -m "feat: Africonomist African financial journalism platform initial commit"
+git branch -M main
+git remote add origin https://github.com/YOUR_USERNAME/africonomist.git
+git push -u origin main`;
+
   // Code snippets
   const codeLayout = `// ============================================================================
 // ملف: src/app/layout.tsx
+// المنصة: آفريكونوميست | Africonomist
 // الدور: الهيكل الجذري الموحد (Root Layout) لجميع صفحات المنصة
 // الميزات: يدعم النفاذية (a11y)، تعدد اللغات (RTL/LTR)، وخطوط Google الرسمية
 // ============================================================================
@@ -86,20 +95,20 @@ const jakartaFont = Plus_Jakarta_Sans({
   display: "swap",
 });
 
-// 2. إعدادات Meta والـ SEO وفق معايير بلومبرغ للأخبار
+// 2. إعدادات Meta والـ SEO وفق معايير آفريكونوميست
 export const metadata: Metadata = {
   title: {
-    default: "بلومبرغ لأفريقيا | منصة الصحافة الاقتصادية الذكية",
-    template: "%s | AfroBloomberg",
+    default: "آفريكونوميست | منصة الصحافة الاقتصادية الأفريقية",
+    template: "%s | Africonomist",
   },
-  description: "المنصة الأولى للتحليلات والبيانات الاقتصادية والمالية الأفريقية المدعومة بوكلاء الذكاء الاصطناعي وبإشراف تحريري بشري موثوق.",
-  keywords: ["اقتصاد أفريقيا", "أسواق المال", "صندوق النقد", "نيجيريا", "مصر", "جنوب أفريقيا", "تكنولوجيا مالية"],
-  authors: [{ name: "فريق تحرير بلومبرغ لأفريقيا" }],
+  description: "المنصة الرائدة للتحليلات والبيانات الاقتصادية والمالية الأفريقية المدعومة بوكلاء الذكاء الاصطناعي وبإشراف تحريري بشري موثوق.",
+  keywords: ["آفريكونوميست", "Africonomist", "اقتصاد أفريقيا", "أسواق المال", "صندوق النقد", "نيجيريا", "مصر", "جنوب أفريقيا", "تكنولوجيا مالية"],
+  authors: [{ name: "فريق تحرير آفريكونوميست" }],
   openGraph: {
-    title: "بلومبرغ لأفريقيا | AfroBloomberg",
+    title: "آفريكونوميست | Africonomist",
     description: "صحافة اقتصادية ذكية وموثوقة تغطي 54 دولة أفريقية.",
-    url: "https://afrobloomberg.com",
-    siteName: "AfroBloomberg",
+    url: "https://africonomist.com",
+    siteName: "Africonomist",
     locale: "ar_AR",
     type: "website",
   },
@@ -443,7 +452,7 @@ export async function connectToDatabase(): Promise<{ db: Db }> {
   });
 
   await client.connect();
-  const db = client.db(process.env.MONGODB_DB_NAME || "afro_bloomberg");
+  const db = client.db(process.env.MONGODB_DB_NAME || "africonomist");
 
   cachedClient = client;
   cachedDb = db;
@@ -556,11 +565,11 @@ export type FactCheckReport = z.infer<typeof FactCheckSchema>;`;
           <span>SENIOR FRONTEND ARCHITECT SPECIFICATION</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-black text-white">
-          {isAr ? 'الأساس البرمجي والمعمارية الكاملة لمنصة بلومبرغ لأفريقيا' : 'AfroBloomberg Full Scaffolding Blueprint'}
+          {isAr ? 'الأساس البرمجي والمعمارية الكاملة لمنصة آفريكونوميست (Africonomist)' : 'Africonomist Full Scaffolding Blueprint'}
         </h1>
         <p className="text-sm text-slate-300 max-w-4xl leading-relaxed">
           {isAr
-            ? 'دليل مهندس البرمجيات خطوة بخطوة: الأوامر الطرفية المباشرة، هيكلية المجلدات المفصلة مع الشرح للمبتدئين، ونماذج الأكواد الحية لـ Next.js App Router مع تطبيق بروتوكول Zero-Trust و Human-in-the-Loop.'
+            ? 'دليل مهندس البرمجيات خطوة بخطوة: الأوامر الطرفية المباشرة، أوامر الربط بـ GitHub، هيكلية المجلدات المفصلة مع الشرح للمبتدئين، ونماذج الأكواد الحية لـ Next.js App Router مع تطبيق بروتوكول Zero-Trust و Human-in-the-Loop.'
             : 'Production-ready architecture for Next.js App Router, TypeScript, Tailwind CSS, shadcn/ui, MongoDB Atlas, and Human-in-the-Loop editorial control.'}
         </p>
       </div>
@@ -619,11 +628,11 @@ export type FactCheckReport = z.infer<typeof FactCheckSchema>;`;
           </ul>
         </div>
 
-        {/* Command 2: Additional packages & shadcn */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+        {/* Command 2 & 3 & GitHub: Additional packages, shadcn & GitHub */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
           <div className="rounded-xl bg-[#070b12] border border-slate-800 overflow-hidden shadow-lg">
             <div className="px-4 py-2 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
-              <span className="text-xs font-mono font-bold text-slate-300">2. تثبيت الحزم الإضافية (Security & DB)</span>
+              <span className="text-xs font-mono font-bold text-slate-300">2. تثبيت الحزم (Security & DB)</span>
               <button
                 onClick={() => handleCopy('cmd2', installDepsCmd)}
                 className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 font-mono"
@@ -652,6 +661,22 @@ export type FactCheckReport = z.infer<typeof FactCheckSchema>;`;
               {shadcnInitCmd}
             </pre>
           </div>
+
+          <div className="rounded-xl bg-[#070b12] border border-slate-800 overflow-hidden shadow-lg">
+            <div className="px-4 py-2 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+              <span className="text-xs font-mono font-bold text-amber-400">4. الربط والدفع لـ GitHub</span>
+              <button
+                onClick={() => handleCopy('cmd4', gitPushCmd)}
+                className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 font-mono"
+              >
+                {copiedId === 'cmd4' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                <span>نسخ</span>
+              </button>
+            </div>
+            <pre className="p-3 text-xs font-mono text-amber-300 overflow-x-auto" dir="ltr">
+              {gitPushCmd}
+            </pre>
+          </div>
         </div>
       </section>
 
@@ -678,7 +703,7 @@ export type FactCheckReport = z.infer<typeof FactCheckSchema>;`;
           <div className="lg:col-span-5 p-4 rounded-xl bg-[#070b12] border border-slate-800 font-mono text-xs text-slate-300 space-y-1" dir="ltr">
             <div className="text-amber-400 font-bold mb-2 pb-1 border-b border-slate-800 flex items-center gap-1.5">
               <FolderTree className="w-4 h-4" />
-              <span>afro-bloomberg/</span>
+              <span>africonomist/</span>
             </div>
 
             {/* src */}

@@ -61,25 +61,20 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Main Navigation Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Brand Logo */}
+        {/* Brand Text Logo */}
         <div 
           onClick={() => onSelectTab('home')}
-          className="flex items-center gap-3 cursor-pointer group select-none"
+          className="flex flex-col cursor-pointer group select-none"
         >
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-slate-950 font-black text-lg shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform">
-            AB
+          <div className="flex items-center gap-2">
+            <span className="font-black tracking-tight text-white text-xl sm:text-2xl font-mono group-hover:text-amber-400 transition-colors">
+              {isAr ? 'آفريكونوميست' : 'Africonomist'}
+            </span>
+            <span className="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-extrabold tracking-tight text-white text-lg sm:text-xl font-mono">
-                {isAr ? 'بلومبرغ لأفريقيا' : 'AFRO BLOOMBERG'}
-              </span>
-              <span className="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-            </div>
-            <p className="text-[10px] text-slate-400 -mt-1 hidden sm:block">
-              {isAr ? 'الصحافة الاقتصادية الذكية والموثوقة' : 'African Economic Intelligence'}
-            </p>
-          </div>
+          <p className="text-[10px] text-slate-400 -mt-0.5 hidden sm:block">
+            {isAr ? 'الصحافة الاقتصادية والمالية الأفريقية' : 'African Economic & Financial Intelligence'}
+          </p>
         </div>
 
         {/* Navigation Tabs */}

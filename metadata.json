@@ -1,0 +1,6 @@
+{
+  "name": "AfroBloomberg - African Economic Journalism Platform",
+  "description": "Next.js App Router architecture and interactive platform for African financial journalism powered by AI Agents and Human Editors.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

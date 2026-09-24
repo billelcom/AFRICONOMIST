@@ -389,7 +389,14 @@ export default function App() {
       <LiveTicker items={MARKET_TICKERS} lang={lang} />
 
       {/* Main View Container */}
-      <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+      <main 
+        id="main-content" 
+        className={`flex-1 w-full mx-auto ${
+          currentTab === 'editorial' 
+            ? 'w-[98%] max-w-[98%] sm:max-w-7xl px-0 sm:px-6 lg:px-8 pt-2 sm:pt-6' 
+            : 'max-w-7xl px-4 sm:px-6 lg:px-8 pt-8'
+        }`}
+      >
         {currentTab === 'home' && (
           <HomeView
             articles={articles}

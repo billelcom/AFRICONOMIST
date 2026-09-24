@@ -1,48 +1,36 @@
 // src/components/views/EditorialView.tsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { Article, UserRole, ArticleGenerationType } from '../../types';
+import { Article, UserRole } from '../../types';
 import { 
   ShieldCheck, 
   Sparkles, 
   CheckCircle2, 
-  XCircle, 
   RotateCcw, 
-  Lock, 
   FileEdit, 
-  Database, 
   Clock, 
   AlertTriangle,
-  Code2,
-  Send,
   Plus,
-  Radio,
   Zap,
   FileText,
-  Filter,
-  Layers,
   Flame,
-  Globe,
-  TrendingUp,
   SlidersHorizontal,
   ChevronRight,
   ChevronLeft,
-  ExternalLink,
   BookOpen,
   Archive,
   Brain,
   Edit3,
   Bookmark,
-  RefreshCw,
-  Search,
-  Eye,
   Check,
   Cpu,
   Anchor,
   Wheat,
   Coins,
-  Briefcase
+  Briefcase,
+  ArrowRight,
+  ArrowLeft
 } from 'lucide-react';
-import { CreateReportModal } from '../CreateReportModal';
+import { CommissionWizard } from '../CommissionWizard';
 import { ALL_54_AFRICAN_COUNTRIES } from '../../data/africanCountries';
 import { JOURNALISTIC_GENRES, ECONOMIC_SECTORS } from '../../data/reportOptions';
 import { getSecondsUntilNextCycle, resetNextCycleTarget } from '../../lib/cycleScheduler';
@@ -57,7 +45,7 @@ interface EditorialViewProps {
   onTriggerAutomatedCycleNow?: () => void;
 }
 
-type NewsroomTab = 'overview' | 'editor' | 'pending' | 'training' | 'library' | 'archive';
+type NewsroomTab = 'overview' | 'editor' | 'pending' | 'training' | 'library' | 'archive' | 'commission';
 
 interface SectorSection {
   id: string;
@@ -139,7 +127,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
 
   // Navigation tab within Newsroom
   const [activeTab, setActiveTab] = useState<NewsroomTab>('overview');
-  const [activeRole, setActiveRole] = useState<UserRole>('HUMAN_EDITOR');
+  const [activeRole] = useState<UserRole>('HUMAN_EDITOR');
   const [selectedArticleId, setSelectedArticleId] = useState<string | null>(articles[0]?.id || null);
 
   // Editing state for direct editor
@@ -149,9 +137,6 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
   const [humanReviewerNote, setHumanReviewerNote] = useState<string>('');
   const [isAiRefining, setIsAiRefining] = useState<boolean>(false);
   const [saveSuccessNotice, setSaveSuccessNotice] = useState<string | null>(null);
-
-  // Commission Modal
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
 
   // Automated 30-min cycle timer state
   const [internalIngesting, setInternalIngesting] = useState<boolean>(false);
@@ -188,6 +173,27 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
   const currentActiveArticle = useMemo(() => {
     return articles.find(a => a.id === selectedArticleId) || articles[0] || null;
   }, [articles, selectedArticleId]);
+
+  // Article navigation in editor (انتقال من الحالية للتالي والتالي والسابق)
+  const currentArticleIndex = useMemo(() => {
+    if (!currentActiveArticle) return -1;
+    return articles.findIndex(a => a.id === currentActiveArticle.id);
+  }, [articles, currentActiveArticle]);
+
+  const hasPrevArticle = currentArticleIndex > 0;
+  const hasNextArticle = currentArticleIndex !== -1 && currentArticleIndex < articles.length - 1;
+
+  const handlePrevArticle = () => {
+    if (hasPrevArticle) {
+      handleOpenInEditor(articles[currentArticleIndex - 1]);
+    }
+  };
+
+  const handleNextArticle = () => {
+    if (hasNextArticle) {
+      handleOpenInEditor(articles[currentArticleIndex + 1]);
+    }
+  };
 
   // Synchronize editor inputs whenever active article changes
   useEffect(() => {
@@ -268,7 +274,6 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
           setTimeout(() => setSaveSuccessNotice(null), 3500);
         }
       } else {
-        // Fallback local refine simulation
         setEditableContent(prev => `### مراجعة منقحة وفق نقد المشرف البشري (${new Date().toLocaleTimeString()}):\n\n${prev}\n\n*ملاحظة تدقيق إضافية: تم توثيق الأرقام وتطوير صياغة المتن لتعزيز رصانة التقرير وفق النبرة التحريرية المعتمدة.*`);
         setSaveSuccessNotice(isAr ? '✨ تم تطبيق تعديلات المشرف بنجاح.' : '✨ Supervisor modifications applied.');
         setTimeout(() => setSaveSuccessNotice(null), 3500);
@@ -297,10 +302,11 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
   const handleTriggerInstantRandomGeneration = async () => {
     if (isAutomatedIngesting) return;
     setInternalIngesting(true);
+
     try {
       const randomCountry = ALL_54_AFRICAN_COUNTRIES[Math.floor(Math.random() * ALL_54_AFRICAN_COUNTRIES.length)];
-      const randomSector = ECONOMIC_SECTORS[Math.floor(Math.random() * ECONOMIC_SECTORS.length)];
       const randomGenre = JOURNALISTIC_GENRES[Math.floor(Math.random() * JOURNALISTIC_GENRES.length)];
+      const randomSector = ECONOMIC_SECTORS[Math.floor(Math.random() * ECONOMIC_SECTORS.length)];
 
       let createdArticle: Article | null = null;
       try {
@@ -312,7 +318,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
             countryCode: randomCountry.code,
             journalisticType: randomGenre.nameAr,
             sector: randomSector.nameAr,
-            generationMode: 'automated_periodic'
+            generationMode: 'automated_cycle'
           })
         });
 
@@ -322,11 +328,11 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
             const rep = data.report;
             createdArticle = {
               id: rep.id,
-              slug: rep.slug || `report-${Date.now()}`,
+              slug: rep.slug,
               title: rep.title,
-              titleEn: rep.titleEn || `${randomGenre.nameEn}: ${randomCountry.nameEn}`,
+              titleEn: rep.titleEn,
               summary: rep.summary,
-              summaryEn: rep.summaryEn || `Instant market feed report.`,
+              summaryEn: rep.summaryEn,
               content: [rep.content],
               contentEn: [rep.content],
               category: 'Macroeconomics',
@@ -338,8 +344,8 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
               journalisticType: randomGenre.nameAr,
               sector: randomSector.nameAr,
               authorType: 'AI_AGENT',
-              aiModel: 'Gemini 3.6 Flash (Instant Pipeline Dispatch)',
-              reviewNotes: 'مسودة فورية عشوائية بانتظار مراجعة المشرف البشري',
+              aiModel: 'Gemini 3.6 Flash',
+              reviewNotes: `توليد عشوائي فوري شامل | النمط: ${randomGenre.nameAr} | القطاع: ${randomSector.nameAr}`,
               citations: (rep.sources || []).map((s: any, idx: number) => ({
                 id: `cit-${idx}-${Date.now()}`,
                 sourceName: s.source || s.title,
@@ -350,7 +356,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                 snippet: s.title
               })),
               factCheck: {
-                score: 96,
+                score: 97,
                 verifiedClaimsCount: 5,
                 totalClaimsCount: 5,
                 biasRating: 'Neutral',
@@ -365,24 +371,23 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
           }
         }
       } catch (err) {
-        console.warn('Pipeline fetch error, using local fallback:', err);
+        console.warn('API Pipeline call failed, generating localized simulation draft:', err);
       }
 
       if (!createdArticle) {
+        const uniqueId = `instant_${Date.now()}`;
         createdArticle = {
-          id: `art_rnd_${Date.now()}`,
-          slug: `report-rnd-${Date.now()}`,
-          title: `${randomGenre.nameAr}: تحولات قطاع ${randomSector.nameAr} في ${randomCountry.nameAr}`,
-          titleEn: `${randomGenre.nameEn}: Sector Shift in ${randomCountry.nameEn}`,
-          summary: `تقرير فوري صادر عن وكلاء الذكاء الاصطناعي يرصد مؤشرات قطاع ${randomSector.nameAr} في ${randomCountry.nameAr}.`,
-          summaryEn: `Instantly generated market dispatch tracking high-frequency liquidity and price discovery.`,
+          id: uniqueId,
+          slug: `instant-dispatch-${randomCountry.code.toLowerCase()}-${Date.now()}`,
+          title: `${randomGenre.nameAr}: تحولات ${randomSector.nameAr} في ${randomCountry.nameAr}`,
+          titleEn: `${randomGenre.nameEn}: Strategic Shift in ${randomCountry.nameEn}`,
+          summary: `تقرير فوري استقصائي يرصد مستجدات ${randomSector.nameAr} في ${randomCountry.nameAr} استناداً إلى المؤشرات الاقتصادية اللحظية.`,
+          summaryEn: `Field intelligence monitoring ${randomSector.nameEn} dynamics in ${randomCountry.nameEn}.`,
           content: [
-            `رصدت وحدات الاستخبارات الاقتصادية في لافريكونوميست تحركات نشطة في قطاع ${randomSector.nameAr} بدولة ${randomCountry.nameAr}.`,
-            `تمت مطابقة أسعار الصرف ومؤشرات الفائدة مع قواعد البيانات الرسمية وإيداع المسودة بحالة "قيد المراجعة" للمشرف البشري.`
+            `أفادت تحليلات الرصد الصحفي في لافريكونوميست بتسجيل ديناميكية نشطة في ${randomSector.nameAr} داخل ${randomCountry.nameAr}، وسط توقعات إيجابية للموازنة العامة.`,
+            `تمت مطابقة البيانات مع سجلات البنك المركزي والجهات التنظيمية لتأكيد دقة المؤشرات النقدية وتوثيقها للمشرف البشري للمصادقة التحريرية.`
           ],
-          contentEn: [
-            `Autonomous monitoring nodes logged active trading movements in ${randomCountry.nameEn}'s ${randomSector.nameEn}.`
-          ],
+          contentEn: [`Autonomous field dispatch for ${randomCountry.nameEn}.`],
           category: 'Macroeconomics',
           countryCode: randomCountry.code,
           countryName: randomCountry.nameAr,
@@ -392,10 +397,11 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
           journalisticType: randomGenre.nameAr,
           sector: randomSector.nameAr,
           authorType: 'AI_AGENT',
-          aiModel: 'Gemini 3.6 Flash (Instant Dispatch)',
+          aiModel: 'Gemini 3.6 Flash',
+          reviewNotes: `توليد عشوائي فوري | النمط: ${randomGenre.nameAr} | القطاع: ${randomSector.nameAr}`,
           citations: [
             {
-              id: `cit-rnd-${Date.now()}`,
+              id: `cit-inst-${Date.now()}`,
               sourceName: `Banque Centrale / National Agency (${randomCountry.nameEn})`,
               url: 'https://example.com/central-bank-report',
               publishDate: '2026-09-24',
@@ -437,7 +443,6 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
   const sectorArticlesMap = useMemo(() => {
     const map: Record<string, Article[]> = {};
     SECTOR_SECTIONS.forEach(sector => {
-      // Pick existing articles matching sector or category
       let matching = articles.filter(a => {
         if (sector.id === 'energy') return a.category === 'Energy' || a.sector?.includes('طاقة') || a.sector?.includes('نفط') || a.sector?.includes('غاز');
         if (sector.id === 'mining') return a.category === 'Mining' || a.sector?.includes('تعدين') || a.sector?.includes('معادن');
@@ -447,7 +452,6 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
         return a.category === 'Markets' || a.category === 'Macroeconomics' || a.sector?.includes('مال') || a.sector?.includes('استثمار');
       });
 
-      // Ensure every sector has at least 5 rich slides with distinct countries and distinct journalistic genres
       if (matching.length < 5) {
         const dummyNeeded = 5 - matching.length;
         const seedCountries = ALL_54_AFRICAN_COUNTRIES.slice(
@@ -517,23 +521,22 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
     return map;
   }, [articles]);
 
-  return (
-    <div className="min-h-screen text-slate-100 flex flex-col -mt-4 -mx-4 sm:-mx-6 lg:-mx-8">
-      {/* Commission Modal */}
-      <CreateReportModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onGenerateReport={(newArt) => {
-          onAddNewDraft(newArt);
-          handleOpenInEditor(newArt);
-        }}
-        lang={lang}
-      />
+  // Desktop slider scroll helper for smooth navigation without scrollbars
+  const handleScrollSector = (sectorId: string, direction: 'prev' | 'next') => {
+    const el = document.getElementById(`sector-slider-${sectorId}`);
+    if (el) {
+      const scrollStep = 340;
+      const factor = isAr ? (direction === 'next' ? -scrollStep : scrollStep) : (direction === 'next' ? scrollStep : -scrollStep);
+      el.scrollBy({ left: factor, behavior: 'smooth' });
+    }
+  };
 
+  return (
+    <div className="w-[98%] max-w-[98%] sm:max-w-none sm:w-full mx-auto min-h-screen text-slate-100 flex flex-col">
       {/* =========================================================================
-          1. MOBILE TOP HORIZONTAL SCROLLING MENU (قائمة الهاتف الأفقية في الأعلى)
+          1. MOBILE TOP HORIZONTAL SCROLLING MENU (قائمة الهاتف الأفقية بدون سكرول بار)
          ========================================================================= */}
-      <div className="md:hidden sticky top-14 z-30 bg-[#080C16]/95 backdrop-blur-xl border-b border-slate-800/80 px-3 py-2 shadow-lg">
+      <div className="md:hidden sticky top-14 z-30 bg-[#080C16]/95 backdrop-blur-xl border-b border-slate-800/80 px-2 py-2 shadow-lg w-full">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth">
           {/* 1. زر التوليد الآلي كل 30 د */}
           <button
@@ -545,7 +548,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
             }`}
           >
             <Clock className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-            <span>{isAr ? 'الرصد الآلي (30د):' : 'Auto 30m:'}</span>
+            <span>{isAr ? 'الرصد الآلي:' : 'Auto Pulse:'}</span>
             <span className="font-mono text-[11px] text-amber-400 bg-amber-950/40 px-1.5 py-0.2 rounded border border-amber-500/30">
               {formatTime(secondsUntilNextCycle)}
             </span>
@@ -561,10 +564,14 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
             <span>{isAutomatedIngesting ? (isAr ? 'جاري الرصد...' : 'Pulsing...') : (isAr ? 'توليد فوري عشوائي' : 'Instant Random')}</span>
           </button>
 
-          {/* 3. زر التوليد المخصص */}
+          {/* 3. زر التوليد المخصص (انتقال سلس بدون popup) */}
           <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 bg-slate-900/80 text-slate-200 border border-slate-800 hover:border-slate-700"
+            onClick={() => setActiveTab('commission')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 border transition-all ${
+              activeTab === 'commission'
+                ? 'bg-blue-500/20 text-blue-300 border-blue-500/40 shadow-sm'
+                : 'bg-slate-900/80 text-slate-200 border border-slate-800 hover:border-slate-700'
+            }`}
           >
             <SlidersHorizontal className="w-3.5 h-3.5 text-blue-400" />
             <span>{isAr ? 'توليد مخصص' : 'Custom Report'}</span>
@@ -647,7 +654,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
       {/* =========================================================================
           2. MAIN WORKSPACE WITH ARTISTIC DESKTOP SIDEBAR + CONTENT AREA
          ========================================================================= */}
-      <div className="flex-1 flex flex-col md:flex-row w-full min-h-[calc(100vh-4rem)]">
+      <div className="flex-1 flex flex-col md:flex-row w-full">
         {/* =======================================================================
             DESKTOP ARTISTIC SIDEBAR (قطعة فنية إبداعية قائمة على اليسار/اليمين)
            ======================================================================= */}
@@ -675,7 +682,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
             </p>
           </div>
 
-          {/* The 8 Required Navigation Buttons (قطعة فنية بتأثيرات بصرية راقية) */}
+          {/* The 8 Required Navigation Buttons */}
           <nav className="space-y-2 flex-1" aria-label="Newsroom Navigation">
             {/* 1. زر التوليد الآلي كل 30 د */}
             <button
@@ -718,10 +725,14 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
               <Sparkles className="w-4 h-4 text-slate-950/80" />
             </button>
 
-            {/* 3. زر التوليد المخصص */}
+            {/* 3. زر التوليد المخصص (انتقال سلس مدمج بدون popup) */}
             <button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="w-full p-2.5 rounded-xl text-right flex items-center justify-between border bg-slate-900/60 hover:bg-slate-850/80 text-slate-300 border-slate-800/80 hover:border-slate-700 transition-all cursor-pointer group"
+              onClick={() => setActiveTab('commission')}
+              className={`w-full p-2.5 rounded-xl text-right flex items-center justify-between border transition-all cursor-pointer group ${
+                activeTab === 'commission'
+                  ? 'bg-gradient-to-r from-blue-500/20 via-blue-500/10 to-transparent border-blue-500 text-blue-300 font-bold shadow-lg shadow-blue-500/10'
+                  : 'bg-slate-900/60 hover:bg-slate-850/80 text-slate-300 border-slate-800/80 hover:border-slate-700'
+              }`}
             >
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 group-hover:scale-105 transition-transform">
@@ -729,7 +740,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                 </div>
                 <div>
                   <div className="text-xs font-bold text-white">{isAr ? 'توليد مخصص' : 'Commission Custom Report'}</div>
-                  <div className="text-[10px] text-slate-400">{isAr ? 'تحديد الدولة والقالب الصحفي' : 'Select country, genre, sector'}</div>
+                  <div className="text-[10px] text-slate-400">{isAr ? 'خطوات متسلسلة بدون نوافذ' : 'Smooth in-page wizard'}</div>
                 </div>
               </div>
               <Plus className="w-4 h-4 text-slate-400 group-hover:text-blue-400 transition-colors" />
@@ -866,9 +877,9 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
         </aside>
 
         {/* =======================================================================
-            MAIN CONTENT AREA
+            MAIN CONTENT AREA (بدون سكرول بار إضافي مزدوج على الحاسوب)
            ======================================================================= */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto space-y-6">
+        <div className="flex-1 p-2 sm:p-6 lg:p-8 space-y-6">
           {/* Success Banner Notice */}
           {saveSuccessNotice && (
             <div className="p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-200 text-xs font-bold flex items-center gap-2 animate-in fade-in duration-200">
@@ -878,12 +889,26 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
           )}
 
           {/* =====================================================================
-              VIEW 1: OVERVIEW (الصفحة الرئيسية لغرفة الأخبار: أقسام القطاعات مع سلايدرات متنوعة)
+              VIEW 0: COMMISSION WIZARD (منصة التوليد المخصص المدمجة بدون popup)
+             ===================================================================== */}
+          {activeTab === 'commission' && (
+            <CommissionWizard
+              onCancel={() => setActiveTab('overview')}
+              onGenerateReport={(newArt) => {
+                onAddNewDraft(newArt);
+                handleOpenInEditor(newArt);
+              }}
+              lang={lang}
+            />
+          )}
+
+          {/* =====================================================================
+              VIEW 1: OVERVIEW (الصفحة الرئيسية لغرفة الأخبار: أقسام القطاعات)
              ===================================================================== */}
           {activeTab === 'overview' && (
-            <div className="space-y-8 animate-in fade-in duration-200">
+            <div className="space-y-8 animate-in fade-in duration-200 w-full">
               {/* Header Overview Banner */}
-              <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-[#0B101E] to-slate-900 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
+              <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-[#0B101E] to-slate-900 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-2">
                     <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-xs font-bold border border-amber-500/30">
@@ -893,7 +918,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                       {isAr ? 'أقسام القطاعات الإفريقية الحية' : 'Live Sector Desks'}
                     </span>
                   </div>
-                  <h1 className="text-xl sm:text-2xl font-black text-white">
+                  <h1 className="text-lg sm:text-2xl font-black text-white">
                     {isAr ? 'تدفقات الرصد الميداني والتقارير الصحفية' : 'Continental Ingestion & Sector Streams'}
                   </h1>
                   <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
@@ -913,7 +938,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                     <span>{isAr ? 'توليد فوري عشوائي' : 'Instant Generate'}</span>
                   </button>
                   <button
-                    onClick={() => setIsCreateModalOpen(true)}
+                    onClick={() => setActiveTab('commission')}
                     className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center gap-1.5 border border-slate-700 transition-colors cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
@@ -923,42 +948,64 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
               </div>
 
               {/* SECTOR SECTIONS (الأقسام حسب القطاعات) */}
-              <div className="space-y-10">
+              <div className="space-y-10 w-full">
                 {SECTOR_SECTIONS.map((sector) => {
                   const sectorArticles = sectorArticlesMap[sector.id] || [];
                   const SectorIcon = sector.icon;
 
                   return (
-                    <section key={sector.id} className="space-y-4">
-                      {/* Sector Header */}
+                    <section key={sector.id} className="space-y-4 w-full">
+                      {/* Sector Header with Desktop Controls */}
                       <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${sector.accentColor} border flex items-center justify-center shrink-0`}>
-                            <SectorIcon className="w-5 h-5" />
+                          <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br ${sector.accentColor} border flex items-center justify-center shrink-0`}>
+                            <SectorIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                           </div>
                           <div>
-                            <h3 className="text-base font-black text-white flex items-center gap-2">
+                            <h3 className="text-sm sm:text-base font-black text-white flex items-center gap-2">
                               <span>{isAr ? sector.nameAr : sector.nameEn}</span>
-                              <span className="text-[11px] font-mono px-2 py-0.2 rounded-full bg-slate-800 text-slate-300">
+                              <span className="text-[10px] sm:text-[11px] font-mono px-2 py-0.2 rounded-full bg-slate-800 text-slate-300">
                                 {sectorArticles.length} {isAr ? 'تقارير' : 'reports'}
                               </span>
                             </h3>
-                            <p className="text-xs text-slate-400">
+                            <p className="text-[11px] sm:text-xs text-slate-400">
                               {isAr ? sector.descriptionAr : sector.descriptionEn}
                             </p>
                           </div>
                         </div>
 
-                        <span className="text-[11px] text-slate-500 hidden sm:inline font-mono">
-                          {isAr ? 'تمرير أفقي للدول والأنواع الصحفية' : 'Swipe for genres & countries'}
-                        </span>
+                        {/* Desktop Slider Navigation Arrows (انتقال سلس بين الشرائح) */}
+                        <div className="hidden sm:flex items-center gap-1.5 shrink-0">
+                          <span className="text-[11px] text-slate-500 font-mono ml-2">
+                            {isAr ? 'تنقل بين الدول والقوالب' : 'Scroll slides'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleScrollSector(sector.id, 'prev')}
+                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer border border-slate-700"
+                            title={isAr ? 'السابق' : 'Previous'}
+                          >
+                            <ChevronRight className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleScrollSector(sector.id, 'next')}
+                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer border border-slate-700"
+                            title={isAr ? 'التالي' : 'Next'}
+                          >
+                            <ChevronLeft className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
+                          </button>
+                        </div>
                       </div>
 
                       {/* Sector Slides / Cards:
-                          - On Mobile: Smooth Horizontal Carousel with snap
-                          - On Desktop: Multi-card layout with horizontal scroll / grid
+                          - On Mobile: Takes 98% of width, snap-center, without any scrollbar!
+                          - On Desktop: Multi-card layout with smooth scroll buttons
                       */}
-                      <div className="overflow-x-auto no-scrollbar scroll-smooth flex gap-4 pb-2 snap-x">
+                      <div 
+                        id={`sector-slider-${sector.id}`}
+                        className="overflow-x-auto no-scrollbar scroll-smooth flex gap-3 sm:gap-4 pb-2 snap-x snap-mandatory w-full"
+                      >
                         {sectorArticles.map((art, idx) => {
                           const isPending = art.status === 'pending_review';
 
@@ -966,7 +1013,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                             <div
                               key={art.id || idx}
                               onClick={() => handleOpenInEditor(art)}
-                              className="w-72 sm:w-80 shrink-0 snap-start bg-slate-900/90 hover:bg-slate-850/90 border border-slate-800 hover:border-amber-500/50 rounded-2xl p-4 space-y-3 cursor-pointer transition-all duration-200 group shadow-lg flex flex-col justify-between"
+                              className="w-[98%] min-w-[98%] max-w-[98%] sm:w-80 sm:min-w-0 sm:max-w-none shrink-0 snap-center sm:snap-start bg-slate-900/90 hover:bg-slate-850/90 border border-slate-800 hover:border-amber-500/50 rounded-2xl p-4 space-y-3 cursor-pointer transition-all duration-200 group shadow-lg flex flex-col justify-between mx-auto sm:mx-0"
                             >
                               {/* Top Bar: Country & Journalistic Genre */}
                               <div className="space-y-2">
@@ -980,13 +1027,18 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                                     </span>
                                   </div>
 
-                                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold font-mono ${
-                                    isPending 
-                                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' 
-                                      : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                                  }`}>
-                                    {isPending ? (isAr ? 'قيد المراجعة' : 'Pending') : (isAr ? 'منشور' : 'Published')}
-                                  </span>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-[10px] font-mono text-slate-500 sm:hidden">
+                                      [{idx + 1}/{sectorArticles.length}]
+                                    </span>
+                                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold font-mono ${
+                                      isPending 
+                                        ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' 
+                                        : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                    }`}>
+                                      {isPending ? (isAr ? 'قيد المراجعة' : 'Pending') : (isAr ? 'منشور' : 'Published')}
+                                    </span>
+                                  </div>
                                 </div>
 
                                 {/* Journalistic Genre Pill */}
@@ -1028,13 +1080,13 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
           )}
 
           {/* =====================================================================
-              VIEW 2: DIRECT EDITOR (صفحة التحرير التي تحتوي على أدوات التحرير اللازمة)
+              VIEW 2: DIRECT EDITOR (صفحة التحرير مع أدوات التحرير وانتقال من الحالية للتالي والسابق)
              ===================================================================== */}
           {activeTab === 'editor' && currentActiveArticle && (
-            <div className="space-y-6 animate-in fade-in duration-200 max-w-4xl mx-auto">
-              {/* Top Bar with Back to Overview & Status */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-md">
-                <div className="flex items-center gap-3">
+            <div className="space-y-6 animate-in fade-in duration-200 w-[98%] max-w-[98%] sm:max-w-4xl mx-auto">
+              {/* Top Bar with Back to Overview & Next/Previous Article Controls */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-md">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   <button
                     onClick={() => setActiveTab('overview')}
                     className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors flex items-center gap-1.5 text-xs font-bold cursor-pointer"
@@ -1043,15 +1095,46 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                     <span>{isAr ? 'العودة لغرفة الأخبار' : 'Back to Newsroom'}</span>
                   </button>
 
-                  <div className="text-xs">
-                    <span className="text-slate-400">{isAr ? 'المقال النشط:' : 'Active Article:'}</span>{' '}
-                    <span className="font-bold text-white">{currentActiveArticle.countryName}</span> ·{' '}
-                    <span className="text-amber-400">{currentActiveArticle.journalisticType || currentActiveArticle.sector}</span>
+                  {/* انتقـال متين وسلس: السابق والتالي بين المقالات */}
+                  <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                    <button
+                      type="button"
+                      disabled={!hasPrevArticle}
+                      onClick={handlePrevArticle}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors ${
+                        hasPrevArticle 
+                          ? 'text-slate-200 hover:bg-slate-800 hover:text-amber-400 cursor-pointer' 
+                          : 'text-slate-600 cursor-not-allowed'
+                      }`}
+                      title={isAr ? 'الانتقال للمقال السابق' : 'Previous article'}
+                    >
+                      <ArrowRight className="w-3 h-3 rtl:rotate-0 ltr:rotate-180" />
+                      <span>{isAr ? 'السابق' : 'Prev'}</span>
+                    </button>
+
+                    <span className="font-mono text-[11px] text-slate-400 px-2">
+                      {currentArticleIndex + 1} / {articles.length}
+                    </span>
+
+                    <button
+                      type="button"
+                      disabled={!hasNextArticle}
+                      onClick={handleNextArticle}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors ${
+                        hasNextArticle 
+                          ? 'text-slate-200 hover:bg-slate-800 hover:text-amber-400 cursor-pointer' 
+                          : 'text-slate-600 cursor-not-allowed'
+                      }`}
+                      title={isAr ? 'الانتقال للمقال التالي' : 'Next article'}
+                    >
+                      <span>{isAr ? 'التالي' : 'Next'}</span>
+                      <ArrowLeft className="w-3 h-3 rtl:rotate-0 ltr:rotate-180" />
+                    </button>
                   </div>
                 </div>
 
                 {/* Status Indicator */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 self-start sm:self-auto">
                   <span className={`text-xs px-3 py-1 rounded-full font-bold font-mono ${
                     currentActiveArticle.status === 'published'
                       ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
@@ -1067,7 +1150,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
               </div>
 
               {/* Editorial Workspace Card */}
-              <div className="p-6 rounded-2xl bg-[#090D1A] border border-slate-800 space-y-6 shadow-xl">
+              <div className="p-4 sm:p-6 rounded-2xl bg-[#090D1A] border border-slate-800 space-y-6 shadow-xl">
                 {/* 1. Editable Title */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
@@ -1143,7 +1226,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                   </div>
                 </div>
 
-                {/* 5. نقد وتوجيه المشرف البشري (Critique & AI Revision Notes) */}
+                {/* 5. نقد وتوجيه المشرف البشري */}
                 <div className="p-4 rounded-xl bg-rose-950/20 border border-rose-500/30 space-y-2">
                   <label className="text-xs font-bold text-rose-300 flex items-center gap-1.5">
                     <Brain className="w-4 h-4 text-rose-400" />
@@ -1219,10 +1302,10 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
               VIEW 3: PENDING QUEUE (المقالات التي تحتاج إلى معالجة)
              ===================================================================== */}
           {activeTab === 'pending' && (
-            <div className="space-y-5 animate-in fade-in duration-200">
+            <div className="space-y-5 animate-in fade-in duration-200 w-[98%] max-w-[98%] sm:max-w-none mx-auto">
               <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                 <div>
-                  <h2 className="text-lg font-black text-white flex items-center gap-2">
+                  <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5 text-rose-400" />
                     <span>{isAr ? 'المقالات المولدة التي تحتاج إلى معالجة' : 'Pending Ingestion Desk'}</span>
                   </h2>
@@ -1281,9 +1364,9 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
               VIEW 4: AGENT TRAINING (تدريب الوكيل وضبط المعايير التحريرية)
              ===================================================================== */}
           {activeTab === 'training' && (
-            <div className="space-y-6 animate-in fade-in duration-200 max-w-3xl mx-auto">
+            <div className="space-y-6 animate-in fade-in duration-200 w-[98%] max-w-[98%] sm:max-w-3xl mx-auto">
               <div className="border-b border-slate-800 pb-3">
-                <h2 className="text-lg font-black text-white flex items-center gap-2">
+                <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
                   <Brain className="w-5 h-5 text-purple-400" />
                   <span>{isAr ? 'منصة تدريب وضبط وكلاء الذكاء الاصطناعي' : 'Agent Training & Directives Workbench'}</span>
                 </h2>
@@ -1299,7 +1382,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                 </div>
               )}
 
-              <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-6 shadow-xl">
+              <div className="p-4 sm:p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-6 shadow-xl">
                 {/* 1. النبرة التحريرية */}
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-white flex items-center gap-2">
@@ -1383,10 +1466,10 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
               VIEW 5: LIBRARY (المكتبة)
              ===================================================================== */}
           {activeTab === 'library' && (
-            <div className="space-y-5 animate-in fade-in duration-200">
+            <div className="space-y-5 animate-in fade-in duration-200 w-[98%] max-w-[98%] sm:max-w-none mx-auto">
               <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                 <div>
-                  <h2 className="text-lg font-black text-white flex items-center gap-2">
+                  <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
                     <BookOpen className="w-5 h-5 text-teal-400" />
                     <span>{isAr ? 'مكتبة التقارير والمصادر المعتمدة' : 'Verified Editorial Library'}</span>
                   </h2>
@@ -1437,10 +1520,10 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
               VIEW 6: ARCHIVE (الأرشيف)
              ===================================================================== */}
           {activeTab === 'archive' && (
-            <div className="space-y-5 animate-in fade-in duration-200">
+            <div className="space-y-5 animate-in fade-in duration-200 w-[98%] max-w-[98%] sm:max-w-none mx-auto">
               <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                 <div>
-                  <h2 className="text-lg font-black text-white flex items-center gap-2">
+                  <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
                     <Archive className="w-5 h-5 text-slate-400" />
                     <span>{isAr ? 'الأرشيف والتقارير المستبعدة' : 'Editorial Archive & Shelved Records'}</span>
                   </h2>
@@ -1494,7 +1577,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
               )}
             </div>
           )}
-        </main>
+        </div>
       </div>
     </div>
   );

@@ -18,6 +18,20 @@
   font-family: 'Amiri', 'Traditional Arabic', 'Scheherazade New', serif;
 }
 
+/* Hide scrollbar universally for Chrome, Safari, Edge, Firefox, and mobile devices */
+.no-scrollbar::-webkit-scrollbar,
+::-webkit-scrollbar.no-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;  /* Firefox */
+}
+
 @keyframes ticker {
   0% {
     transform: translateX(0);

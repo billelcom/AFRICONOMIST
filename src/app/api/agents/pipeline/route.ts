@@ -1,6 +1,8 @@
 // src/app/api/agents/pipeline/route.ts
 import { NextResponse } from 'next/server';
 import { getArticlesCollection } from "@/lib/services/mongodb";
+import { ALL_54_AFRICAN_COUNTRIES } from "@/src/data/africanCountries";
+import { ECONOMIC_SECTORS, JOURNALISTIC_GENRES } from "@/src/data/reportOptions";
 
 export const dynamic = "force-dynamic";
 
@@ -212,23 +214,23 @@ export async function POST(req: Request) {
 // تعمل تحت جميع الظروف سواء تم استدعاؤها عبر Vercel Cron أو مجدول خلفي
 export async function GET(req: Request) {
   try {
-    // اختيار عشوائي للدولة والقطاع والقالب
-    const randomNation = AFRICAN_NATIONS[Math.floor(Math.random() * AFRICAN_NATIONS.length)];
-    const randomSector = SECTORS_LIST[Math.floor(Math.random() * SECTORS_LIST.length)];
-    const randomGenre = GENRES_LIST[Math.floor(Math.random() * GENRES_LIST.length)];
+    // اختيار عشوائي كامل وشامل: 54 دولة أفريقية، 28 قطاعاً، 18 نوعاً صحفياً
+    const randomNation = ALL_54_AFRICAN_COUNTRIES[Math.floor(Math.random() * ALL_54_AFRICAN_COUNTRIES.length)];
+    const randomSector = ECONOMIC_SECTORS[Math.floor(Math.random() * ECONOMIC_SECTORS.length)];
+    const randomGenre = JOURNALISTIC_GENRES[Math.floor(Math.random() * JOURNALISTIC_GENRES.length)];
 
     const report = await generateReportPipeline({
-      country: randomNation.name,
+      country: randomNation.nameAr,
       countryCode: randomNation.code,
-      sector: randomSector,
-      journalisticType: randomGenre,
+      sector: randomSector.nameAr,
+      journalisticType: randomGenre.nameAr,
       generationMode: 'automated_periodic'
     });
 
     return NextResponse.json({
       success: true,
       mode: "autonomous_30min_cycle",
-      message: `دورة الرصد نصف الساعية أنشأت بنجاح مسودة قيد المراجعة لدولة ${randomNation.name}`,
+      message: `دورة الرصد نصف الساعية أنشأت بنجاح مسودة قيد المراجعة لدولة ${randomNation.nameAr}`,
       report
     });
   } catch (error: any) {

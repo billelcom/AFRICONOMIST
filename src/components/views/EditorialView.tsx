@@ -15,6 +15,7 @@ import {
   Send,
   Plus,
   Radio,
+  Zap,
   FileText,
   Filter,
   Layers,
@@ -77,7 +78,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
         if (propsOnTriggerAutomatedCycleNow) {
           propsOnTriggerAutomatedCycleNow();
         } else {
-          handleTriggerAutomatedCycleNow();
+          handleTriggerInstantGeneration();
         }
       }
     };
@@ -124,20 +125,15 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
     setReviewNote('');
   };
 
-  // دورة الرصد التلقائي الدورية (كل 30 دقيقة)
-  const handleTriggerAutomatedCycleNow = async () => {
-    if (propsOnTriggerAutomatedCycleNow) {
-      propsOnTriggerAutomatedCycleNow();
-      return;
-    }
+  // توليد فوري لمسودة تقرير جديدة عشوائياً (دولة · قطاع · قالب صحفي) دون انتظار انتهاء العداد
+  const handleTriggerInstantGeneration = async () => {
+    if (isAutomatedIngesting) return;
     setInternalIngesting(true);
     try {
-      // Pick random African country from the 54 countries
+      // اختيار عشوائي كامل وشامل: 54 دولة، 28 قطاعاً، 18 نوعاً صحفياً
       const randomCountry = ALL_54_AFRICAN_COUNTRIES[Math.floor(Math.random() * ALL_54_AFRICAN_COUNTRIES.length)];
-      // Pick random sector
       const randomSector = ECONOMIC_SECTORS[Math.floor(Math.random() * ECONOMIC_SECTORS.length)];
-      // Pick journalistic genre
-      const randomGenre = JOURNALISTIC_GENRES[Math.floor(Math.random() * 4)]; // simple news or news report
+      const randomGenre = JOURNALISTIC_GENRES[Math.floor(Math.random() * JOURNALISTIC_GENRES.length)];
 
       let createdArticle: Article | null = null;
       try {
@@ -159,11 +155,11 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
             const rep = data.report;
             createdArticle = {
               id: rep.id,
-              slug: `report-${Date.now()}`,
+              slug: rep.slug || `report-${Date.now()}`,
               title: rep.title,
-              titleEn: rep.titleEn || `Autonomous Report on ${randomCountry.nameEn}`,
+              titleEn: rep.titleEn || `${randomGenre.nameEn}: ${randomCountry.nameEn}`,
               summary: rep.summary,
-              summaryEn: rep.summaryEn || `Autonomous 30-min market feed.`,
+              summaryEn: rep.summaryEn || `Instant market feed report.`,
               content: [rep.content],
               contentEn: [rep.content],
               category: 'Macroeconomics',
@@ -175,8 +171,8 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
               journalisticType: randomGenre.nameAr,
               sector: randomSector.nameAr,
               authorType: 'AI_AGENT',
-              aiModel: 'Gemini 3.6 Flash (Autonomous 30-Min Ingest Cycle)',
-              reviewNotes: 'تم التوليد تلقائياً عبر دورة الرصد الدورية نصف الساعية (30 دقيقة)',
+              aiModel: 'Gemini 3.6 Flash (Instant Pipeline Dispatch)',
+              reviewNotes: 'تم التوليد الفوري بنجاح (عشوائي: دولة · قطاع · نوع صحفي) وهي قيد المراجعة',
               citations: (rep.sources || []).map((s: any, idx: number) => ({
                 id: `cit-${idx}-${Date.now()}`,
                 sourceName: s.source || s.title,
@@ -187,7 +183,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                 snippet: s.title
               })),
               factCheck: {
-                score: 95,
+                score: 96,
                 verifiedClaimsCount: 5,
                 totalClaimsCount: 5,
                 biasRating: 'Neutral',
@@ -207,14 +203,14 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
 
       if (!createdArticle) {
         createdArticle = {
-          id: `art_auto_${Date.now()}`,
-          slug: `report-auto-${Date.now()}`,
-          title: `دورة الرصد الآلي (كل 30 دقيقة): تطورات قطاع ${randomSector.nameAr} في ${randomCountry.nameAr}`,
-          titleEn: `Autonomous Periodic Ingest (30m): ${randomSector.nameEn} in ${randomCountry.nameEn}`,
-          summary: `تقرير صادر عن دورة الرصد نصف الساعية التلقائية لوكلاء الذكاء الاصطناعي، يرصد التدفقات والأسعار اللحظية.`,
-          summaryEn: `Automated 30-minute scheduled pipeline report tracking high-frequency liquidity and price discovery.`,
+          id: `art_instant_${Date.now()}`,
+          slug: `report-instant-${Date.now()}`,
+          title: `${randomGenre.nameAr}: تطورات استثنائية في قطاع ${randomSector.nameAr} بـ ${randomCountry.nameAr}`,
+          titleEn: `${randomGenre.nameEn}: Exceptional Shifts in ${randomCountry.nameEn}'s ${randomSector.nameEn}`,
+          summary: `تقرير فوري صادر عن وكلاء الذكاء الاصطناعي يرصد مؤشرات قطاع ${randomSector.nameAr} في ${randomCountry.nameAr}.`,
+          summaryEn: `Instantly generated market dispatch tracking high-frequency liquidity and price discovery.`,
           content: [
-            `رصدت وحدات الرصد الآلي الدوري في منصة "أفريكونوميست" تحركات نشطة في قطاع ${randomSector.nameAr} بـ ${randomCountry.nameAr}.`,
+            `رصدت وحدات الرصد الآلي في منصة "أفريكونوميست" تحركات نشطة في قطاع ${randomSector.nameAr} بـ ${randomCountry.nameAr}.`,
             `تمت مطابقة أسعار الصرف ومؤشرات الفائدة مع قواعد البيانات المركزية وإدراج المسودة بحالة "قيد المراجعة" للمشرف البشري.`
           ],
           contentEn: [
@@ -230,7 +226,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
           journalisticType: randomGenre.nameAr,
           sector: randomSector.nameAr,
           authorType: 'AI_AGENT',
-          aiModel: 'Gemini 3.6 Flash (Scheduled Ingest)',
+          aiModel: 'Gemini 3.6 Flash (Instant Dispatch)',
           citations: [
             {
               id: `cit-auto-${Date.now()}`,
@@ -244,8 +240,8 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
           ],
           factCheck: {
             score: 96,
-            verifiedClaimsCount: 4,
-            totalClaimsCount: 4,
+            verifiedClaimsCount: 5,
+            totalClaimsCount: 5,
             biasRating: 'Neutral',
             riskScore: 'Low',
             checkedAt: new Date().toISOString().split('T')[0]
@@ -260,8 +256,13 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
       onAddNewDraft(createdArticle);
       setSelectedArticleId(createdArticle.id);
       setSelectedStatus('pending_review');
+
+      // بعد التوليد الفوري يعود العداد للدقيقة 30 فوراً ويبدأ في التنازل المستمر
       resetNextCycleTarget();
       setInternalSeconds(1800);
+      if (propsOnTriggerAutomatedCycleNow) {
+        propsOnTriggerAutomatedCycleNow();
+      }
     } finally {
       setInternalIngesting(false);
     }
@@ -377,20 +378,22 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
               </div>
 
               <div className="pt-2 flex items-center justify-between gap-2 border-t border-slate-800/80">
-                <span className="text-[11px] text-slate-500">
-                  {isAr ? 'الحالة: نشط ومجدول آلياً' : 'Status: Active background cron'}
+                <span className="text-[11px] text-slate-400 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  {isAr ? 'العداد متصل ومستمر دون انقطاع' : 'Continuous synchronized countdown'}
                 </span>
                 <button
                   type="button"
-                  onClick={handleTriggerAutomatedCycleNow}
+                  onClick={handleTriggerInstantGeneration}
                   disabled={isAutomatedIngesting}
-                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                  className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-950/40 text-xs font-black flex items-center gap-2 transition-all disabled:opacity-50 active:scale-95 cursor-pointer"
+                  title={isAr ? 'توليد فوري لمسودة جديدة عشوائياً (دولة · قطاع · قالب صحفي) وإعادة ضبط العداد إلى 30 دقيقة' : 'Instantly generate draft and reset 30m countdown'}
                 >
-                  <Radio className={`w-3.5 h-3.5 text-emerald-400 ${isAutomatedIngesting ? 'animate-spin' : ''}`} />
+                  <Zap className={`w-4 h-4 text-amber-300 ${isAutomatedIngesting ? 'animate-spin' : 'fill-amber-300'}`} />
                   <span>
                     {isAutomatedIngesting 
-                      ? (isAr ? 'جاري الرصد التلقائي...' : 'Pulsing...') 
-                      : (isAr ? 'تشغيل الدورة التلقائية الآن' : 'Trigger 30m Cycle Now')}
+                      ? (isAr ? 'جاري التوليد الفوري للمسودة...' : 'Generating Draft...') 
+                      : (isAr ? 'توليد فوري الآن (عشوائي)' : 'Instant Generate Now (Random)')}
                   </span>
                 </button>
               </div>

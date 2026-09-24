@@ -1,18 +1,44 @@
 // lib/services/mongodb.ts
 import { MongoClient, Db } from "mongodb";
+import fs from "fs";
+import path from "path";
 
 let cachedClient: MongoClient | null = null;
 let cachedDb: Db | null = null;
 let lastAuthFailTimestamp = 0;
 let lastConnectionError: string | null = null;
-const AUTH_RETRY_COOLDOWN_MS = 10000; // 10s cooldown before retrying bad credentials to prevent log spam
+const AUTH_RETRY_COOLDOWN_MS = 15000;
 
 export function getLastConnectionError(): string | null {
   return lastConnectionError;
 }
 
+/**
+ * دالة ذكية لاسترجاع رابط الاتصال بـ MongoDB Atlas
+ * تفضل القيمة الصحيحة من .env.local لتفادي أي تشويه قد يحدث في متغيرات الحاوية
+ */
+function getResolvedMongoUri(): string | undefined {
+  try {
+    const envLocalPath = path.resolve(process.cwd(), ".env.local");
+    if (fs.existsSync(envLocalPath)) {
+      const content = fs.readFileSync(envLocalPath, "utf8");
+      const match = content.match(/^MONGODB_URI\s*=\s*(.+)$/m);
+      if (match && match[1]) {
+        const localUri = match[1].trim().replace(/^['"]|['"]$/g, "");
+        if (localUri && !localUri.includes("username:password") && !localUri.includes("<password>")) {
+          return localUri;
+        }
+      }
+    }
+  } catch {
+    // تجاهل في بيئة المتصفح أو الأخطاء العابرة
+  }
+
+  return process.env.MONGODB_URI;
+}
+
 export async function connectToDatabase(): Promise<{ client: MongoClient | null; db: Db | null }> {
-  const uri = process.env.MONGODB_URI;
+  const uri = getResolvedMongoUri();
   const dbName = process.env.MONGODB_DB_NAME || "africonomist";
 
   // فحص ما إذا كان الرابط غير معرف أو يحتوي على قيم افتراضية غير حقيقية
@@ -20,7 +46,7 @@ export async function connectToDatabase(): Promise<{ client: MongoClient | null;
     return { client: null, db: null };
   }
 
-  // إذا كانت بيانات الدخول فشلت مؤخراً، نتجنب تكرار محاولات الاتصال الفاشلة في كل طلب
+  // إذا كانت بيانات الدخول فشلت مؤخراً، ننتظر فترة الهدوء لتفادي التكرار
   if (lastAuthFailTimestamp > 0 && Date.now() - lastAuthFailTimestamp < AUTH_RETRY_COOLDOWN_MS) {
     return { client: null, db: null };
   }
@@ -32,8 +58,8 @@ export async function connectToDatabase(): Promise<{ client: MongoClient | null;
   try {
     const client = new MongoClient(uri, {
       maxPoolSize: 5,
-      serverSelectionTimeoutMS: 3000,
-      connectTimeoutMS: 3000,
+      serverSelectionTimeoutMS: 4000,
+      connectTimeoutMS: 4000,
     });
 
     await client.connect();
@@ -43,6 +69,7 @@ export async function connectToDatabase(): Promise<{ client: MongoClient | null;
     cachedDb = db;
     lastAuthFailTimestamp = 0;
     lastConnectionError = null;
+    process.env.MONGODB_URI = uri; // مزامنة المتغير للرابط الفعال
 
     return { client, db };
   } catch (error: any) {
@@ -56,11 +83,6 @@ export async function connectToDatabase(): Promise<{ client: MongoClient | null;
 
     if (isAuthError) {
       lastAuthFailTimestamp = Date.now();
-      console.warn(
-        "[MongoDB Atlas] Authentication failed with provided credentials. Running in local fallback state."
-      );
-    } else {
-      console.warn("[MongoDB Atlas] Connection deferred:", errorMessage);
     }
 
     return { client: null, db: null };

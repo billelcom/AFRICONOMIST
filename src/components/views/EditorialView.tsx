@@ -28,19 +28,26 @@ import {
 import { CreateReportModal } from '../CreateReportModal';
 import { ALL_54_AFRICAN_COUNTRIES } from '../../data/africanCountries';
 import { JOURNALISTIC_GENRES, ECONOMIC_SECTORS } from '../../data/reportOptions';
+import { getSecondsUntilNextCycle, getCurrentCycleBoundary, STORAGE_LAST_CYCLE_KEY } from '../../lib/cycleScheduler';
 
 interface EditorialViewProps {
   articles: Article[];
   onUpdateArticleStatus: (articleId: string, status: Article['status'], reviewer: string, note?: string) => void;
   onAddNewDraft: (newArticle: Article) => void;
   lang: 'ar' | 'en';
+  secondsUntilNextCycle?: number;
+  isAutomatedIngesting?: boolean;
+  onTriggerAutomatedCycleNow?: () => void;
 }
 
 export const EditorialView: React.FC<EditorialViewProps> = ({
   articles,
   onUpdateArticleStatus,
   onAddNewDraft,
-  lang
+  lang,
+  secondsUntilNextCycle: propsSecondsUntilNextCycle,
+  isAutomatedIngesting: propsIsAutomatedIngesting,
+  onTriggerAutomatedCycleNow: propsOnTriggerAutomatedCycleNow
 }) => {
   const isAr = lang === 'ar';
 
@@ -53,23 +60,32 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
   // State for CreateReportModal
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
   
-  // Automated 30-minute ingestion cycle state
-  const [isAutomatedIngesting, setIsAutomatedIngesting] = useState<boolean>(false);
-  const [secondsUntilNextCycle, setSecondsUntilNextCycle] = useState<number>(1720); // ~28 minutes
+  // Automated 30-minute ingestion cycle state (مربوط بتوقيت الساعة العالمي الحقيقي وليس ثابتاً عند 1720)
+  const [internalIngesting, setInternalIngesting] = useState<boolean>(false);
+  const [internalSeconds, setInternalSeconds] = useState<number>(() => getSecondsUntilNextCycle());
 
-  // Active timer counting down for the periodic 30-min cycle
+  const isAutomatedIngesting = propsIsAutomatedIngesting !== undefined ? propsIsAutomatedIngesting : internalIngesting;
+  const secondsUntilNextCycle = propsSecondsUntilNextCycle !== undefined ? propsSecondsUntilNextCycle : internalSeconds;
+
+  // Active timer counting down for the periodic 30-min cycle, linked directly to global wall-clock
   useEffect(() => {
-    const timer = setInterval(() => {
-      setSecondsUntilNextCycle(prev => {
-        if (prev <= 1) {
-          return 1800; // Reset to 30 mins
+    const syncTime = () => {
+      const remaining = getSecondsUntilNextCycle();
+      setInternalSeconds(remaining);
+      // إطلاق الدورة تلقائياً عند انتهاء الـ 30 دقيقة
+      if (remaining <= 1 && !isAutomatedIngesting) {
+        if (propsOnTriggerAutomatedCycleNow) {
+          propsOnTriggerAutomatedCycleNow();
+        } else {
+          handleTriggerAutomatedCycleNow();
         }
-        return prev - 1;
-      });
-    }, 1000);
+      }
+    };
 
+    syncTime();
+    const timer = setInterval(syncTime, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isAutomatedIngesting, propsOnTriggerAutomatedCycleNow]);
 
   // Format seconds to mm:ss
   const formatTime = (totalSec: number) => {
@@ -110,7 +126,11 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
 
   // دورة الرصد التلقائي الدورية (كل 30 دقيقة)
   const handleTriggerAutomatedCycleNow = async () => {
-    setIsAutomatedIngesting(true);
+    if (propsOnTriggerAutomatedCycleNow) {
+      propsOnTriggerAutomatedCycleNow();
+      return;
+    }
+    setInternalIngesting(true);
     try {
       // Pick random African country from the 54 countries
       const randomCountry = ALL_54_AFRICAN_COUNTRIES[Math.floor(Math.random() * ALL_54_AFRICAN_COUNTRIES.length)];
@@ -240,9 +260,10 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
       onAddNewDraft(createdArticle);
       setSelectedArticleId(createdArticle.id);
       setSelectedStatus('pending_review');
-      setSecondsUntilNextCycle(1800); // Reset countdown
+      localStorage.setItem(STORAGE_LAST_CYCLE_KEY, String(getCurrentCycleBoundary()));
+      setInternalSeconds(getSecondsUntilNextCycle());
     } finally {
-      setIsAutomatedIngesting(false);
+      setInternalIngesting(false);
     }
   };
 

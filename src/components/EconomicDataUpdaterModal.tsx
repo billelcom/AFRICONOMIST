@@ -1,15 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AfricanCountryProfile } from '../types';
 import { 
   X, 
   RefreshCw, 
   TrendingUp, 
-  Sparkles, 
   Sliders, 
   CheckCircle2, 
   RotateCcw,
   Zap,
-  Building2,
   Users,
   Coins
 } from 'lucide-react';
@@ -32,8 +30,6 @@ export const EconomicDataUpdaterModal: React.FC<EconomicDataUpdaterModalProps> =
   onResetAll,
   lang
 }) => {
-  if (!isOpen) return null;
-
   const isAr = lang === 'ar';
   const [selectedCode, setSelectedCode] = useState<string>(countries[0]?.code || 'ZA');
 
@@ -45,6 +41,16 @@ export const EconomicDataUpdaterModal: React.FC<EconomicDataUpdaterModalProps> =
   const [popVal, setPopVal] = useState<number>(currentCountry?.populationNumber || 50);
   const [inflationVal, setInflationVal] = useState<number>(parsePercentage(currentCountry?.inflation || '5%'));
   const [successToast, setSuccessToast] = useState(false);
+
+  // Synchronize values when selected country changes or modal opens
+  useEffect(() => {
+    if (currentCountry) {
+      setGdpVal(currentCountry.gdpNumber);
+      setGrowthVal(parsePercentage(currentCountry.gdpGrowth));
+      setPopVal(currentCountry.populationNumber);
+      setInflationVal(parsePercentage(currentCountry.inflation));
+    }
+  }, [selectedCode, currentCountry]);
 
   // When changing selected country
   const handleSelectCountry = (code: string) => {
@@ -84,12 +90,15 @@ export const EconomicDataUpdaterModal: React.FC<EconomicDataUpdaterModalProps> =
   };
 
   // Ready scenarios for instant testing
-  const handleApplyScenario = (gdpMultiplier: number, growthBoost: number, label: string) => {
+  const handleApplyScenario = (gdpMultiplier: number, growthBoost: number) => {
+    if (!currentCountry) return;
     const newGdp = Number((currentCountry.gdpNumber * gdpMultiplier).toFixed(1));
     const newGrowth = Number((parsePercentage(currentCountry.gdpGrowth) + growthBoost).toFixed(1));
     setGdpVal(newGdp);
     setGrowthVal(newGrowth);
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
@@ -151,7 +160,7 @@ export const EconomicDataUpdaterModal: React.FC<EconomicDataUpdaterModalProps> =
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
               <button
                 type="button"
-                onClick={() => handleApplyScenario(1.15, 2.5, 'طفرة استثمارية')}
+                onClick={() => handleApplyScenario(1.15, 2.5)}
                 className="p-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-colors text-right rtl:text-right ltr:text-left"
               >
                 <div className="font-bold">{isAr ? '🚀 طفرة استثمارية' : '🚀 Investment Surge'}</div>
@@ -160,7 +169,7 @@ export const EconomicDataUpdaterModal: React.FC<EconomicDataUpdaterModalProps> =
 
               <button
                 type="button"
-                onClick={() => handleApplyScenario(1.25, 4.0, 'اكتشافات طاقة عملاقة')}
+                onClick={() => handleApplyScenario(1.25, 4.0)}
                 className="p-2 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition-colors text-right rtl:text-right ltr:text-left"
               >
                 <div className="font-bold">{isAr ? '⚡ اكتشاف موارد طاقة' : '⚡ Resource Boom'}</div>
@@ -169,7 +178,7 @@ export const EconomicDataUpdaterModal: React.FC<EconomicDataUpdaterModalProps> =
 
               <button
                 type="button"
-                onClick={() => handleApplyScenario(0.90, -1.8, 'تباطؤ وتضخم عالمي')}
+                onClick={() => handleApplyScenario(0.90, -1.8)}
                 className="p-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 transition-colors text-right rtl:text-right ltr:text-left"
               >
                 <div className="font-bold">{isAr ? '📉 تباطؤ اقتصادي' : '📉 Macro Slowdown'}</div>

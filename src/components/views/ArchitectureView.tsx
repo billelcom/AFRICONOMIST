@@ -724,7 +724,7 @@ export type FactCheckReport = z.infer<typeof FactCheckSchema>;`;
             <li><code className="text-amber-300 font-mono">--tailwind</code>: يقوم بتهيئة Tailwind CSS تلقائياً داخل المشروع لكتابة التصاميم بسرعة.</li>
             <li><code className="text-amber-300 font-mono">--app</code>: يفعّل نظام التوجيه الحديث (App Router) بدلاً من Pages القديم.</li>
             <li><code className="text-amber-300 font-mono">--src-dir</code>: يضع كود التطبيق بالكامل داخل مجلد <code className="text-amber-300 font-mono">src/</code> للحفاظ على نظافة جذر المشروع.</li>
-            <li><code className="text-amber-300 font-mono">--import-alias "@/*"</code>: يتيح لك استيراد الملفات بسهولة مثل <code className="text-amber-300 font-mono">@/components</code> بدلاً من <code className="text-amber-300 font-mono">../../../components</code>.</li>
+            <li><code className="text-amber-300 font-mono">{'--import-alias "@/*"'}</code>: يتيح لك استيراد الملفات بسهولة مثل <code className="text-amber-300 font-mono">@/components</code> بدلاً من <code className="text-amber-300 font-mono">../../../components</code>.</li>
           </ul>
         </div>
 
@@ -922,7 +922,7 @@ export type FactCheckReport = z.infer<typeof FactCheckSchema>;`;
             <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 text-xs space-y-1">
               <span className="font-bold text-rose-400 block font-mono">3. مجموعة المسار المخفية (dashboard)/</span>
               <p className="text-slate-300 leading-relaxed">
-                وضع المجلد بين قوسين دائريين <code className="text-amber-300">(dashboard)</code> يُعرف في Next.js باسم "Route Group". فائدته أنه ينظم ملفات لوحة التحكم التحريرية دون أن يظهر اسم المجلد في رابط المتصفح، فيكون الرابط نظيفاً ومختصراً: <code className="text-amber-300">/editorial</code>.
+                وضع المجلد بين قوسين دائريين <code className="text-amber-300">(dashboard)</code> يُعرف في Next.js باسم &quot;Route Group&quot;. فائدته أنه ينظم ملفات لوحة التحكم التحريرية دون أن يظهر اسم المجلد في رابط المتصفح، فيكون الرابط نظيفاً ومختصراً: <code className="text-amber-300">/editorial</code>.
               </p>
             </div>
 

@@ -54,7 +54,6 @@ export default function App() {
 
   const [selectedCountrySlug, setSelectedCountrySlug] = useState<string>('egypt');
   const [selectedArticle, setSelectedArticle] = useState<Article>(INITIAL_ARTICLES[0]);
-  const [isHealthCheckOpen, setIsHealthCheckOpen] = useState<boolean>(false);
 
   const isAr = lang === 'ar';
 
@@ -89,6 +88,9 @@ export default function App() {
             countryName: item.country || 'أفريقيا',
             countryNameEn: item.country || 'Africa',
             status: item.status || 'pending_review',
+            generationType: item.generationType || 'automated_periodic',
+            journalisticType: item.journalisticType || 'التقرير الإخباري',
+            sector: item.sector || 'الاقتصاد الكلي',
             authorType: item.authorType || 'AI_AGENT',
             aiModel: item.aiModel || 'Gemini 3.6 Flash',
             citations: Array.isArray(item.sources) ? item.sources.map((s: any, idx: number) => ({

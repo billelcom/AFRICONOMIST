@@ -194,7 +194,7 @@ export const HealthCheckModal: React.FC<HealthCheckModalProps> = ({ isOpen, onCl
                   </p>
                   <div className="text-[11px] font-mono text-slate-400 bg-slate-950 p-2 rounded border border-slate-800">
                     ✓ Client: MongoClient pooling<br />
-                    ✓ DB Target: "africonomist"
+                    ✓ DB Target: &quot;africonomist&quot;
                   </div>
                 </div>
               </div>

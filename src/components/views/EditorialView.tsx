@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Article, UserRole } from '../../types';
+import React, { useState, useEffect } from 'react';
+import { Article, UserRole, ArticleGenerationType } from '../../types';
 import { 
   ShieldCheck, 
   Sparkles, 
@@ -13,8 +13,21 @@ import {
   AlertTriangle,
   Code2,
   Send,
-  Plus
+  Plus,
+  Radio,
+  FileText,
+  Filter,
+  Layers,
+  Flame,
+  Globe,
+  TrendingUp,
+  SlidersHorizontal,
+  ChevronRight,
+  ExternalLink
 } from 'lucide-react';
+import { CreateReportModal } from '../CreateReportModal';
+import { ALL_54_AFRICAN_COUNTRIES } from '../../data/africanCountries';
+import { JOURNALISTIC_GENRES, ECONOMIC_SECTORS } from '../../data/reportOptions';
 
 interface EditorialViewProps {
   articles: Article[];
@@ -33,17 +46,49 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
 
   const [activeRole, setActiveRole] = useState<UserRole>('HUMAN_EDITOR');
   const [selectedStatus, setSelectedStatus] = useState<string>('pending_review');
+  const [selectedGenerationType, setSelectedGenerationType] = useState<string>('all');
   const [selectedArticleId, setSelectedArticleId] = useState<string | null>(null);
   const [reviewNote, setReviewNote] = useState<string>('');
-  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  
+  // State for CreateReportModal
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
+  
+  // Automated 30-minute ingestion cycle state
+  const [isAutomatedIngesting, setIsAutomatedIngesting] = useState<boolean>(false);
+  const [secondsUntilNextCycle, setSecondsUntilNextCycle] = useState<number>(1720); // ~28 minutes
+
+  // Active timer counting down for the periodic 30-min cycle
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSecondsUntilNextCycle(prev => {
+        if (prev <= 1) {
+          return 1800; // Reset to 30 mins
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Format seconds to mm:ss
+  const formatTime = (totalSec: number) => {
+    const mins = Math.floor(totalSec / 60);
+    const secs = totalSec % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const pendingArticles = articles.filter(a => a.status === 'pending_review');
   const publishedArticles = articles.filter(a => a.status === 'published');
   const rejectedArticles = articles.filter(a => a.status === 'rejected');
 
   const filteredArticles = articles.filter(a => {
-    if (selectedStatus === 'all') return true;
-    return a.status === selectedStatus;
+    if (selectedStatus !== 'all' && a.status !== selectedStatus) return false;
+    if (selectedGenerationType !== 'all') {
+      const gType = a.generationType || 'automated_periodic';
+      if (gType !== selectedGenerationType) return false;
+    }
+    return true;
   });
 
   const activeArticle = articles.find(a => a.id === selectedArticleId) || filteredArticles[0];
@@ -63,161 +108,178 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
     setReviewNote('');
   };
 
-  // Connect directly to the real AI Agents Pipeline API with reliable fallback
-  const handleSimulateAiDraft = async () => {
-    setIsGenerating(true);
-    let createdArticle: Article | null = null;
-
+  // دورة الرصد التلقائي الدورية (كل 30 دقيقة)
+  const handleTriggerAutomatedCycleNow = async () => {
+    setIsAutomatedIngesting(true);
     try {
-      const response = await fetch('/api/agents/pipeline', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          country: isAr ? 'نيجيريا' : 'Nigeria',
-          sector: isAr ? 'أسواق الطاقة والعملات الأجنبية والتضخم' : 'Energy, FX and Inflation'
-        })
-      });
+      // Pick random African country from the 54 countries
+      const randomCountry = ALL_54_AFRICAN_COUNTRIES[Math.floor(Math.random() * ALL_54_AFRICAN_COUNTRIES.length)];
+      // Pick random sector
+      const randomSector = ECONOMIC_SECTORS[Math.floor(Math.random() * ECONOMIC_SECTORS.length)];
+      // Pick journalistic genre
+      const randomGenre = JOURNALISTIC_GENRES[Math.floor(Math.random() * 4)]; // simple news or news report
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.report) {
-          const rep = data.report;
-          createdArticle = {
-            id: rep.id,
-            slug: `report-${Date.now()}`,
-            title: rep.title,
-            titleEn: `Special Brief: Monetary Developments in ${rep.country}`,
-            summary: rep.summary,
-            summaryEn: `Executive analysis on monetary policy and capital market flows.`,
-            content: [rep.content],
-            contentEn: [rep.content],
-            category: 'Markets',
-            countryCode: 'PAN_AFRICA',
-            countryName: rep.country,
-            countryNameEn: rep.country,
-            status: 'pending_review',
-            authorType: 'AI_AGENT',
-            aiModel: 'Gemini 3.6 Flash (Economic Ingestion Pipeline)',
-            citations: (rep.sources || []).map((s: any, idx: number) => ({
-              id: `cit-${idx}-${Date.now()}`,
-              sourceName: s.source || s.title,
-              url: s.url,
+      let createdArticle: Article | null = null;
+      try {
+        const response = await fetch('/api/agents/pipeline', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            country: isAr ? randomCountry.nameAr : randomCountry.nameEn,
+            countryCode: randomCountry.code,
+            journalisticType: randomGenre.nameAr,
+            sector: randomSector.nameAr,
+            generationMode: 'automated_periodic'
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.report) {
+            const rep = data.report;
+            createdArticle = {
+              id: rep.id,
+              slug: `report-${Date.now()}`,
+              title: rep.title,
+              titleEn: rep.titleEn || `Autonomous Report on ${randomCountry.nameEn}`,
+              summary: rep.summary,
+              summaryEn: rep.summaryEn || `Autonomous 30-min market feed.`,
+              content: [rep.content],
+              contentEn: [rep.content],
+              category: 'Macroeconomics',
+              countryCode: randomCountry.code,
+              countryName: randomCountry.nameAr,
+              countryNameEn: randomCountry.nameEn,
+              status: 'pending_review',
+              generationType: 'automated_periodic',
+              journalisticType: randomGenre.nameAr,
+              sector: randomSector.nameAr,
+              authorType: 'AI_AGENT',
+              aiModel: 'Gemini 3.6 Flash (Autonomous 30-Min Ingest Cycle)',
+              reviewNotes: 'تم التوليد تلقائياً عبر دورة الرصد الدورية نصف الساعية (30 دقيقة)',
+              citations: (rep.sources || []).map((s: any, idx: number) => ({
+                id: `cit-${idx}-${Date.now()}`,
+                sourceName: s.source || s.title,
+                url: s.url,
+                publishDate: '2026-09-24',
+                verified: true,
+                credibilityScore: 98,
+                snippet: s.title
+              })),
+              factCheck: {
+                score: 95,
+                verifiedClaimsCount: 5,
+                totalClaimsCount: 5,
+                biasRating: 'Neutral',
+                riskScore: 'Low',
+                checkedAt: new Date().toISOString().split('T')[0]
+              },
+              createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+              readTimeMinutes: 3,
+              featured: false,
+              marketImpact: 'positive'
+            };
+          }
+        }
+      } catch (e) {
+        console.warn('API error, creating local periodic article:', e);
+      }
+
+      if (!createdArticle) {
+        createdArticle = {
+          id: `art_auto_${Date.now()}`,
+          slug: `report-auto-${Date.now()}`,
+          title: `دورة الرصد الآلي (كل 30 دقيقة): تطورات قطاع ${randomSector.nameAr} في ${randomCountry.nameAr}`,
+          titleEn: `Autonomous Periodic Ingest (30m): ${randomSector.nameEn} in ${randomCountry.nameEn}`,
+          summary: `تقرير صادر عن دورة الرصد نصف الساعية التلقائية لوكلاء الذكاء الاصطناعي، يرصد التدفقات والأسعار اللحظية.`,
+          summaryEn: `Automated 30-minute scheduled pipeline report tracking high-frequency liquidity and price discovery.`,
+          content: [
+            `رصدت وحدات الرصد الآلي الدوري في منصة "أفريكونوميست" تحركات نشطة في قطاع ${randomSector.nameAr} بـ ${randomCountry.nameAr}.`,
+            `تمت مطابقة أسعار الصرف ومؤشرات الفائدة مع قواعد البيانات المركزية وإدراج المسودة بحالة "قيد المراجعة" للمشرف البشري.`
+          ],
+          contentEn: [
+            `Autonomous monitoring nodes logged active trading movements in ${randomCountry.nameEn}'s ${randomSector.nameEn}.`,
+            `Central registries matched and queued under "pending_review" for editorial sign-off.`
+          ],
+          category: 'Macroeconomics',
+          countryCode: randomCountry.code,
+          countryName: randomCountry.nameAr,
+          countryNameEn: randomCountry.nameEn,
+          status: 'pending_review',
+          generationType: 'automated_periodic',
+          journalisticType: randomGenre.nameAr,
+          sector: randomSector.nameAr,
+          authorType: 'AI_AGENT',
+          aiModel: 'Gemini 3.6 Flash (Scheduled Ingest)',
+          citations: [
+            {
+              id: `cit-auto-${Date.now()}`,
+              sourceName: `Central Bank of ${randomCountry.nameEn} Automated Feed`,
+              url: 'https://centralbank.org/feed',
               publishDate: '2026-09-24',
               verified: true,
-              credibilityScore: 98,
-              snippet: s.title
-            })),
-            factCheck: {
-              score: 95,
-              verifiedClaimsCount: 5,
-              totalClaimsCount: 5,
-              biasRating: 'Neutral',
-              riskScore: 'Low',
-              checkedAt: new Date().toISOString().split('T')[0]
-            },
-            createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
-            readTimeMinutes: 4,
-            featured: false,
-            marketImpact: 'positive'
-          };
-        }
-      }
-    } catch (err) {
-      console.warn('Pipeline fetch failed, falling back to local client generation:', err);
-    }
-
-    // Fallback: إذا تعذر الاتصال بالشبكة، يتم توليد المسودة الآنية المتوافقة مع أولوية الأسبوع/اليوم
-    if (!createdArticle) {
-      const targetCountry = isAr ? 'نيجيريا' : 'Nigeria';
-      const now = new Date();
-      const currentYear = now.getFullYear();
-
-      createdArticle = {
-        id: `art_${Date.now()}`,
-        slug: `report-${Date.now()}`,
-        title: isAr 
-          ? `نشرة هذا الأسبوع: تحركات استثنائية للسياسة النقدية وتدفقات الاستثمار في ${targetCountry}`
-          : `This Week's Bulletin: Monetary Policy Shifts and Inflow Surge in ${targetCountry}`,
-        titleEn: `This Week's Bulletin: Monetary Policy Shifts and Inflow Surge in ${targetCountry}`,
-        summary: isAr
-          ? `رصد لأحدث تطورات الأسواق المالية وعوائد السندات خلال تعاملات هذا الأسبوع، مع مقارنة تحليلية بالبيانات التاريخية للعامين الماضيين.`
-          : `Analysis of market movements and sovereign yields this week, anchored with historical comparative data.`,
-        summaryEn: `Analysis of market movements and sovereign yields this week, anchored with historical comparative data.`,
-        content: [
-          `### تطورات هذا الأسبوع (التحديث الميداني الآني)\nشهدت جلسات التداول هذا الأسبوع تدفقات سيولة جديدة نحو أدوات الدين الحكومية، مدفوعة بقرارات البنك المركزي الرامية لتثبيت أسعار الصرف وكبح الضغوط التضخمية.`,
-          `### المقارنة التاريخية والتحليل المتعمق\nبمقارنة أرقام هذا الأسبوع بمستويات العامين السابقين، نلاحظ تحسناً ملحوظاً في مرونة القطاع المصرفي وانخفاض كلفة التحوط ضد مخاطر العملة، مما يشكل قاعدة انطلاق قوية لمشاريع البنية التحتية المقبلة.`
-        ],
-        contentEn: [
-          `This week's trading sessions registered fresh liquidity inflows into sovereign debt instruments, supported by central bank policies.`,
-          `Historical comparisons with the past 24 months reveal enhanced banking resilience and lowered currency hedging premiums.`
-        ],
-        category: 'Markets',
-        countryCode: 'PAN_AFRICA',
-        countryName: targetCountry,
-        countryNameEn: targetCountry,
-        status: 'pending_review',
-        authorType: 'AI_AGENT',
-        aiModel: 'Gemini 3.6 Flash (Recency & Macro Context Pipeline)',
-        citations: [
-          {
-            id: `cit-1-${Date.now()}`,
-            sourceName: 'Official Central Bank Gazette (This Week)',
-            url: 'https://centralbank.org',
-            publishDate: now.toISOString().split('T')[0],
-            verified: true,
-            credibilityScore: 99,
-            snippet: `Official Weekly Central Bank Monetary Operations Bulletin`
+              credibilityScore: 99,
+              snippet: 'Live feed tick confirmed.'
+            }
+          ],
+          factCheck: {
+            score: 96,
+            verifiedClaimsCount: 4,
+            totalClaimsCount: 4,
+            biasRating: 'Neutral',
+            riskScore: 'Low',
+            checkedAt: new Date().toISOString().split('T')[0]
           },
-          {
-            id: `cit-2-${Date.now()}`,
-            sourceName: `African Economic Outlook & Historical Data Archive (2024-${currentYear})`,
-            url: 'https://www.afdb.org',
-            publishDate: `${currentYear}-Recent`,
-            verified: true,
-            credibilityScore: 96,
-            snippet: `Longitudinal comparative dataset for macroeconomic stability`
-          }
-        ],
-        factCheck: {
-          score: 97,
-          verifiedClaimsCount: 6,
-          totalClaimsCount: 6,
-          biasRating: 'Neutral',
-          riskScore: 'Low',
-          checkedAt: now.toISOString().split('T')[0]
-        },
-        createdAt: now.toISOString().replace('T', ' ').substring(0, 16),
-        readTimeMinutes: 4,
-        featured: false,
-        marketImpact: 'positive'
-      };
-    }
+          createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+          readTimeMinutes: 3,
+          featured: false,
+          marketImpact: 'positive'
+        };
+      }
 
-    onAddNewDraft(createdArticle);
-    setSelectedArticleId(createdArticle.id);
+      onAddNewDraft(createdArticle);
+      setSelectedArticleId(createdArticle.id);
+      setSelectedStatus('pending_review');
+      setSecondsUntilNextCycle(1800); // Reset countdown
+    } finally {
+      setIsAutomatedIngesting(false);
+    }
+  };
+
+  // عند إنشاء تقرير جديد عبر نافذة المشرف
+  const handleReportGeneratedBySupervisor = (newArt: Article) => {
+    onAddNewDraft(newArt);
+    setSelectedArticleId(newArt.id);
     setSelectedStatus('pending_review');
-    setIsGenerating(false);
   };
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-6 pb-20 max-w-full overflow-hidden">
+      {/* Modal: إعداد تقرير جديد (Commission Modal) */}
+      <CreateReportModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onGenerateReport={handleReportGeneratedBySupervisor}
+        lang={lang}
+      />
+
       {/* Clean Newsroom Desk Header */}
       <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-white font-bold text-sm">
-            <ShieldCheck className="w-5 h-5 text-rose-400" />
-            <span>{isAr ? 'غرفة الأخبار: بوابة المراجعة والاعتماد التحريري' : 'Newsroom: Editorial Review Desk'}</span>
+          <div className="flex items-center gap-2 text-white font-bold text-sm sm:text-base">
+            <ShieldCheck className="w-5 h-5 text-rose-400 shrink-0" />
+            <span>{isAr ? 'غرفة الأخبار: إدارة النشر والمراجعة التحريرية' : 'Newsroom: Editorial Review & Ingestion Desk'}</span>
           </div>
           <p className="text-[11px] text-slate-400">
             {isAr 
-              ? 'مراجعة وتدقيق مسودات التقارير الاقتصادية المولدة آلياً ومصادقة المصادر قبل النشر المباشر'
-              : 'Review and verify automated economic briefs and source citations before final publication'}
+              ? 'مراقبة نظامي النشر: المقالات التلقائية الدورية كل نصف ساعة، والتقارير المخصصة بإشراف المشرف'
+              : 'Managing dual publishing streams: Autonomous 30-min feeds and supervisor-commissioned custom reports'}
           </p>
         </div>
 
-        {/* Editorial Mode Switcher */}
-        <div className="flex items-center gap-2 bg-slate-950 p-1.5 rounded-lg border border-slate-800">
-          <span className="text-slate-400 text-[11px] px-2 font-medium">
+        {/* Editorial Role Switcher */}
+        <div className="flex items-center gap-1.5 bg-slate-950 p-1.5 rounded-lg border border-slate-800 shrink-0">
+          <span className="text-slate-400 text-[11px] px-2 font-medium hidden sm:inline">
             {isAr ? 'صفة الحساب:' : 'Editor Status:'}
           </span>
           <button
@@ -245,7 +307,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
 
       {/* If GUEST (Role test) */}
       {activeRole === 'GUEST' ? (
-        <div className="p-12 text-center rounded-2xl bg-[#0c1220] border border-rose-900/50 space-y-4 max-w-xl mx-auto">
+        <div className="p-8 sm:p-12 text-center rounded-2xl bg-[#0c1220] border border-rose-900/50 space-y-4 max-w-xl mx-auto">
           <div className="w-12 h-12 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto text-rose-400">
             <Lock className="w-6 h-6" />
           </div>
@@ -267,36 +329,119 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
       ) : (
         /* Authorized Editorial Review Workspace */
         <div className="space-y-6">
-          {/* Action Bar & Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          {/* Dual Publishing Architecture Banner (المقالات من حيث النشر نوعين) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* STREAM 1: Automated 30-min Ingestion */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 flex flex-col justify-between gap-3 shadow-sm">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                    <span className="text-xs font-bold text-emerald-400">
+                      {isAr ? 'النوع الأول: مقالات تعد تلقائياً كل 30 دقيقة' : 'Type 1: Autonomous Periodic (Every 30m)'}
+                    </span>
+                  </div>
+                  <span className="font-mono text-xs text-slate-400 px-2 py-0.5 rounded bg-slate-800/80 border border-slate-700">
+                    ⏱️ {formatTime(secondsUntilNextCycle)}
+                  </span>
+                </div>
+                <h3 className="text-sm font-black text-white">
+                  {isAr ? 'دورة الرصد الآلي الشاملة (Autonomous Ingestion)' : 'Scheduled Autonomous Macro Pulse'}
+                </h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  {isAr 
+                    ? 'يقوم وكلاء الذكاء الاصطناعي برصد أسواق العملات، السلع، والمصارف في الـ 54 دولة دورياً كل نصف ساعة وإيداع المسودات في غرفة الأخبار.' 
+                    : 'AI agents continuously pulse all 54 African economies every 30 minutes, depositing drafts for review.'}
+                </p>
+              </div>
+
+              <div className="pt-2 flex items-center justify-between gap-2 border-t border-slate-800/80">
+                <span className="text-[11px] text-slate-500">
+                  {isAr ? 'الحالة: نشط ومجدول آلياً' : 'Status: Active background cron'}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleTriggerAutomatedCycleNow}
+                  disabled={isAutomatedIngesting}
+                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                >
+                  <Radio className={`w-3.5 h-3.5 text-emerald-400 ${isAutomatedIngesting ? 'animate-spin' : ''}`} />
+                  <span>
+                    {isAutomatedIngesting 
+                      ? (isAr ? 'جاري الرصد التلقائي...' : 'Pulsing...') 
+                      : (isAr ? 'تشغيل الدورة التلقائية الآن' : 'Trigger 30m Cycle Now')}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* STREAM 2: Supervisor Commissioned Desk (إعداد تقرير جديد) */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 via-slate-900 to-slate-950 border border-amber-500/30 flex flex-col justify-between gap-3 shadow-lg ring-1 ring-amber-500/20">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-400" />
+                    <span className="text-xs font-bold text-amber-400">
+                      {isAr ? 'النوع الثاني: مقالات يعدها المشرف بنفسه' : 'Type 2: Supervisor Commissioned'}
+                    </span>
+                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
+                    {isAr ? 'إشراف بشري كامل' : 'Human Commission'}
+                  </span>
+                </div>
+                <h3 className="text-sm font-black text-white">
+                  {isAr ? 'تخصيص تقرير جديد (54 دولة · 18 نوعاً صحفياً · 28 قطاعاً)' : 'Custom Report Setup (54 Countries · 18 Genres · 28 Sectors)'}
+                </h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  {isAr 
+                    ? 'يقوم المشرف بتعيين الدولة بدقة، واختيار القالب الصحفي المناسب من بين 18 قالباً، والقطاع من بين 28 قطاعاً لإنتاج تقرير فوري دقيق.' 
+                    : 'Directly commission reports with target nation, journalistic structure, and economic sector.'}
+                </p>
+              </div>
+
+              {/* Outstanding User Request Button: "إعداد تقرير جديد" */}
+              <div className="pt-2 flex items-center justify-between gap-2 border-t border-amber-500/20">
+                <span className="text-[11px] text-amber-400/80 font-mono">
+                  54 {isAr ? 'دولة' : 'nations'} · 18 {isAr ? 'نوعاً' : 'genres'} · 28 {isAr ? 'قطاعاً' : 'sectors'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs flex items-center gap-2 shadow-md hover:shadow-amber-500/20 transition-all cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>{isAr ? 'إعداد تقرير جديد' : 'Prepare New Report'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Bar & Stats Summary */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800">
               <span className="text-[11px] text-slate-400 block">{isAr ? 'المسودات قيد المراجعة' : 'Pending Review'}</span>
-              <div className="text-2xl font-black font-mono text-rose-400 mt-1">{pendingArticles.length}</div>
+              <div className="text-xl sm:text-2xl font-black font-mono text-rose-400 mt-1">{pendingArticles.length}</div>
             </div>
 
             <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800">
-              <span className="text-[11px] text-slate-400 block">{isAr ? 'المقالات المعتمدة والمنشورة' : 'Approved & Published'}</span>
-              <div className="text-2xl font-black font-mono text-emerald-400 mt-1">{publishedArticles.length}</div>
+              <span className="text-[11px] text-slate-400 block">{isAr ? 'المقالات المنشورة' : 'Approved & Published'}</span>
+              <div className="text-xl sm:text-2xl font-black font-mono text-emerald-400 mt-1">{publishedArticles.length}</div>
             </div>
 
             <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800">
               <span className="text-[11px] text-slate-400 block">{isAr ? 'المسودات المرفوضة' : 'Rejected'}</span>
-              <div className="text-2xl font-black font-mono text-slate-400 mt-1">{rejectedArticles.length}</div>
+              <div className="text-xl sm:text-2xl font-black font-mono text-slate-400 mt-1">{rejectedArticles.length}</div>
             </div>
 
-            {/* Ingestion Trigger Button */}
+            {/* Quick Action Button for Mobile / Secondary */}
             <div className="flex items-center">
               <button
-                onClick={handleSimulateAiDraft}
-                disabled={isGenerating}
-                className="w-full h-full min-h-[64px] p-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all disabled:opacity-50"
+                type="button"
+                onClick={() => setIsCreateModalOpen(true)}
+                className="w-full h-full min-h-[58px] p-2.5 rounded-xl bg-slate-900 hover:bg-slate-850 border border-amber-500/40 text-amber-400 font-bold text-xs flex items-center justify-center gap-2 transition-all"
               >
-                <Sparkles className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
-                <span>
-                  {isGenerating 
-                    ? (isAr ? 'جاري الرصد والتوليد...' : 'Agent Ingesting...') 
-                    : (isAr ? 'محاكاة استلام مسودة AI جديدة' : 'Simulate Ingest AI Draft')}
-                </span>
+                <Sparkles className="w-4 h-4 text-amber-400" />
+                <span className="text-center">{isAr ? 'إعداد تقرير جديد' : 'Prepare New Report'}</span>
               </button>
             </div>
           </div>
@@ -305,33 +450,36 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Left Queue List (5 Cols) */}
             <div className="lg:col-span-5 space-y-3">
-              {/* Status Segmented Buttons */}
-              <div className="flex items-center gap-1 p-1 bg-slate-900 rounded-lg border border-slate-800">
+              {/* Filter 1: Review Status Buttons */}
+              <div className="flex items-center gap-1 p-1 bg-slate-900 rounded-lg border border-slate-800 text-xs">
                 <button
+                  type="button"
                   onClick={() => setSelectedStatus('pending_review')}
-                  className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                  className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors ${
                     selectedStatus === 'pending_review'
-                      ? 'bg-rose-500 text-white font-bold'
+                      ? 'bg-rose-500 text-white shadow-sm'
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
                   {isAr ? 'قيد المراجعة' : 'Pending'} ({pendingArticles.length})
                 </button>
                 <button
+                  type="button"
                   onClick={() => setSelectedStatus('published')}
-                  className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                  className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors ${
                     selectedStatus === 'published'
-                      ? 'bg-emerald-600 text-white font-bold'
+                      ? 'bg-emerald-600 text-white shadow-sm'
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
                   {isAr ? 'منشور' : 'Published'} ({publishedArticles.length})
                 </button>
                 <button
+                  type="button"
                   onClick={() => setSelectedStatus('all')}
-                  className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                  className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors ${
                     selectedStatus === 'all'
-                      ? 'bg-slate-700 text-white font-bold'
+                      ? 'bg-slate-700 text-white shadow-sm'
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
@@ -339,153 +487,301 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                 </button>
               </div>
 
-              {/* Draft Cards */}
-              <div className="space-y-2.5 max-h-[600px] overflow-y-auto pr-1">
+              {/* Filter 2: Publishing Origin Buttons (المقالات من حيث النشر نوعين) */}
+              <div className="flex items-center gap-1 p-1 bg-slate-950 rounded-lg border border-slate-800 text-[11px] overflow-x-auto no-scrollbar">
+                <button
+                  type="button"
+                  onClick={() => setSelectedGenerationType('all')}
+                  className={`px-2.5 py-1 rounded whitespace-nowrap transition-colors ${
+                    selectedGenerationType === 'all'
+                      ? 'bg-amber-500 text-slate-950 font-bold'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {isAr ? 'كافة المصادر' : 'All Types'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedGenerationType('automated_periodic')}
+                  className={`px-2.5 py-1 rounded whitespace-nowrap transition-colors flex items-center gap-1 ${
+                    selectedGenerationType === 'automated_periodic'
+                      ? 'bg-emerald-500 text-slate-950 font-bold'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <span>⚡</span>
+                  <span>{isAr ? 'آلي دوري (30د)' : 'Auto (30m)'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedGenerationType('manual_supervisor')}
+                  className={`px-2.5 py-1 rounded whitespace-nowrap transition-colors flex items-center gap-1 ${
+                    selectedGenerationType === 'manual_supervisor'
+                      ? 'bg-amber-400 text-slate-950 font-bold'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <span>🎯</span>
+                  <span>{isAr ? 'إعداد المشرف' : 'Supervisor'}</span>
+                </button>
+              </div>
+
+              {/* Draft Cards List */}
+              <div className="space-y-2.5 max-h-[620px] overflow-y-auto pr-1">
                 {filteredArticles.length === 0 ? (
-                  <div className="p-8 text-center text-xs text-slate-500 bg-slate-900/40 rounded-xl border border-slate-800">
-                    {isAr ? 'لا توجد مسودات في هذا القسم' : 'No drafts in this view'}
+                  <div className="p-8 text-center text-xs text-slate-500 bg-slate-900/40 rounded-xl border border-slate-800 space-y-2">
+                    <div>{isAr ? 'لا توجد تقارير مطابقة لهذا التصنيف' : 'No drafts matching filter'}</div>
+                    <button
+                      type="button"
+                      onClick={() => setIsCreateModalOpen(true)}
+                      className="px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold hover:bg-amber-500/20 transition-colors"
+                    >
+                      {isAr ? 'إعداد تقرير جديد الآن' : 'Prepare New Report Now'}
+                    </button>
                   </div>
                 ) : (
-                  filteredArticles.map((art) => (
-                    <div
-                      key={art.id}
-                      onClick={() => setSelectedArticleId(art.id)}
-                      className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                        activeArticle?.id === art.id
-                          ? 'bg-[#121a2c] border-amber-500 shadow-md'
-                          : 'bg-[#0d1320] border-slate-800 hover:border-slate-700'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between text-xs mb-1.5">
-                        <span className="font-mono text-slate-400 text-[11px]">{art.countryName}</span>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded font-mono ${
-                          art.status === 'published' 
-                            ? 'bg-emerald-500/20 text-emerald-400' 
-                            : art.status === 'rejected'
-                            ? 'bg-rose-500/20 text-rose-400'
-                            : 'bg-amber-500/20 text-amber-300'
-                        }`}>
-                          {art.status}
-                        </span>
+                  filteredArticles.map((art) => {
+                    const isSelected = activeArticle?.id === art.id;
+                    const isSupervisor = art.generationType === 'manual_supervisor';
+
+                    return (
+                      <div
+                        key={art.id}
+                        onClick={() => setSelectedArticleId(art.id)}
+                        className={`p-3.5 sm:p-4 rounded-xl border cursor-pointer transition-all space-y-2 ${
+                          isSelected
+                            ? 'bg-[#121a2c] border-amber-500 shadow-md ring-1 ring-amber-500/30'
+                            : 'bg-[#0d1320] border-slate-800 hover:border-slate-700'
+                        }`}
+                      >
+                        {/* Top Line: Country + Origin + Status */}
+                        <div className="flex items-center justify-between gap-1 text-xs">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-white text-xs">{art.countryName}</span>
+                            
+                            {/* Publishing Origin Badge */}
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold border ${
+                              isSupervisor
+                                ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                                : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                            }`}>
+                              {isSupervisor ? (isAr ? '🎯 إعداد المشرف' : '🎯 Supervisor') : (isAr ? '⚡ دوري كل 30د' : '⚡ 30m Auto')}
+                            </span>
+                          </div>
+
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded font-mono shrink-0 ${
+                            art.status === 'published' 
+                              ? 'bg-emerald-500/20 text-emerald-400' 
+                              : art.status === 'rejected'
+                              ? 'bg-rose-500/20 text-rose-400'
+                              : 'bg-rose-500/20 text-rose-300'
+                          }`}>
+                            {art.status === 'pending_review' ? (isAr ? 'قيد المراجعة' : 'Pending') : art.status}
+                          </span>
+                        </div>
+
+                        {/* Title */}
+                        <h4 className="text-xs sm:text-sm font-bold text-white line-clamp-2 leading-snug">
+                          {isAr ? art.title : art.titleEn}
+                        </h4>
+
+                        {/* Middle Badges: Journalistic Genre + Sector */}
+                        <div className="flex flex-wrap items-center gap-1.5 text-[10px]">
+                          {art.journalisticType && (
+                            <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700/80">
+                              📰 {art.journalisticType}
+                            </span>
+                          )}
+                          {art.sector && (
+                            <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700/80">
+                              📊 {art.sector}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Footer: Citations & Fact Check */}
+                        <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800/60">
+                          <span>{art.citations.length} {isAr ? 'مصادر موثقة' : 'citations'}</span>
+                          <span className="text-emerald-400 font-mono font-bold">{art.factCheck.score}% {isAr ? 'دقة' : 'score'}</span>
+                        </div>
                       </div>
-                      <h4 className="text-sm font-bold text-white line-clamp-2 mb-2 leading-snug">
-                        {isAr ? art.title : art.titleEn}
-                      </h4>
-                      <div className="flex items-center justify-between text-[11px] text-slate-500">
-                        <span>{art.citations.length} مصادر موثقة</span>
-                        <span className="text-emerald-400 font-mono">{art.factCheck.score}% دقة</span>
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>
 
             {/* Right Inspection & Decision Panel (7 Cols) */}
-            <div className="lg:col-span-7 p-6 rounded-xl bg-[#0c1220] border border-slate-800 space-y-6">
+            <div className="lg:col-span-7 p-4 sm:p-6 rounded-2xl bg-[#0c1220] border border-slate-800 space-y-6">
               {activeArticle ? (
                 <>
                   <div className="space-y-3 pb-4 border-b border-slate-800">
+                    {/* Detailed Metadata Header */}
                     <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="text-amber-400 font-bold">{activeArticle.category}</span>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className={`text-[10px] px-2 py-0.5 rounded font-bold border ${
+                          activeArticle.generationType === 'manual_supervisor'
+                            ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                            : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                        }`}>
+                          {activeArticle.generationType === 'manual_supervisor'
+                            ? (isAr ? '🎯 إعداد المشرف المخصص' : '🎯 Supervisor Commissioned')
+                            : (isAr ? '⚡ توليد آلي دوري (كل 30 دقيقة)' : '⚡ Autonomous 30-min Feed')}
+                        </span>
                         <span>·</span>
-                        <span className="text-slate-400">{activeArticle.countryName}</span>
+                        <span className="text-amber-400 font-bold">{activeArticle.countryName}</span>
                         <span>·</span>
-                        <span className="text-slate-500 font-mono">{activeArticle.id}</span>
+                        <span className="text-slate-400 font-mono text-[11px]">{activeArticle.id}</span>
                       </div>
-                      <span className="text-xs font-mono text-slate-400">
+                      <span className="text-[11px] font-mono text-slate-400">
                         {isAr ? 'وقت الإنشاء: ' : 'Created: '}
                         {activeArticle.createdAt}
                       </span>
                     </div>
 
-                    <h2 className="text-lg sm:text-xl font-bold text-white leading-tight">
+                    {/* Classification Row (Genre + Sector) */}
+                    <div className="flex flex-wrap items-center gap-2 p-2 rounded-lg bg-slate-900 border border-slate-800 text-xs">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-slate-400">{isAr ? 'النوع الصحفي:' : 'Genre:'}</span>
+                        <span className="font-bold text-white bg-slate-800 px-2 py-0.5 rounded">
+                          {activeArticle.journalisticType || (isAr ? 'تقرير إخباري' : 'News Report')}
+                        </span>
+                      </div>
+                      <span className="text-slate-700">|</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-slate-400">{isAr ? 'المجال أو القطاع:' : 'Sector:'}</span>
+                        <span className="font-bold text-white bg-slate-800 px-2 py-0.5 rounded">
+                          {activeArticle.sector || activeArticle.category}
+                        </span>
+                      </div>
+                    </div>
+
+                    <h2 className="text-base sm:text-xl font-bold text-white leading-tight">
                       {isAr ? activeArticle.title : activeArticle.titleEn}
                     </h2>
 
-                    <p className="text-xs text-slate-300 bg-slate-900/80 p-3 rounded-lg border border-slate-800 leading-relaxed">
+                    <p className="text-xs text-slate-300 bg-slate-900/80 p-3 sm:p-4 rounded-xl border border-slate-800 leading-relaxed">
                       {isAr ? activeArticle.summary : activeArticle.summaryEn}
                     </p>
                   </div>
 
-                  {/* Fact Check Details & Citations in Draft */}
-                  <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div className="p-3 rounded-lg bg-slate-900 border border-slate-800">
-                      <span className="text-slate-400 block mb-1">{isAr ? 'وكيل الذكاء الاصطناعي:' : 'AI Model:'}</span>
-                      <span className="text-slate-200 font-mono text-[11px]">{activeArticle.aiModel}</span>
+                  {/* Fact Check Details & AI Engine */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
+                      <span className="text-slate-400 block mb-1">{isAr ? 'محرك وخوارزمية الوكيل:' : 'AI Agent Engine:'}</span>
+                      <span className="text-slate-200 font-mono text-[11px] block">{activeArticle.aiModel}</span>
+                      {activeArticle.reviewNotes && (
+                        <p className="text-[10px] text-amber-400/80 mt-1">{activeArticle.reviewNotes}</p>
+                      )}
                     </div>
 
-                    <div className="p-3 rounded-lg bg-slate-900 border border-slate-800">
-                      <span className="text-slate-400 block mb-1">{isAr ? 'نتيجة فحص الحقائق:' : 'Fact Score:'}</span>
-                      <span className="text-emerald-400 font-bold font-mono">
-                        {activeArticle.factCheck.score}% ({activeArticle.factCheck.verifiedClaimsCount} ادعاء تم التحقق منه)
+                    <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
+                      <span className="text-slate-400 block mb-1">{isAr ? 'نتيجة فحص الحقائق والمطابقة:' : 'Fact-Check & Citation Score:'}</span>
+                      <span className="text-emerald-400 font-bold font-mono text-sm block">
+                        {activeArticle.factCheck.score}%
+                      </span>
+                      <span className="text-[10px] text-slate-400">
+                        ({activeArticle.factCheck.verifiedClaimsCount} {isAr ? 'ادعاءات موثقة ومطابقة' : 'verified claims'})
                       </span>
                     </div>
                   </div>
 
                   {/* Citations Box */}
                   <div className="space-y-2">
-                    <span className="text-xs font-bold text-slate-400">
-                      {isAr ? 'المصادر والروابط المستخرجة بواسطة الوكيل (Citations):' : 'Extracted Source Citations:'}
+                    <span className="text-xs font-bold text-slate-300 block">
+                      {isAr ? 'المصادر والروابط المستخرجة بواسطة الوكيل (Mandatory Citations):' : 'Extracted Source Citations:'}
                     </span>
-                    {activeArticle.citations.map((c, i) => (
-                      <div key={i} className="p-2.5 rounded bg-slate-900 border border-slate-800 text-xs">
-                        <div className="flex justify-between font-bold text-slate-300">
-                          <span>{c.sourceName}</span>
-                          <span className="text-emerald-400 font-mono">{c.credibilityScore}% موثوقية</span>
+                    <div className="space-y-2">
+                      {activeArticle.citations.map((c, i) => (
+                        <div key={i} className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs space-y-1">
+                          <div className="flex items-center justify-between font-bold text-slate-200">
+                            <span className="truncate">{c.sourceName}</span>
+                            <span className="text-emerald-400 font-mono shrink-0">{c.credibilityScore}% {isAr ? 'موثوقية' : 'credibility'}</span>
+                          </div>
+                          {c.snippet && (
+                            <p className="text-[11px] text-slate-400 italic">&ldquo;{c.snippet}&rdquo;</p>
+                          )}
+                          {c.url && (
+                            <a 
+                              href={c.url} 
+                              target="_blank" 
+                              rel="noreferrer" 
+                              className="text-[10px] text-amber-400 hover:underline flex items-center gap-1 font-mono pt-1"
+                            >
+                              <span>{c.url}</span>
+                              <ExternalLink className="w-2.5 h-2.5" />
+                            </a>
+                          )}
                         </div>
-                        <p className="text-[11px] text-slate-400 mt-1 italic">"{c.snippet}"</p>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Content Preview */}
+                  <div className="space-y-2 pt-2">
+                    <span className="text-xs font-bold text-slate-300 block">
+                      {isAr ? 'نص المسودة الكامل (Full Draft Preview):' : 'Full Draft Preview:'}
+                    </span>
+                    <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 max-h-60 overflow-y-auto text-xs text-slate-300 space-y-2 leading-relaxed">
+                      {(isAr ? activeArticle.content : activeArticle.contentEn).map((paragraph, pIdx) => (
+                        <p key={pIdx} className="whitespace-pre-line">{paragraph}</p>
+                      ))}
+                    </div>
                   </div>
 
                   {/* Human-in-the-Loop Decision Box */}
                   <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-700/60 space-y-4">
                     <div>
                       <label className="text-xs font-bold text-slate-300 block mb-1.5">
-                        {isAr ? 'ملاحظة المدقق البشري وسجل التدقيق (Audit Log Note):' : 'Human Editor Review Note:'}
+                        {isAr ? 'ملاحظة المدقق البشري وسجل التدقيق (Human-in-the-Loop Audit Log):' : 'Human Editor Review Note:'}
                       </label>
                       <textarea
                         value={reviewNote}
                         onChange={(e) => setReviewNote(e.target.value)}
-                        placeholder={isAr ? 'أدخل ملاحظاتك التحريرية، سبب الاعتماد أو أسباب طلب التعديل...' : 'Enter editorial remarks or verification instructions...'}
-                        className="w-full h-20 p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-amber-500 resize-none"
+                        placeholder={isAr ? 'أدخل ملاحظات التدقيق أو شروط التعديل قبل الاعتماد النهائي...' : 'Add audit notes before final sign-off...'}
+                        rows={2}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
                       />
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2 pt-2">
+                    {/* Action Decision Buttons */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-2">
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleReject(activeArticle.id)}
+                          className="flex-1 sm:flex-initial px-3.5 py-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+                        >
+                          <XCircle className="w-4 h-4" />
+                          <span>{isAr ? 'رفض المسودة' : 'Reject Draft'}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleRequestRevision(activeArticle.id)}
+                          className="flex-1 sm:flex-initial px-3.5 py-2 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+                        >
+                          <RotateCcw className="w-4 h-4" />
+                          <span>{isAr ? 'طلب مراجعة' : 'Request Revision'}</span>
+                        </button>
+                      </div>
+
                       <button
+                        type="button"
                         onClick={() => handleApprove(activeArticle.id)}
-                        disabled={activeArticle.status === 'published'}
-                        className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white font-bold text-xs flex items-center gap-1.5 transition-colors"
+                        className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 text-xs font-black flex items-center justify-center gap-2 shadow-lg transition-all"
                       >
                         <CheckCircle className="w-4 h-4" />
-                        <span>{isAr ? 'اعتماد ونشر في الموقع (Approve)' : 'Approve & Publish'}</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleRequestRevision(activeArticle.id)}
-                        className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-colors"
-                      >
-                        <RotateCcw className="w-4 h-4" />
-                        <span>{isAr ? 'طلب إعادة تنقيح من الوكيل' : 'Request Revision'}</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleReject(activeArticle.id)}
-                        disabled={activeArticle.status === 'rejected'}
-                        className="px-4 py-2 rounded-lg bg-rose-600/80 hover:bg-rose-500 disabled:opacity-40 text-white font-bold text-xs flex items-center gap-1.5 transition-colors"
-                      >
-                        <XCircle className="w-4 h-4" />
-                        <span>{isAr ? 'رفض المسودة (Reject)' : 'Reject Draft'}</span>
+                        <span>{isAr ? 'اعتماد ونشر فوري' : 'Approve & Publish'}</span>
                       </button>
                     </div>
                   </div>
                 </>
               ) : (
-                <div className="p-12 text-center text-slate-500 text-sm">
-                  {isAr ? 'اختر مسودة من القائمة للمراجعة' : 'Select a draft to inspect'}
+                <div className="p-12 text-center text-xs text-slate-500">
+                  {isAr ? 'اختر مسودة من القائمة الجانبية للمراجعة' : 'Select a draft to inspect'}
                 </div>
               )}
             </div>

@@ -52,7 +52,41 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
         <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 font-medium">
           <span className="text-amber-400 font-bold uppercase">{article.category}</span>
           <span aria-hidden="true" className="text-slate-600">·</span>
-          <span>{isAr ? article.countryName : article.countryNameEn}</span>
+          <span className="text-white font-bold">{isAr ? article.countryName : article.countryNameEn}</span>
+          
+          {article.journalisticType && (
+            <>
+              <span aria-hidden="true" className="text-slate-600">·</span>
+              <span className="px-2 py-0.5 rounded bg-slate-800 text-amber-300 font-semibold border border-slate-700">
+                📰 {article.journalisticType}
+              </span>
+            </>
+          )}
+
+          {article.sector && (
+            <>
+              <span aria-hidden="true" className="text-slate-600">·</span>
+              <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-200 border border-slate-700">
+                📊 {article.sector}
+              </span>
+            </>
+          )}
+
+          {article.generationType && (
+            <>
+              <span aria-hidden="true" className="text-slate-600">·</span>
+              <span className={`px-2 py-0.5 rounded font-mono font-bold text-[10px] border ${
+                article.generationType === 'manual_supervisor'
+                  ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                  : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+              }`}>
+                {article.generationType === 'manual_supervisor'
+                  ? (isAr ? '🎯 إعداد المشرف المخصص' : '🎯 Supervisor Commission')
+                  : (isAr ? '⚡ دوري كل 30 دقيقة' : '⚡ 30m Auto Ingest')}
+              </span>
+            </>
+          )}
+
           <span aria-hidden="true" className="text-slate-600">·</span>
           <span className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5 text-slate-500" />
@@ -194,7 +228,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
                     </div>
 
                     <p className="text-[11px] text-slate-400 italic mb-2">
-                      "{cit.snippet}"
+                      &ldquo;{cit.snippet}&rdquo;
                     </p>
 
                     <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-slate-800">

@@ -1,5 +1,7 @@
 export type ArticleStatus = 'draft' | 'pending_review' | 'published' | 'rejected' | 'revision_requested';
 
+export type ArticleGenerationType = 'automated_periodic' | 'manual_supervisor';
+
 export type UserRole = 'HUMAN_EDITOR' | 'ADMIN' | 'AI_AGENT_INGEST' | 'AI_AGENT_WRITER' | 'GUEST';
 
 export interface Citation {
@@ -35,6 +37,9 @@ export interface Article {
   countryName: string;
   countryNameEn: string;
   status: ArticleStatus;
+  generationType?: ArticleGenerationType;
+  journalisticType?: string;
+  sector?: string;
   authorType: 'AI_AGENT' | 'HUMAN_JOURNALIST' | 'HYBRID';
   aiModel?: string;
   reviewedBy?: string;

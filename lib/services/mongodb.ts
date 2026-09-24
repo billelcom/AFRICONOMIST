@@ -18,8 +18,9 @@ export async function connectToDatabase(): Promise<{ client: MongoClient | null;
 
     try {
         const client = new MongoClient(uri, {
-            maxPoolSize: 10,
-            serverSelectionTimeoutMS: 5000,
+            maxPoolSize: 5,
+            serverSelectionTimeoutMS: 3000,
+            connectTimeoutMS: 3000,
         });
 
         await client.connect();
@@ -30,16 +31,20 @@ export async function connectToDatabase(): Promise<{ client: MongoClient | null;
 
         return { client, db };
     } catch (error) {
-        console.error("MongoDB connection failed:", error);
+        console.warn("MongoDB connection deferred or timed out:", error);
         return { client: null, db: null };
     }
 }
 
-// دالة مساعدة لجلب مجموعة المقالات
+// دالة مساعدة لجلب مجموعة المقالات بأمان تام
 export async function getArticlesCollection() {
-    const { db } = await connectToDatabase();
-    if (!db) {
+    try {
+        const { db } = await connectToDatabase();
+        if (!db) {
+            return null;
+        }
+        return db.collection("articles");
+    } catch {
         return null;
     }
-    return db.collection("articles");
 }

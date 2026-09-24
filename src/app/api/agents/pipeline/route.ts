@@ -8,7 +8,13 @@ interface AgentTaskRequest {
 
 export async function POST(req: Request) {
   try {
-    const body: AgentTaskRequest = await req.json().catch(() => ({}));
+    let body: AgentTaskRequest = {};
+    try {
+      body = await req.json();
+    } catch {
+      body = {};
+    }
+
     const targetCountry = body.country || "نيجيريا";
     const targetSector = body.sector || "أسواق الطاقة والعملات الأجنبية والتضخم";
 
@@ -34,7 +40,7 @@ export async function POST(req: Request) {
       category: "تقارير الأسواق والاستثمار",
       tags: [targetCountry, targetSector, "البنك المركزي", "استثمار", "أفريكونوميست"],
       read_time: "4 دقائق",
-      status: "pending_review", // حاسم: لا ينشر حتى يوافق المشرف البشري!
+      status: "pending_review",
       sources: [
         { title: `نشرة البنك المركزي الرسمية - ${targetCountry}`, url: "https://centralbank.org", source: "Official Gazette" },
         { title: "مؤشرات التجارة والتنمية الأفريقية", url: "https://www.afdb.org", source: "AfDB" }
@@ -48,16 +54,18 @@ export async function POST(req: Request) {
       }
     };
 
-    // حفظ المقال في MongoDB Atlas
+    // حفظ المقال في MongoDB Atlas بحذر تام دون حظر الاستجابة
     try {
       const collection = await getArticlesCollection();
-      await collection.updateOne(
-        { id: generatedReport.id },
-        { $set: generatedReport },
-        { upsert: true }
-      );
+      if (collection) {
+        await collection.updateOne(
+          { id: generatedReport.id },
+          { $set: generatedReport },
+          { upsert: true }
+        );
+      }
     } catch (dbErr) {
-      console.warn("MongoDB write skipped or connection pending:", dbErr);
+      console.warn("MongoDB write deferred:", dbErr);
     }
 
     return NextResponse.json({
@@ -67,6 +75,10 @@ export async function POST(req: Request) {
     });
 
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    console.error("Agents pipeline error:", error);
+    return NextResponse.json({ 
+      success: false, 
+      error: error?.message || "Internal server error" 
+    }, { status: 500 });
   }
 }

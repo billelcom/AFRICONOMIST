@@ -16,17 +16,48 @@ import { Article, AfricanCountryProfile } from './types';
 import { ShieldCheck, Globe, Database, Terminal, FileCode2, Activity } from 'lucide-react';
 import { HealthCheckModal } from './components/HealthCheckModal';
 
+const STORAGE_KEY = 'africonomist_custom_articles_v1';
+
 export default function App() {
   const [lang, setLang] = useState<'ar' | 'en'>('ar');
   const [currentTab, setCurrentTab] = useState<'home' | 'country' | 'article' | 'editorial' | 'architecture'>('home');
-  const [articles, setArticles] = useState<Article[]>(INITIAL_ARTICLES);
+  const [articles, setArticles] = useState<Article[]>(() => {
+    // 1. استعادة المقالات فوراً من التخزين الدائم للمتصفح عند التحميل الأول
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const savedIds = new Set(parsed.map((a: Article) => a.id));
+            const initialFiltered = INITIAL_ARTICLES.filter(a => !savedIds.has(a.id));
+            return [...parsed, ...initialFiltered];
+          }
+        }
+      } catch (e) {
+        console.warn('Could not read from localStorage:', e);
+      }
+    }
+    return INITIAL_ARTICLES;
+  });
+
   const [selectedCountrySlug, setSelectedCountrySlug] = useState<string>('egypt');
   const [selectedArticle, setSelectedArticle] = useState<Article>(INITIAL_ARTICLES[0]);
   const [isHealthCheckOpen, setIsHealthCheckOpen] = useState<boolean>(false);
 
   const isAr = lang === 'ar';
 
-  // جلب المقالات المحفوظة في MongoDB فور تحميل التطبيق
+  // حفظ تلقائي فوري لأي تغيير في المقالات داخل localStorage
+  const saveArticlesToLocal = (updatedArticles: Article[]) => {
+    try {
+      // نحفظ المقالات التي تم إنشاؤها أو تعديلها
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedArticles));
+    } catch (e) {
+      console.warn('Failed to save articles to localStorage:', e);
+    }
+  };
+
+  // 2. جلب المقالات الإضافية المحفوظة في MongoDB Atlas ودمجها مع المتصفح
   useEffect(() => {
     async function loadPersistedArticles() {
       try {
@@ -72,11 +103,13 @@ export default function App() {
             marketImpact: 'positive'
           }));
 
-          // دمج مقالات MongoDB مع المقالات الافتراضية مع منع التكرار
+          // دمج مقالات MongoDB وحفظها
           setArticles(prev => {
             const existingIds = new Set(dbArticles.map(a => a.id));
             const filteredPrev = prev.filter(a => !existingIds.has(a.id));
-            return [...dbArticles, ...filteredPrev];
+            const merged = [...dbArticles, ...filteredPrev];
+            saveArticlesToLocal(merged);
+            return merged;
           });
         }
       } catch (err) {
@@ -107,21 +140,25 @@ export default function App() {
     reviewer: string, 
     note?: string
   ) => {
-    // 1. تحديث الحالة فوراً في واجهة المستخدم
-    setArticles(prev => prev.map(art => {
-      if (art.id === articleId) {
-        return {
-          ...art,
-          status,
-          reviewedBy: reviewer,
-          reviewNotes: note || art.reviewNotes,
-          publishedAt: status === 'published' ? new Date().toISOString().replace('T', ' ').substring(0, 16) : art.publishedAt
-        };
-      }
-      return art;
-    }));
+    // 1. تحديث الحالة فوراً في واجهة المستخدم وحفظها في localStorage
+    setArticles(prev => {
+      const updated = prev.map(art => {
+        if (art.id === articleId) {
+          return {
+            ...art,
+            status,
+            reviewedBy: reviewer,
+            reviewNotes: note || art.reviewNotes,
+            publishedAt: status === 'published' ? new Date().toISOString().replace('T', ' ').substring(0, 16) : art.publishedAt
+          };
+        }
+        return art;
+      });
+      saveArticlesToLocal(updated);
+      return updated;
+    });
 
-    // 2. إرسال التحديث لـ MongoDB ليتم حفظه دائماً
+    // 2. إرسال التحديث لـ MongoDB ليتم حفظه في السحابة
     try {
       await fetch('/api/articles', {
         method: 'PATCH',
@@ -137,7 +174,22 @@ export default function App() {
   };
 
   const handleAddNewDraft = (newArticle: Article) => {
-    setArticles(prev => [newArticle, ...prev]);
+    setArticles(prev => {
+      const updated = [newArticle, ...prev];
+      saveArticlesToLocal(updated);
+      return updated;
+    });
+
+    // إرسال المسودة الجديدة لقاعدة البيانات في الخلفية
+    try {
+      fetch('/api/articles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newArticle)
+      }).catch(err => console.warn('Background article sync notice:', err));
+    } catch {
+      // Ignored
+    }
   };
 
   const currentCountry = AFRICAN_COUNTRIES.find(c => c.slug === selectedCountrySlug) || AFRICAN_COUNTRIES[0];

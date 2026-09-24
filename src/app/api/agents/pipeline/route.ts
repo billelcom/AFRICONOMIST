@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getArticlesCollection } from "@/lib/services/mongodb";
 
+export const dynamic = "force-dynamic";
+
 interface AgentTaskRequest {
   country?: string;
   countryCode?: string;

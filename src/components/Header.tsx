@@ -123,7 +123,10 @@ export const Header: React.FC<HeaderProps> = ({
             <ShieldCheck className="w-4 h-4 text-rose-400" />
             <span>{isAr ? 'لوحة التحرير' : 'Editorial Desk'}</span>
             {pendingDraftsCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white font-mono">
+              <span
+                suppressHydrationWarning
+                className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white font-mono"
+              >
                 {pendingDraftsCount}
               </span>
             )}

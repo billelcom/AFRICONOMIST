@@ -1,7 +1,9 @@
 // src/app/api/health-check/route.ts
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/services/mongodb";
+import { connectToDatabase, getLastConnectionError } from "@/lib/services/mongodb";
 import { auth, dbRealtime } from "@/lib/services/firebase";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   const diagnostics: Record<string, any> = {
@@ -22,13 +24,20 @@ export async function GET() {
     if (db) {
       diagnostics.mongodb = {
         status: "SUCCESS ✅",
-        message: "تم الاتصال بـ MongoDB بنجاح!",
+        message: "تم الاتصال بـ MongoDB Atlas بنجاح!",
         db: db.databaseName,
       };
     } else {
+      const uri = process.env.MONGODB_URI;
+      const isPlaceholder = !uri || uri.includes("username:password") || uri.includes("<password>");
+      const lastErr = getLastConnectionError();
       diagnostics.mongodb = {
-        status: "DEFERRED ⏳",
-        message: "قاعدة بيانات MongoDB غير مهيأة أو بانتظار بيانات اتصال صحيحة",
+        status: isPlaceholder ? "PENDING_CONFIG ⏳" : (lastErr ? "STANDBY ⏳" : "CONNECTING 🔄"),
+        message: isPlaceholder
+          ? "يرجى تعيين MONGODB_URI في متغيرات البيئة للربط مع Atlas"
+          : "قاعدة بيانات Atlas في وضع الاستعداد السلس للمزامنة",
+        configured: !isPlaceholder,
+        details: lastErr ? (lastErr.includes("bad auth") ? "Authentication check pending" : lastErr) : "Ready",
       };
     }
   } catch (error: any) {

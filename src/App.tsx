@@ -26,31 +26,13 @@ export default function App() {
   const [currentTab, setCurrentTab] = useState<'home' | 'country' | 'article' | 'editorial'>('home');
   const [isUpdaterModalOpen, setIsUpdaterModalOpen] = useState<boolean>(false);
 
-  // حالة الدول الـ 54 الديناميكية مع الترتيب التلقائي
+  // حالة الدول الـ 54 الديناميكية مع الترتيب التلقائي (متطابقة مع الخادم لمنع تعارض الـ Hydration)
   const [countries, setCountries] = useState<AfricanCountryProfile[]>(() => {
-    const loaded = loadCountriesFromStorage(AFRICAN_COUNTRIES);
-    return rankCountriesDynamically(loaded, 'gdp');
+    return rankCountriesDynamically(AFRICAN_COUNTRIES, 'gdp');
   });
 
-  const [articles, setArticles] = useState<Article[]>(() => {
-    // 1. استعادة المقالات فوراً من التخزين الدائم للمتصفح عند التحميل الأول
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            const savedIds = new Set(parsed.map((a: Article) => a.id));
-            const initialFiltered = INITIAL_ARTICLES.filter(a => !savedIds.has(a.id));
-            return [...parsed, ...initialFiltered];
-          }
-        }
-      } catch (e) {
-        console.warn('Could not read from localStorage:', e);
-      }
-    }
-    return INITIAL_ARTICLES;
-  });
+  // حالة المقالات الأولية المتوافقة تماماً مع خادم SSR
+  const [articles, setArticles] = useState<Article[]>(INITIAL_ARTICLES);
 
   const [selectedCountrySlug, setSelectedCountrySlug] = useState<string>('egypt');
   const [selectedArticle, setSelectedArticle] = useState<Article>(INITIAL_ARTICLES[0]);
@@ -66,6 +48,25 @@ export default function App() {
       console.warn('Failed to save articles to localStorage:', e);
     }
   };
+
+  // 1. استعادة المقالات وترتيب الدول من localStorage بأمان بعد اكتمال الـ Hydration في المتصفح
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const savedIds = new Set(parsed.map((a: Article) => a.id));
+          const initialFiltered = INITIAL_ARTICLES.filter(a => !savedIds.has(a.id));
+          setArticles([...parsed, ...initialFiltered]);
+        }
+      }
+      const loadedCountries = loadCountriesFromStorage(AFRICAN_COUNTRIES);
+      setCountries(rankCountriesDynamically(loadedCountries, 'gdp'));
+    } catch (e) {
+      console.warn('Could not restore from localStorage:', e);
+    }
+  }, []);
 
   // 2. جلب المقالات الإضافية المحفوظة في MongoDB Atlas ودمجها مع المتصفح
   useEffect(() => {

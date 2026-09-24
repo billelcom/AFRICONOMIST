@@ -94,7 +94,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
           countryNameEn: rep.country,
           status: 'pending_review',
           authorType: 'AI_AGENT',
-          aiModel: 'Gemini 2.5 Flash (Economic Ingestion Pipeline)',
+          aiModel: 'Gemini 3.6 Flash (Economic Ingestion Pipeline)',
           citations: (rep.sources || []).map((s: any, idx: number) => ({
             id: `cit-${idx}-${Date.now()}`,
             sourceName: s.source || s.title,

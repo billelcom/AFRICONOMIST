@@ -1,11 +1,18 @@
-import React from 'react';
+// src/components/Header.tsx
+import React, { useState } from 'react';
 import { 
-  Building2, 
   Globe2, 
   ShieldCheck, 
-  TrendingUp,
-  LayoutGrid
+  LayoutGrid, 
+  FileText, 
+  Mic, 
+  Video, 
+  BarChart3, 
+  Search, 
+  User, 
+  Building2
 } from 'lucide-react';
+import { NavigationModals, NavModalType } from './NavigationModals';
 
 interface HeaderProps {
   currentTab: 'home' | 'country' | 'article' | 'editorial';
@@ -23,116 +30,360 @@ export const Header: React.FC<HeaderProps> = ({
   pendingDraftsCount
 }) => {
   const isAr = lang === 'ar';
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  const [activeModal, setActiveModal] = useState<NavModalType>(null);
+
+  const handleNavClick = (action: () => void) => {
+    action();
+    setIsMobileMenuOpen(false);
+  };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#080C14]/95 backdrop-blur-md border-b border-slate-800">
-      {/* Top Utility Ribbon */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between text-xs text-slate-400 border-b border-slate-800/40">
-        <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1.5 text-amber-500 font-medium">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-            </span>
-            {isAr ? 'بث مباشر - أسواق المال الأفريقية' : 'Live Feed - Pan-African Markets'}
-          </span>
-          <span className="hidden md:inline text-slate-600">|</span>
-          <span className="hidden md:inline text-slate-400">
-            {isAr ? 'منصة التحليلات الاقتصادية الرائدة' : 'Leading African Economic Intelligence'}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onToggleLang}
-            className="flex items-center gap-1.5 px-3 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700/60 transition-colors text-xs"
-            title="Toggle Language / تغيير اللغة"
-            aria-label="Toggle Language"
+    <>
+      <header className="sticky top-0 z-40 bg-[#070A12]/95 backdrop-blur-md border-b border-slate-800/80 shadow-lg">
+        {/* =========================================================================
+            1. MOBILE HEADER BAR (شريط الهاتف المخصص: مسافة متوازنة وجميلة بين اللوغو والشعار)
+           ========================================================================= */}
+        <div className="md:hidden px-3.5 py-2.5 flex items-center justify-between border-b border-slate-800/60">
+          {/* الجانب الأيمن (في العربية): اللوغو والشعار بمسافة مريحة متوازنة (لا متلاصقان ولا متباعدان) */}
+          <div 
+            onClick={() => handleNavClick(() => onSelectTab('home'))}
+            className="flex flex-col cursor-pointer select-none group"
           >
-            <Globe2 className="w-3.5 h-3.5 text-amber-400" />
-            <span className="font-semibold">{isAr ? 'English' : 'العربية'}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Main Navigation Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Brand Text Logo */}
-        <div 
-          onClick={() => onSelectTab('home')}
-          className="flex flex-col cursor-pointer group select-none"
-        >
-          <div className="flex items-center gap-2">
-            <span className="font-black tracking-tight text-white text-xl sm:text-2xl font-mono group-hover:text-amber-400 transition-colors">
-              {isAr ? 'آفريكونوميست' : 'AFRICONOMIST'}
-            </span>
-            <span className="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-          </div>
-          <p className="text-[10px] text-slate-400 -mt-0.5 hidden sm:block">
-            {isAr ? 'الصحافة الاقتصادية والمالية الأفريقية' : 'African Economic & Financial Intelligence'}
-          </p>
-        </div>
-
-        {/* Navigation Tabs */}
-        <nav className="flex items-center gap-1 sm:gap-2" aria-label="Main Navigation">
-          <button
-            onClick={() => onSelectTab('home')}
-            className={`px-3.5 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${
-              currentTab === 'home'
-                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-            }`}
-          >
-            <LayoutGrid className="w-4 h-4" />
-            <span>{isAr ? 'الرئيسية والأسواق' : 'Markets & News'}</span>
-          </button>
-
-          <button
-            onClick={() => onSelectTab('country')}
-            className={`px-3.5 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${
-              currentTab === 'country'
-                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-            }`}
-          >
-            <Building2 className="w-4 h-4" />
-            <span>{isAr ? 'ملفات الدول' : 'Countries'}</span>
-          </button>
-
-          <button
-            onClick={() => onSelectTab('article')}
-            className={`px-3.5 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors hidden md:flex items-center gap-1.5 ${
-              currentTab === 'article'
-                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-            }`}
-          >
-            <TrendingUp className="w-4 h-4" />
-            <span>{isAr ? 'قراءة مقال' : 'Article Reader'}</span>
-          </button>
-
-          {/* Editorial Review Dashboard */}
-          <button
-            onClick={() => onSelectTab('editorial')}
-            className={`relative px-3.5 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${
-              currentTab === 'editorial'
-                ? 'bg-rose-500/15 text-rose-300 border border-rose-500/40'
-                : 'text-slate-300 hover:text-rose-300 hover:bg-rose-950/20'
-            }`}
-          >
-            <ShieldCheck className="w-4 h-4 text-rose-400" />
-            <span>{isAr ? 'لوحة التحرير' : 'Editorial Desk'}</span>
-            {pendingDraftsCount > 0 && (
-              <span
-                suppressHydrationWarning
-                className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white font-mono"
-              >
-                {pendingDraftsCount}
+            <div className="flex items-center gap-1.5">
+              <span className="font-brand-artistic font-bold text-white text-[15px] sm:text-base tracking-wide leading-tight group-hover:text-amber-400 transition-colors">
+                {isAr ? 'لافريكونوميست' : 'L’AFRICONOMIST'}
               </span>
-            )}
-          </button>
-        </nav>
-      </div>
-    </header>
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+            </div>
+            <p className="text-[9.5px] font-serif text-amber-400/90 font-medium pt-1 leading-none">
+              {isAr ? 'صحيفة الاقتصاد الإفريقي' : 'African Economic Journal'}
+            </p>
+          </div>
+
+          {/* الجانب الأيسر (على جهة اليسار): زر تسجيل + أيقونة اللغة + أيقونة القائمة burger */}
+          <div className="flex items-center gap-1.5">
+            {/* زر تسجيل */}
+            <button
+              onClick={() => setActiveModal('auth')}
+              className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-[11px] flex items-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer"
+              title={isAr ? 'تسجيل الدخول / العضوية' : 'Sign In'}
+            >
+              <User className="w-3 h-3" />
+              <span>{isAr ? 'تسجيل' : 'Sign In'}</span>
+            </button>
+
+            {/* أيقونة اللغة */}
+            <button
+              onClick={onToggleLang}
+              className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700/60 transition-colors text-xs flex items-center justify-center cursor-pointer"
+              title="تغيير اللغة / Toggle Language"
+              aria-label="Language Toggle"
+            >
+              <Globe2 className="w-3.5 h-3.5 text-amber-400" />
+            </button>
+
+            {/* أيقونة القائمة Menu Burger الإبداعية (3 أسطر تتحول إلى X عند الضغط) */}
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(prev => !prev)}
+              className="relative w-8 h-8 flex flex-col items-center justify-center gap-1 p-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 hover:text-amber-400 focus:outline-none transition-colors select-none cursor-pointer"
+              aria-label={isMobileMenuOpen ? "إغلاق القائمة" : "فتح القائمة"}
+            >
+              <span
+                className={`block h-0.5 w-4 bg-current rounded-full transition-all duration-300 ease-in-out ${
+                  isMobileMenuOpen ? 'rotate-45 translate-y-1.5 bg-amber-400' : ''
+                }`}
+              />
+              <span
+                className={`block h-0.5 w-4 bg-current rounded-full transition-all duration-200 ease-in-out ${
+                  isMobileMenuOpen ? 'opacity-0' : 'opacity-100'
+                }`}
+              />
+              <span
+                className={`block h-0.5 w-4 bg-current rounded-full transition-all duration-300 ease-in-out ${
+                  isMobileMenuOpen ? '-rotate-45 -translate-y-1.5 bg-amber-400' : ''
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+
+        {/* =========================================================================
+            2. MOBILE DROPDOWN MENU (القائمة المنسدلة للهاتف)
+           ========================================================================= */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-[#070B14]/98 backdrop-blur-2xl border-b border-slate-800/90 shadow-2xl px-4 py-4 space-y-3 animate-in slide-in-from-top-3 duration-200">
+            {/* روابط القائمة المنسدلة الـ 8 بتصميم إبداعي وخط صغير ومنسق */}
+            <div className="grid grid-cols-2 gap-1.5 text-xs">
+              {/* 1. الرئيسية */}
+              <button
+                onClick={() => handleNavClick(() => onSelectTab('home'))}
+                className={`p-2.5 rounded-xl text-right flex items-center gap-2 border transition-all ${
+                  currentTab === 'home'
+                    ? 'bg-amber-500/15 text-amber-400 border-amber-500/30 font-bold'
+                    : 'bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white'
+                }`}
+              >
+                <LayoutGrid className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span className="truncate">{isAr ? 'الرئيسية' : 'Home'}</span>
+              </button>
+
+              {/* 2. من نحن */}
+              <button
+                onClick={() => handleNavClick(() => setActiveModal('about'))}
+                className="p-2.5 rounded-xl text-right flex items-center gap-2 border bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white transition-all"
+              >
+                <Building2 className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                <span className="truncate">{isAr ? 'من نحن' : 'About Us'}</span>
+              </button>
+
+              {/* 3. الشروط والخصوصية */}
+              <button
+                onClick={() => handleNavClick(() => setActiveModal('privacy'))}
+                className="p-2.5 rounded-xl text-right flex items-center gap-2 border bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white transition-all"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span className="truncate">{isAr ? 'الشروط والخصوصية' : 'Terms & Privacy'}</span>
+              </button>
+
+              {/* 4. كل التقارير */}
+              <button
+                onClick={() => handleNavClick(() => onSelectTab('home'))}
+                className="p-2.5 rounded-xl text-right flex items-center gap-2 border bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white transition-all"
+              >
+                <FileText className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span className="truncate">{isAr ? 'كل التقارير' : 'All Reports'}</span>
+              </button>
+
+              {/* 5. البودكاست */}
+              <button
+                onClick={() => handleNavClick(() => setActiveModal('podcast'))}
+                className="p-2.5 rounded-xl text-right flex items-center justify-between border bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white transition-all"
+              >
+                <div className="flex items-center gap-2 truncate">
+                  <Mic className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                  <span className="truncate">{isAr ? 'البودكاست' : 'Podcasts'}</span>
+                </div>
+                <span className="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 font-mono">
+                  {isAr ? 'صوتي' : 'Audio'}
+                </span>
+              </button>
+
+              {/* 6. التقارير المصورة */}
+              <button
+                onClick={() => handleNavClick(() => setActiveModal('video'))}
+                className="p-2.5 rounded-xl text-right flex items-center justify-between border bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white transition-all"
+              >
+                <div className="flex items-center gap-2 truncate">
+                  <Video className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                  <span className="truncate">{isAr ? 'التقارير المصورة' : 'Video Reports'}</span>
+                </div>
+                <span className="text-[9px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 font-mono">
+                  {isAr ? 'مرئي' : 'Video'}
+                </span>
+              </button>
+
+              {/* 7. صحافة البيانات */}
+              <button
+                onClick={() => handleNavClick(() => onSelectTab('home'))}
+                className="p-2.5 rounded-xl text-right flex items-center gap-2 border bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white transition-all"
+              >
+                <BarChart3 className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+                <span className="truncate">{isAr ? 'صحافة البيانات' : 'Data Journalism'}</span>
+              </button>
+
+              {/* 8. استقصاء وتقصي */}
+              <button
+                onClick={() => handleNavClick(() => onSelectTab('home'))}
+                className="p-2.5 rounded-xl text-right flex items-center gap-2 border bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white transition-all"
+              >
+                <Search className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span className="truncate">{isAr ? 'استقصاء وتقصي' : 'Investigations'}</span>
+              </button>
+            </div>
+
+            {/* في الأسفل: غرفة الأخبار تقابلها التسجيل */}
+            <div className="pt-3 border-t border-slate-800/80 flex items-center gap-2">
+              <button
+                onClick={() => handleNavClick(() => onSelectTab('editorial'))}
+                className={`flex-1 p-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                  currentTab === 'editorial'
+                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-lg'
+                    : 'bg-slate-900 hover:bg-slate-850 text-slate-200 border border-slate-800'
+                }`}
+              >
+                <ShieldCheck className="w-4 h-4 text-rose-400" />
+                <span>{isAr ? 'غرفة الأخبار' : 'Newsroom Desk'}</span>
+                {pendingDraftsCount > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white font-mono">
+                    {pendingDraftsCount}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => handleNavClick(() => setActiveModal('auth'))}
+                className="flex-1 p-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-black flex items-center justify-center gap-1.5 shadow-lg transition-all cursor-pointer"
+              >
+                <User className="w-4 h-4" />
+                <span>{isAr ? 'التسجيل / العضوية' : 'Sign In / Register'}</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* =========================================================================
+            3. DESKTOP HEADER (شاشة الحاسوب: شريطان منفصلان أنيقان)
+           ========================================================================= */}
+        <div className="hidden md:block">
+          {/* الشريط العلوي (Top Bar): اللوغو يقابله تغيير اللغة، التسجيل، وغرفة الأخبار */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between border-b border-slate-800/80">
+            {/* اللوغو والشعار */}
+            <div 
+              onClick={() => onSelectTab('home')}
+              className="flex items-center gap-2.5 cursor-pointer group shrink-0 select-none"
+            >
+              <span className="font-brand-artistic font-bold tracking-normal text-white text-xl lg:text-2xl group-hover:text-amber-400 transition-colors">
+                {isAr ? 'لافريكونوميست' : 'L’AFRICONOMIST'}
+              </span>
+              <span className="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+              <span className="text-xs text-amber-400/90 font-serif font-medium whitespace-nowrap">
+                {isAr ? 'صحيفة الاقتصاد الإفريقي' : 'African Economic Journal'}
+              </span>
+            </div>
+
+            {/* يقابله: تغيير اللغة + التسجيل + غرفة الأخبار */}
+            <div className="flex items-center gap-2.5 shrink-0">
+              {/* زر تغيير اللغة */}
+              <button
+                onClick={onToggleLang}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-850 text-slate-300 border border-slate-700/60 transition-colors text-xs font-semibold cursor-pointer"
+                title="Toggle Language / تغيير اللغة"
+              >
+                <Globe2 className="w-3.5 h-3.5 text-amber-400" />
+                <span>{isAr ? 'English' : 'العربية'}</span>
+              </button>
+
+              {/* زر تسجيل */}
+              <button
+                onClick={() => setActiveModal('auth')}
+                className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-sm transition-all whitespace-nowrap cursor-pointer active:scale-95"
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>{isAr ? 'تسجيل' : 'Sign In'}</span>
+              </button>
+
+              {/* زر غرفة الأخبار */}
+              <button
+                onClick={() => onSelectTab('editorial')}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                  currentTab === 'editorial'
+                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-sm'
+                    : 'bg-slate-900 hover:bg-rose-950/20 text-slate-300 hover:text-rose-300 border border-slate-800'
+                }`}
+              >
+                <ShieldCheck className="w-4 h-4 text-rose-400" />
+                <span>{isAr ? 'غرفة الأخبار' : 'Newsroom'}</span>
+                {pendingDraftsCount > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white font-mono">
+                    {pendingDraftsCount}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* شريط القائمة تحته (Sub-Header Menu Bar): روابط القائمة بنفس التنسيق الأنيق */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-11 flex items-center justify-between text-xs">
+            <nav className="flex items-center gap-1 lg:gap-1.5 overflow-x-auto no-scrollbar shrink min-w-0" aria-label="Desktop Navigation">
+              {/* 1. الرئيسية */}
+              <button
+                onClick={() => onSelectTab('home')}
+                className={`px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer ${
+                  currentTab === 'home'
+                    ? 'bg-amber-500/15 text-amber-400 font-bold border border-amber-500/30'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                }`}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span>{isAr ? 'الرئيسية' : 'Home'}</span>
+              </button>
+
+              {/* 2. كل التقارير */}
+              <button
+                onClick={() => onSelectTab('home')}
+                className="px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-850 transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer"
+              >
+                <FileText className="w-3.5 h-3.5 text-amber-400/80" />
+                <span>{isAr ? 'كل التقارير' : 'All Reports'}</span>
+              </button>
+
+              {/* 3. استقصاء وتقصي */}
+              <button
+                onClick={() => onSelectTab('home')}
+                className="px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-850 transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer"
+              >
+                <Search className="w-3.5 h-3.5 text-amber-400/80" />
+                <span>{isAr ? 'استقصاء وتقصي' : 'Investigations'}</span>
+              </button>
+
+              {/* 4. صحافة البيانات */}
+              <button
+                onClick={() => onSelectTab('home')}
+                className="px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-850 transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer"
+              >
+                <BarChart3 className="w-3.5 h-3.5 text-teal-400" />
+                <span>{isAr ? 'صحافة البيانات' : 'Data Journalism'}</span>
+              </button>
+
+              {/* 5. البودكاست */}
+              <button
+                onClick={() => setActiveModal('podcast')}
+                className="px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-850 transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer"
+              >
+                <Mic className="w-3.5 h-3.5 text-indigo-400" />
+                <span>{isAr ? 'البودكاست' : 'Podcasts'}</span>
+              </button>
+
+              {/* 6. التقارير المصورة */}
+              <button
+                onClick={() => setActiveModal('video')}
+                className="px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-850 transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer"
+              >
+                <Video className="w-3.5 h-3.5 text-rose-400" />
+                <span>{isAr ? 'التقارير المصورة' : 'Video Reports'}</span>
+              </button>
+
+              {/* 7. من نحن */}
+              <button
+                onClick={() => setActiveModal('about')}
+                className="px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-850 transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer"
+              >
+                <Building2 className="w-3.5 h-3.5 text-blue-400" />
+                <span>{isAr ? 'من نحن' : 'About Us'}</span>
+              </button>
+
+              {/* 8. الشروط والخصوصية */}
+              <button
+                onClick={() => setActiveModal('privacy')}
+                className="px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-850 transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{isAr ? 'الشروط والخصوصية' : 'Terms & Privacy'}</span>
+              </button>
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      {/* Pop-up Modals for Navigation (من نحن، الشروط، البودكاست، الفيديو، التسجيل) */}
+      <NavigationModals
+        activeModal={activeModal}
+        onClose={() => setActiveModal(null)}
+        lang={lang}
+        onNavigateToNewsroom={() => onSelectTab('editorial')}
+      />
+    </>
   );
 };

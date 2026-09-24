@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "../index.css"; // أو "./globals.css" حسب اسم الملف الموجود لديك
 
 export const metadata: Metadata = {
-    title: "AFRICONOMIST | أفريكونوميست",
-    description: "منصة أفريكونوميست للتحليل الاقتصادي وأسواق المال",
+    title: "لافريكونوميست | صحيفة الاقتصاد الإفريقي",
+    description: "لافريكونوميست - صحيفة الاقتصاد الإفريقي، رصد وتدقيق أسواق المال والسياسات النقدية واستثمارات 54 دولة أفريقية",
 };
 
 export default function RootLayout({

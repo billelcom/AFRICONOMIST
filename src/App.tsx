@@ -454,21 +454,24 @@ export default function App() {
             <div className="md:col-span-2 space-y-3">
               <div className="flex items-center gap-2">
                 <span className="font-black text-white font-mono text-xl tracking-tight">
-                  {isAr ? 'آفريكونوميست' : 'AFRICONOMIST'}
+                  {isAr ? 'لافريكونوميست' : 'L’AFRICONOMIST'}
                 </span>
                 <span className="inline-block w-2 h-2 rounded-full bg-amber-500"></span>
+                <span className="text-xs text-amber-400 font-serif font-semibold">
+                  {isAr ? 'صحيفة الاقتصاد الإفريقي' : 'African Economic Journal'}
+                </span>
               </div>
               <p className="text-slate-400 text-xs leading-relaxed max-w-md">
                 {isAr
-                  ? 'المنصة الإعلامية الرائدة في تتبع أسواق المال، استثمارات الطاقة، ومؤشرات الاقتصاد الكلي عبر 54 دولة أفريقية برؤية استقصائية رصينة.'
-                  : 'The premier intelligence platform monitoring capital markets, energy transition, and macroeconomic indicators across 54 African nations.'}
+                  ? 'صحيفة مالية واستقصائية مستقلة ترصد تطورات أسواق المال، استثمارات الطاقة، ومؤشرات الاقتصاد الكلي عبر كافة الدول الأفريقية الـ 54.'
+                  : 'Independent financial and investigative publication tracking capital markets, energy transition, and macroeconomic indicators across all 54 African nations.'}
               </p>
             </div>
 
             {/* Column 2: Navigation Links */}
             <div className="space-y-3">
               <h4 className="text-white font-semibold text-xs uppercase tracking-wider">
-                {isAr ? 'أقسام المنصة' : 'Sections'}
+                {isAr ? 'أقسام الصحيفة' : 'Sections'}
               </h4>
               <ul className="space-y-2 text-xs">
                 <li>
@@ -492,7 +495,7 @@ export default function App() {
                     onClick={() => { setCurrentTab('editorial'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                     className="hover:text-amber-400 transition-colors"
                   >
-                    {isAr ? 'لوحة التحرير والتقارير' : 'Editorial Desk'}
+                    {isAr ? 'غرفة الأخبار' : 'Newsroom Desk'}
                   </button>
                 </li>
               </ul>
@@ -501,11 +504,11 @@ export default function App() {
             {/* Column 3: Coverage & Transparency */}
             <div className="space-y-3">
               <h4 className="text-white font-semibold text-xs uppercase tracking-wider">
-                {isAr ? 'معايير التحرير' : 'Standards'}
+                {isAr ? 'معايير النشر' : 'Editorial Standards'}
               </h4>
               <p className="text-slate-400 text-xs leading-relaxed">
                 {isAr
-                  ? 'تلتزم المنصة بأعلى معايير التدقيق الاقتصادي المالي والنزاهة الصحفية ومراجعة كافة البيانات بالمصادر الرسمية.'
+                  ? 'تلتزم الصحيفة بأعلى معايير التدقيق الاقتصادي والنزاهة الصحفية ومطابقة كافة البيانات بالمصادر الرسمية.'
                   : 'Committed to rigorous economic fact-checking, financial integrity, and verified official institutional sources.'}
               </p>
             </div>
@@ -515,8 +518,8 @@ export default function App() {
           <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-3">
             <p>
               {isAr
-                ? '© 2026 آفريكونوميست (AFRICONOMIST). كافة الحقوق محفوظة.'
-                : '© 2026 AFRICONOMIST. All rights reserved.'}
+                ? '© 2026 لافريكونوميست (L’Africonomist) - صحيفة الاقتصاد الإفريقي. كافة الحقوق محفوظة.'
+                : '© 2026 L’Africonomist - African Economic Journal. All rights reserved.'}
             </p>
             <div className="flex items-center gap-4 text-xs text-slate-400">
               <span className="hover:text-slate-300 transition-colors cursor-pointer">

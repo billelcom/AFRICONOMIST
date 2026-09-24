@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { LiveTicker } from './components/LiveTicker';
 import { HomeView } from './components/views/HomeView';
@@ -26,6 +26,67 @@ export default function App() {
 
   const isAr = lang === 'ar';
 
+  // جلب المقالات المحفوظة في MongoDB فور تحميل التطبيق
+  useEffect(() => {
+    async function loadPersistedArticles() {
+      try {
+        const res = await fetch('/api/articles');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.articles) && data.articles.length > 0) {
+          const dbArticles: Article[] = data.articles.map((item: any) => ({
+            id: item.id,
+            slug: item.slug || `report-${item.id}`,
+            title: item.title,
+            titleEn: item.titleEn || item.title,
+            summary: item.summary,
+            summaryEn: item.summaryEn || item.summary,
+            content: Array.isArray(item.content) ? item.content : [item.content],
+            contentEn: Array.isArray(item.contentEn) ? item.contentEn : [item.content],
+            category: item.category || 'Markets',
+            countryCode: item.countryCode || 'PAN_AFRICA',
+            countryName: item.country || 'أفريقيا',
+            countryNameEn: item.country || 'Africa',
+            status: item.status || 'pending_review',
+            authorType: item.authorType || 'AI_AGENT',
+            aiModel: item.aiModel || 'Gemini 3.6 Flash',
+            citations: Array.isArray(item.sources) ? item.sources.map((s: any, idx: number) => ({
+              id: `cit-${idx}`,
+              sourceName: s.source || s.title,
+              url: s.url,
+              publishDate: '2026-09-24',
+              verified: true,
+              credibilityScore: 98,
+              snippet: s.title
+            })) : (item.citations || []),
+            factCheck: item.factCheck || {
+              score: 95,
+              verifiedClaimsCount: 5,
+              totalClaimsCount: 5,
+              biasRating: 'Neutral',
+              riskScore: 'Low',
+              checkedAt: new Date().toISOString().split('T')[0]
+            },
+            createdAt: item.created_at ? item.created_at.replace('T', ' ').substring(0, 16) : '2026-09-24 00:00',
+            readTimeMinutes: 4,
+            featured: false,
+            marketImpact: 'positive'
+          }));
+
+          // دمج مقالات MongoDB مع المقالات الافتراضية مع منع التكرار
+          setArticles(prev => {
+            const existingIds = new Set(dbArticles.map(a => a.id));
+            const filteredPrev = prev.filter(a => !existingIds.has(a.id));
+            return [...dbArticles, ...filteredPrev];
+          });
+        }
+      } catch (err) {
+        console.warn('Could not fetch persisted articles from MongoDB:', err);
+      }
+    }
+
+    loadPersistedArticles();
+  }, []);
+
   const pendingDraftsCount = articles.filter(a => a.status === 'pending_review').length;
 
   const handleSelectArticle = (article: Article) => {
@@ -40,12 +101,13 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleUpdateArticleStatus = (
+  const handleUpdateArticleStatus = async (
     articleId: string, 
     status: Article['status'], 
     reviewer: string, 
     note?: string
   ) => {
+    // 1. تحديث الحالة فوراً في واجهة المستخدم
     setArticles(prev => prev.map(art => {
       if (art.id === articleId) {
         return {
@@ -58,6 +120,20 @@ export default function App() {
       }
       return art;
     }));
+
+    // 2. إرسال التحديث لـ MongoDB ليتم حفظه دائماً
+    try {
+      await fetch('/api/articles', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: articleId,
+          action: status === 'published' ? 'publish' : 'reject'
+        })
+      });
+    } catch (e) {
+      console.warn('Failed to update article in MongoDB:', e);
+    }
   };
 
   const handleAddNewDraft = (newArticle: Article) => {

@@ -162,7 +162,7 @@ export async function generateRandomAutonomousReport() {
  * تقنية الجدولة الكسولة الذكية (Lazy On-Demand Trigger):
  * تفحص ما إذا كان قد مر 30 دقيقة منذ آخر مقال في قاعدة البيانات.
  * إذا مر الوقت، تقوم بتوليد مقال جديد فوراً في الخلفية.
- * هذا يحل مشكلة قيود Vercel Hobby بدون الحاجة لأي خادم دائم!
+ * تتيح التوليد عند الطلب بمرونة تامة.
  */
 export async function checkAndTriggerLazy30MinCycle(): Promise<{ triggered: boolean; reason: string }> {
   const THIRTY_MINUTES_MS = 30 * 60 * 1000;

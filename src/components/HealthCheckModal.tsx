@@ -227,8 +227,8 @@ export const HealthCheckModal: React.FC<HealthCheckModalProps> = ({ isOpen, onCl
             <div className="space-y-3">
               <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-200">
                 {isAr
-                  ? 'تنبيه المعمارية: مشروعك الحالي على GitHub مبني باستخدام Vite + React SPA (وليس Next.js Server Components). في بنية Vite، يعمل الكود على المتصفح ومسار API يحتاج خادم Express أو دوال Serverless مثل Firebase Cloud Functions / Vercel Functions.'
-                  : 'Architecture Note: Your current GitHub repo uses Vite + React SPA. For server-side routes like /api/health-check, use server.ts (Express) or Serverless Cloud Functions.'}
+                  ? 'تنبيه المعمارية: مشروعك مبني باستخدام Next.js App Router ويوفر مسارات API سحابية متوافقة مباشرة.'
+                  : 'Architecture Note: Configured with Next.js App Router providing built-in server-side API routes.'}
               </div>
 
               <pre className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono text-slate-300 overflow-x-auto leading-relaxed max-h-96">

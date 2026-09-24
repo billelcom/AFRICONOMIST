@@ -17,10 +17,6 @@ import {
   Radio,
   Zap,
   FileText,
-  Info,
-  Copy,
-  Check,
-  Terminal,
   Filter,
   Layers,
   Flame,
@@ -64,35 +60,25 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
   
   // State for CreateReportModal
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
-  const [showVercelGuideModal, setShowVercelGuideModal] = useState<boolean>(false);
-  const [copiedEndpoint, setCopiedEndpoint] = useState<boolean>(false);
   
-  // Automated 30-minute ingestion cycle state (مربوط بتوقيت الساعة العالمي الحقيقي وليس ثابتاً عند 1720)
+  // Automated 30-minute ingestion cycle state (مربوط بتوقيت الساعة العالمي الحقيقي)
   const [internalIngesting, setInternalIngesting] = useState<boolean>(false);
   const [internalSeconds, setInternalSeconds] = useState<number>(() => getSecondsUntilNextCycle());
 
   const isAutomatedIngesting = propsIsAutomatedIngesting !== undefined ? propsIsAutomatedIngesting : internalIngesting;
   const secondsUntilNextCycle = propsSecondsUntilNextCycle !== undefined ? propsSecondsUntilNextCycle : internalSeconds;
 
-  // Active timer counting down for the periodic 30-min cycle, linked directly to global wall-clock
+  // مزامنة العداد التنازلي للعرض (تم تجميد التشغيل التلقائي مؤقتاً بناءً على الطلب)
   useEffect(() => {
     const syncTime = () => {
       const remaining = getSecondsUntilNextCycle();
       setInternalSeconds(remaining);
-      // إطلاق الدورة تلقائياً عند انتهاء الـ 30 دقيقة
-      if (remaining <= 1 && !isAutomatedIngesting) {
-        if (propsOnTriggerAutomatedCycleNow) {
-          propsOnTriggerAutomatedCycleNow();
-        } else {
-          handleTriggerInstantGeneration();
-        }
-      }
     };
 
     syncTime();
     const timer = setInterval(syncTime, 1000);
     return () => clearInterval(timer);
-  }, [isAutomatedIngesting, propsOnTriggerAutomatedCycleNow]);
+  }, []);
 
   // Format seconds to mm:ss
   const formatTime = (totalSec: number) => {
@@ -291,114 +277,6 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
         lang={lang}
       />
 
-      {/* Modal: دليل حل قيود Vercel لتشغيل دورة الـ 30 دقيقة مجاناً */}
-      {showVercelGuideModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-2xl w-full p-6 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={() => setShowVercelGuideModal(false)}
-              className="absolute top-4 left-4 sm:left-auto sm:right-4 text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800"
-            >
-              ✕
-            </button>
-
-            <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
-                <Info className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-black text-white">
-                  {isAr ? 'دليل تشغيل دورة الـ 30 دقيقة على استضافة Vercel (خطة الهواة المجانية)' : 'Vercel Hobby 30-Minute Cycle Setup Guide'}
-                </h3>
-                <p className="text-xs text-slate-400">
-                  {isAr ? 'حلول هندسية متوافقة 100% مع شروط Vercel دون الحاجة لدفع اشتراك Pro' : '100% compliant serverless methods for 30m cycles on Vercel free tier'}
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
-              {/* Option 1: Lazy Auto-Trigger */}
-              <div className="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/30 space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="font-bold text-emerald-400 text-sm">
-                    {isAr ? '1. التحديث التلقائي الكسول (Lazy On-Demand Refresh) - [مفعل الآن تلقائياً]' : '1. Lazy On-Demand Background Refresh - [Active Now]'}
-                  </span>
-                </div>
-                <p className="text-slate-300">
-                  {isAr 
-                    ? 'تم دمج هذه التقنية مباشرة في الكود! عندما يفتح أي زائر أو محرر الموقع، يفحص الباك إند هل مرت 30 دقيقة منذ آخر مقال؛ إذا مر الوقت، يُنتج مقالاً جديداً فوراً ويحفظه في MongoDB. لا تحتاج لأي إعداد خارجي!' 
-                    : 'Embedded directly into the codebase! Whenever visitors browse, the backend automatically generates a new report if 30 minutes have elapsed since the last article.'}
-                </p>
-              </div>
-
-              {/* Option 2: External Free Webhook */}
-              <div className="p-3.5 rounded-xl bg-blue-950/30 border border-blue-500/30 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Radio className="w-4 h-4 text-blue-400" />
-                    <span className="font-bold text-blue-400 text-sm">
-                      {isAr ? '2. خدمة Webhook مجانية (مثل cron-job.org)' : '2. Free Webhook Ping (cron-job.org)'}
-                    </span>
-                  </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-mono">
-                    {isAr ? 'مستمر 24/7' : '24/7 Continuous'}
-                  </span>
-                </div>
-                <p className="text-slate-300">
-                  {isAr 
-                    ? 'إذا أردت أن يتم التوليد بدقة كل 30 دقيقة حتى لو لم يدخل أي زائر للموقع، يمكنك التسجيل في موقع cron-job.org المجاني ووضع هذا الرابط:' 
-                    : 'To trigger strictly every 30 minutes even with zero traffic, configure cron-job.org with your endpoint:'}
-                </p>
-                <div className="flex items-center gap-2 bg-slate-950 p-2.5 rounded-lg border border-slate-800 font-mono text-[11px] text-emerald-300">
-                  <span className="truncate flex-1">
-                    {typeof window !== 'undefined' ? `${window.location.origin}/api/cron/trigger` : 'https://your-site.vercel.app/api/cron/trigger'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://your-site.vercel.app';
-                      navigator.clipboard.writeText(`${origin}/api/cron/trigger`);
-                      setCopiedEndpoint(true);
-                      setTimeout(() => setCopiedEndpoint(false), 2500);
-                    }}
-                    className="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors shrink-0 flex items-center gap-1 text-[11px]"
-                  >
-                    {copiedEndpoint ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copiedEndpoint ? (isAr ? 'تم النسخ' : 'Copied') : (isAr ? 'نسخ الرابط' : 'Copy')}</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Option 3: GitHub Actions */}
-              <div className="p-3.5 rounded-xl bg-purple-950/30 border border-purple-500/30 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Terminal className="w-4 h-4 text-purple-400" />
-                  <span className="font-bold text-purple-400 text-sm">
-                    {isAr ? '3. عبر GitHub Actions (ملف جاهز مدمج بالمشروع)' : '3. Free GitHub Actions Scheduled Workflow'}
-                  </span>
-                </div>
-                <p className="text-slate-300">
-                  {isAr
-                    ? 'تم إنشاء الملف .github/workflows/africonomist-cron.yml داخل المستودع. بمجرد رفع الكود إلى GitHub، سيقوم خادم GitHub تلقائياً باستدعاء موقعك كل 30 دقيقة مجاناً للأبد.'
-                    : 'The file .github/workflows/africonomist-cron.yml is already configured in the repo to pulse your Vercel deployment every 30 minutes.'}
-                </p>
-              </div>
-            </div>
-
-            <div className="pt-2 border-t border-slate-800 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setShowVercelGuideModal(false)}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition-colors"
-              >
-                {isAr ? 'إغلاق ومتابعة' : 'Close & Continue'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Clean Newsroom Desk Header */}
       <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
         <div className="space-y-1">
@@ -472,40 +350,29 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-                    <span className="text-xs font-bold text-emerald-400">
-                      {isAr ? 'النوع الأول: مقالات تعد تلقائياً كل 30 دقيقة' : 'Type 1: Autonomous Periodic (Every 30m)'}
+                    <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                    <span className="text-xs font-bold text-amber-400">
+                      {isAr ? 'النوع الأول: تقارير الرصد الآلي (مجمّد مؤقتاً)' : 'Type 1: Autonomous Pulse (Paused)'}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-mono text-xs text-slate-400 px-2 py-0.5 rounded bg-slate-800/80 border border-slate-700">
-                      ⏱️ {formatTime(secondsUntilNextCycle)}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setShowVercelGuideModal(true)}
-                      className="text-[10px] px-2 py-0.5 rounded-md bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center gap-1 transition-colors cursor-pointer"
-                      title={isAr ? 'دليل تشغيل دورة الـ 30 دقيقة على استضافة Vercel' : 'Vercel Hobby 30-min sync guide'}
-                    >
-                      <Info className="w-3 h-3" />
-                      <span>{isAr ? 'دليل Vercel (30د)' : 'Vercel 30m'}</span>
-                    </button>
-                  </div>
+                  <span className="font-mono text-xs text-slate-400 px-2 py-0.5 rounded bg-slate-800/80 border border-slate-700">
+                    ⏱️ {formatTime(secondsUntilNextCycle)}
+                  </span>
                 </div>
                 <h3 className="text-sm font-black text-white">
-                  {isAr ? 'دورة الرصد الآلي الشاملة (Autonomous Ingestion)' : 'Scheduled Autonomous Macro Pulse'}
+                  {isAr ? 'توليد فوري للمسودات الآلية (عشوائي شامل)' : 'Instant Autonomous Draft Generation'}
                 </h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
                   {isAr 
-                    ? 'يقوم وكلاء الذكاء الاصطناعي برصد أسواق العملات، السلع، والمصارف في الـ 54 دولة دورياً كل نصف ساعة وإيداع المسودات في غرفة الأخبار.' 
-                    : 'AI agents continuously pulse all 54 African economies every 30 minutes, depositing drafts for review.'}
+                    ? 'تم تجميد الدورة التلقائية مؤقتاً. اضغط على زر "توليد فوري الآن" لإنشاء مسودة عشوائية فورية تشمل الـ 54 دولة و 28 قطاعاً و 18 قالباً صحفياً.' 
+                    : 'Periodic auto-pulse is paused. Use Instant Generate Now to commission a random draft across 54 countries and 28 sectors.'}
                 </p>
               </div>
 
               <div className="pt-2 flex items-center justify-between gap-2 border-t border-slate-800/80">
                 <span className="text-[11px] text-slate-400 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                  {isAr ? 'العداد متصل ومستمر دون انقطاع' : 'Continuous synchronized countdown'}
+                  <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                  {isAr ? 'جاهز للتوليد الفوري بنقرة واحدة' : 'Ready for 1-click instant generation'}
                 </span>
                 <button
                   type="button"

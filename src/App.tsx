@@ -239,42 +239,19 @@ export default function App() {
     }
   };
 
-  // 3. مجدول الرصد الآلي المستمر ومؤقت النصف ساعة الحقيقي المربوط بساعة العالم
+  // 3. مزامنة مؤقت النصف ساعة للعرض (تم تجميد التوليد التلقائي الخلفي مؤقتاً والاعتماد على زر التوليد الفوري)
   useEffect(() => {
-    // 1. حساب الوقت الدقيق المتبقي فوراً من توقيت الساعة الحقيقي
+    // حساب الوقت الدقيق المتبقي من توقيت الساعة
     setSecondsUntilNextCycle(getSecondsUntilNextCycle());
 
-    // 2. فحص الدورات الضائعة أثناء إغلاق الموقع أو النوم واستدراكها فورياً
-    checkAndCatchUpMissedCycles(articles, (newDrafts) => {
-      setArticles(prev => {
-        const merged = [...newDrafts, ...prev];
-        saveArticlesToLocal(merged);
-        return merged;
-      });
-    });
-
-    // 3. مؤقت دوري كل ثانية لحساب الوقت المتبقي الحقيقي
+    // مؤقت دوري لتحديث عداد الثواني فقط دون إطلاق دورات تلقائية خلفية
     const timer = setInterval(() => {
-      const remaining = getSecondsUntilNextCycle();
-      setSecondsUntilNextCycle(remaining);
-
-      // عندما تصل الثواني المتبقية إلى الصفر أو 1
-      if (remaining <= 1) {
-        handleTriggerAutonomousCycle();
-      }
+      setSecondsUntilNextCycle(getSecondsUntilNextCycle());
     }, 1000);
 
-    // 4. فحص استئناف التبويب عند عودة المستخدم للموقع بعد إغلاقه أو تصغيره
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         setSecondsUntilNextCycle(getSecondsUntilNextCycle());
-        checkAndCatchUpMissedCycles(articles, (newDrafts) => {
-          setArticles(prev => {
-            const merged = [...newDrafts, ...prev];
-            saveArticlesToLocal(merged);
-            return merged;
-          });
-        });
       }
     };
 

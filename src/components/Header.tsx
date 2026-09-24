@@ -3,22 +3,16 @@ import {
   Building2, 
   Globe2, 
   ShieldCheck, 
-  Code2, 
-  Flame, 
-  SlidersHorizontal,
-  ChevronRight,
   TrendingUp,
-  LayoutGrid,
-  Activity
+  LayoutGrid
 } from 'lucide-react';
 
 interface HeaderProps {
-  currentTab: 'home' | 'country' | 'article' | 'editorial' | 'architecture';
-  onSelectTab: (tab: 'home' | 'country' | 'article' | 'editorial' | 'architecture') => void;
+  currentTab: 'home' | 'country' | 'article' | 'editorial';
+  onSelectTab: (tab: 'home' | 'country' | 'article' | 'editorial') => void;
   lang: 'ar' | 'en';
   onToggleLang: () => void;
   pendingDraftsCount: number;
-  onOpenHealthCheck?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -26,8 +20,7 @@ export const Header: React.FC<HeaderProps> = ({
   onSelectTab,
   lang,
   onToggleLang,
-  pendingDraftsCount,
-  onOpenHealthCheck
+  pendingDraftsCount
 }) => {
   const isAr = lang === 'ar';
 
@@ -44,26 +37,15 @@ export const Header: React.FC<HeaderProps> = ({
             {isAr ? 'بث مباشر - أسواق المال الأفريقية' : 'Live Feed - Pan-African Markets'}
           </span>
           <span className="hidden md:inline text-slate-600">|</span>
-          <span className="hidden md:inline text-slate-400 font-mono">
-            {isAr ? 'معيار Zero-Trust التحليلي المعتمد' : 'Zero-Trust AI Financial Verification'}
+          <span className="hidden md:inline text-slate-400">
+            {isAr ? 'منصة التحليلات الاقتصادية الرائدة' : 'Leading African Economic Intelligence'}
           </span>
         </div>
 
         <div className="flex items-center gap-3">
-          {onOpenHealthCheck && (
-            <button
-              onClick={onOpenHealthCheck}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-colors font-mono text-[11px]"
-              title={isAr ? 'فحص صحة الخدمات السحابية ومستودع GitHub' : 'Cloud Health-Check & GitHub Diagnostics'}
-            >
-              <Activity className="w-3.5 h-3.5 animate-pulse text-emerald-400" />
-              <span>{isAr ? 'فحص السحابة (GitHub)' : 'Cloud Health'}</span>
-            </button>
-          )}
-
           <button
             onClick={onToggleLang}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700/60 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700/60 transition-colors text-xs"
             title="Toggle Language / تغيير اللغة"
             aria-label="Toggle Language"
           >
@@ -82,7 +64,7 @@ export const Header: React.FC<HeaderProps> = ({
         >
           <div className="flex items-center gap-2">
             <span className="font-black tracking-tight text-white text-xl sm:text-2xl font-mono group-hover:text-amber-400 transition-colors">
-              {isAr ? 'آفريكونوميست' : 'Africonomist'}
+              {isAr ? 'آفريكونوميست' : 'AFRICONOMIST'}
             </span>
             <span className="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
           </div>
@@ -95,7 +77,7 @@ export const Header: React.FC<HeaderProps> = ({
         <nav className="flex items-center gap-1 sm:gap-2" aria-label="Main Navigation">
           <button
             onClick={() => onSelectTab('home')}
-            className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${
+            className={`px-3.5 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${
               currentTab === 'home'
                 ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
@@ -107,7 +89,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => onSelectTab('country')}
-            className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${
+            className={`px-3.5 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${
               currentTab === 'country'
                 ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
@@ -119,7 +101,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => onSelectTab('article')}
-            className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors hidden md:flex items-center gap-1.5 ${
+            className={`px-3.5 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors hidden md:flex items-center gap-1.5 ${
               currentTab === 'article'
                 ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
@@ -129,35 +111,22 @@ export const Header: React.FC<HeaderProps> = ({
             <span>{isAr ? 'قراءة مقال' : 'Article Reader'}</span>
           </button>
 
-          {/* Hidden Editorial Review Dashboard */}
+          {/* Editorial Review Dashboard */}
           <button
             onClick={() => onSelectTab('editorial')}
-            className={`relative px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${
+            className={`relative px-3.5 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${
               currentTab === 'editorial'
                 ? 'bg-rose-500/15 text-rose-300 border border-rose-500/40'
                 : 'text-slate-300 hover:text-rose-300 hover:bg-rose-950/20'
             }`}
           >
             <ShieldCheck className="w-4 h-4 text-rose-400" />
-            <span>{isAr ? 'لوحة التحرير' : 'Editorial Review'}</span>
+            <span>{isAr ? 'لوحة التحرير' : 'Editorial Desk'}</span>
             {pendingDraftsCount > 0 && (
               <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white font-mono">
                 {pendingDraftsCount}
               </span>
             )}
-          </button>
-
-          {/* Architecture & Scaffolding Blueprint Explorer */}
-          <button
-            onClick={() => onSelectTab('architecture')}
-            className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all flex items-center gap-1.5 border shadow-sm ${
-              currentTab === 'architecture'
-                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold border-amber-400'
-                : 'bg-slate-900 hover:bg-slate-800 text-amber-300 border-amber-500/40'
-            }`}
-          >
-            <Code2 className="w-4 h-4" />
-            <span>{isAr ? 'دليل المعمارية والأكواد' : 'Architecture Blueprint'}</span>
           </button>
         </nav>
       </div>

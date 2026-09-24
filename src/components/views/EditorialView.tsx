@@ -201,45 +201,44 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
 
   return (
     <div className="space-y-6 pb-20">
-      {/* Route & Security Banner */}
+      {/* Clean Newsroom Desk Header */}
       <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 font-mono text-amber-400">
-            <Lock className="w-4 h-4 text-rose-400" />
-            <span className="text-slate-400">Next.js Protected Route:</span>
-            <span className="font-bold">/app/(dashboard)/editorial/page.tsx</span>
+          <div className="flex items-center gap-2 text-white font-bold text-sm">
+            <ShieldCheck className="w-5 h-5 text-rose-400" />
+            <span>{isAr ? 'غرفة الأخبار: بوابة المراجعة والاعتماد التحريري' : 'Newsroom: Editorial Review Desk'}</span>
           </div>
           <p className="text-[11px] text-slate-400">
             {isAr 
-              ? 'بوابة المراجعة التحريرية المشفرة - مخصصة حصرياً للمحررين البشريين المعتمدين عبر Firebase Custom Claims'
-              : 'Zero-Trust Editorial Portal - Restricted to verified Human Editors via RBAC Claims'}
+              ? 'مراجعة وتدقيق مسودات التقارير الاقتصادية المولدة آلياً ومصادقة المصادر قبل النشر المباشر'
+              : 'Review and verify automated economic briefs and source citations before final publication'}
           </p>
         </div>
 
-        {/* RBAC Role Switcher (For Demo & Verification) */}
+        {/* Editorial Mode Switcher */}
         <div className="flex items-center gap-2 bg-slate-950 p-1.5 rounded-lg border border-slate-800">
           <span className="text-slate-400 text-[11px] px-2 font-medium">
-            {isAr ? 'الدور الحالي (RBAC):' : 'Active Role:'}
+            {isAr ? 'صفة الحساب:' : 'Editor Status:'}
           </span>
           <button
             onClick={() => setActiveRole('HUMAN_EDITOR')}
-            className={`px-3 py-1 rounded text-xs font-bold transition-colors ${
+            className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${
               activeRole === 'HUMAN_EDITOR'
                 ? 'bg-rose-500 text-white shadow-sm'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            HUMAN_EDITOR
+            {isAr ? 'رئيس التحرير (صلاحية النشر)' : 'Chief Editor (Publish)'}
           </button>
           <button
             onClick={() => setActiveRole('GUEST')}
-            className={`px-3 py-1 rounded text-xs font-bold transition-colors ${
+            className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${
               activeRole === 'GUEST'
                 ? 'bg-amber-500 text-slate-950 shadow-sm'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            GUEST (Unauthorized)
+            {isAr ? 'وضع المشاهدة' : 'Preview Mode'}
           </button>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Article, AfricanCountryProfile, MarketTickerItem } from '../../types';
+import { CountriesRibbon } from '../CountriesRibbon';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -11,7 +12,8 @@ import {
   ArrowUpRight,
   Filter,
   BarChart3,
-  Globe2
+  Globe2,
+  ChevronRight
 } from 'lucide-react';
 
 interface HomeViewProps {
@@ -21,6 +23,7 @@ interface HomeViewProps {
   lang: 'ar' | 'en';
   onSelectArticle: (article: Article) => void;
   onSelectCountry: (countrySlug: string) => void;
+  onOpenUpdater?: () => void;
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({
@@ -30,6 +33,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   lang,
   onSelectArticle,
   onSelectCountry,
+  onOpenUpdater,
 }) => {
   const isAr = lang === 'ar';
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -133,53 +137,65 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </div>
           </div>
 
-          {/* Side Pan-African Quick Index & Key Countries (4 Cols) */}
+          {/* Side Pan-African Quick Index & Top Economies (4 Cols) */}
           <div className="lg:col-span-4 space-y-4">
             <div className="p-5 rounded-xl bg-[#0d1320] border border-slate-800">
               <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-800">
                 <h2 className="text-sm font-bold text-white flex items-center gap-2">
                   <Globe2 className="w-4 h-4 text-amber-400" />
-                  {isAr ? 'الملفات الاقتصادية لدول القارة' : 'Country Economic Hubs'}
+                  {isAr ? 'أكبر الاقتصادات الأفريقية' : 'Top African Economies'}
                 </h2>
-                <span className="text-[11px] text-slate-400 font-mono">6 Nations</span>
+                <span className="text-[11px] text-amber-400 font-mono font-bold">54 Nations</span>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
-                {countries.map((c) => (
+                {countries.slice(0, 8).map((c) => (
                   <button
                     key={c.code}
                     onClick={() => onSelectCountry(c.slug)}
-                    className="p-2.5 rounded-lg bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800/60 text-right transition-all group flex flex-col justify-between"
+                    className="p-2.5 rounded-lg bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800/60 text-right rtl:text-right ltr:text-left transition-all group flex flex-col justify-between"
                   >
                     <div className="flex items-center justify-between w-full">
-                      <span className="text-xs font-bold text-slate-200 group-hover:text-amber-400">
-                        {isAr ? c.nameAr : c.nameEn}
+                      <span className="text-xs font-bold text-slate-200 group-hover:text-amber-400 truncate">
+                        #{c.rank} {isAr ? c.nameAr : c.nameEn}
                       </span>
                       <span className="text-[10px] text-emerald-400 font-mono">{c.gdpGrowth}</span>
                     </div>
-                    <div className="text-[11px] text-slate-400 font-mono mt-1">
-                      {c.currency.split(' ')[0]} · {c.centralBankRate}
+                    <div className="text-[11px] text-slate-400 font-mono mt-1 flex items-center justify-between">
+                      <span className="text-amber-400 font-semibold">{c.gdp}</span>
+                      <span className="text-[10px] text-slate-500">{c.code}</span>
                     </div>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Zero-Trust Architecture Guarantee Banner */}
-            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs space-y-2">
-              <div className="flex items-center gap-2 font-bold text-amber-300">
-                <ShieldCheck className="w-4 h-4 text-amber-400" />
-                {isAr ? 'بروتوكول التحقق الصارم (Human-in-the-Loop)' : 'Zero-Trust Verification Protocol'}
+            {/* Zero-Trust Editorial Standards Banner */}
+            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-xs space-y-2">
+              <div className="flex items-center gap-2 font-bold text-white">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                {isAr ? 'معايير النزاهة والتدقيق المالي' : 'Financial Integrity Standards'}
               </div>
-              <p className="text-slate-300 leading-relaxed text-[11px]">
+              <p className="text-slate-400 leading-relaxed text-[11px]">
                 {isAr
-                  ? 'كل مقال اقتصادي يتم توليده بواسطة وكيل الذكاء الاصطناعي يخضع تلقائياً لحالة pending_review ولا يُنشر إلا بعد مصادقة وتدقيق المحرر البشري.'
-                  : 'Every AI-generated economic report defaults to pending_review and requires human editor validation before publication.'}
+                  ? 'تخضع كافة المؤشرات والبيانات لمطابقة دقيقة مع النشرات الدورية للبنوك المركزية وصندوق النقد الدولي ومؤسسات التمويل القارية.'
+                  : 'All indicators and macroeconomic feeds are verified against official central bank bulletins, IMF statistics, and AfDB reports.'}
               </p>
             </div>
           </div>
         </section>
       )}
+
+      {/* Full 54 African Countries Horizontal Ribbon Section */}
+      <section className="space-y-2">
+        <CountriesRibbon
+          countries={countries}
+          selectedSlug=""
+          onSelectCountry={onSelectCountry}
+          onOpenUpdater={onOpenUpdater}
+          lang={lang}
+        />
+      </section>
 
       {/* Sector Filter Bar (Clean Functional Buttons, NOT pills) */}
       <section className="space-y-4">

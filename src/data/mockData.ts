@@ -1,4 +1,5 @@
 import { Article, AfricanCountryProfile, MarketTickerItem } from '../types';
+import { ALL_54_AFRICAN_COUNTRIES } from './africanCountries';
 
 export const MARKET_TICKERS: MarketTickerItem[] = [
   { symbol: 'USD/EGP', name: 'US Dollar / Egyptian Pound', nameAr: 'دولار / جنيه مصري', price: '48.45', change: '-0.15%', isPositive: true, type: 'currency' },
@@ -14,104 +15,7 @@ export const MARKET_TICKERS: MarketTickerItem[] = [
   { symbol: 'NGX-ASI', name: 'Nigerian Exchange ASI', nameAr: 'مؤشر البورصة النيجيرية', price: '97,412.30', change: '+0.88%', isPositive: true, type: 'index' },
 ];
 
-export const AFRICAN_COUNTRIES: AfricanCountryProfile[] = [
-  {
-    code: 'EG',
-    slug: 'egypt',
-    nameAr: 'مصر',
-    nameEn: 'Egypt',
-    capital: 'القاهرة (Cairo)',
-    gdp: '$395 Billion',
-    gdpGrowth: '+4.2%',
-    inflation: '26.4%',
-    centralBankRate: '27.25%',
-    currency: 'EGP (جنيه مصري)',
-    currencySymbol: 'ج.م',
-    keySectors: ['الطاقة والغاز الطبيعي', 'قناة السويس واللوجستيات', 'الصناعة التحويلية', 'التكنولوجيا المالية'],
-    descriptionAr: 'ثاني أكبر اقتصاد في أفريقيا، يشهد إصلاحات هيكلية واسعة وتدفقات استثمارية خليجية وأوروبية في البنية التحتية والطاقة النظيفة وممر قناة السويس الاقتصادي.',
-    descriptionEn: 'Second-largest African economy undergoing major structural reforms, currency stabilization, and massive sovereign fund investments in clean energy and logistics corridors.'
-  },
-  {
-    code: 'NG',
-    slug: 'nigeria',
-    nameAr: 'نيجيريا',
-    nameEn: 'Nigeria',
-    capital: 'أبوجا (Abuja)',
-    gdp: '$375 Billion',
-    gdpGrowth: '+3.1%',
-    inflation: '32.1%',
-    centralBankRate: '26.75%',
-    currency: 'NGN (نايرا)',
-    currencySymbol: '₦',
-    keySectors: ['النفط والغاز (Dangote Refinery)', 'المدفوعات الرقمية (FinTech)', 'الزراعة', 'الاتصالات'],
-    descriptionAr: 'أكبر سوق استهلاكي وسكاني في القارة مع قيادة إقليمية في قطاع التكنولوجيا المالية، وتشغيل مصفاة دانغوتي العملاقة لتحقيق الاكتفاء الذاتي من الوقود.',
-    descriptionEn: 'Africa’s largest demographic hub and leading consumer economy, spearheading African fintech innovation alongside transformational downstream refining projects.'
-  },
-  {
-    code: 'ZA',
-    slug: 'south-africa',
-    nameAr: 'جنوب أفريقيا',
-    nameEn: 'South Africa',
-    capital: 'بريتوريا (Pretoria)',
-    gdp: '$380 Billion',
-    gdpGrowth: '+1.3%',
-    inflation: '4.6%',
-    centralBankRate: '8.00%',
-    currency: 'ZAR (راند)',
-    currencySymbol: 'R',
-    keySectors: ['التعدين (البلاتين والذهب)', 'الخدمات المصرفية المتقدمة', 'الطاقة المتجددة', 'السيارات'],
-    descriptionAr: 'أعمق وأكثر الأسواق المالية سيولة في القارة، يقود تحالف الوحدة الوطنية إصلاحات شبكة الكهرباء والموانئ لاستعادة وتيرة النمو المتسارع.',
-    descriptionEn: 'Africa’s deepest capital markets and industrial leader, accelerating energy grid privatizations and logistics infrastructure revamps.'
-  },
-  {
-    code: 'KE',
-    slug: 'kenya',
-    nameAr: 'كينيا',
-    nameEn: 'Kenya',
-    capital: 'نيروبي (Nairobi)',
-    gdp: '$115 Billion',
-    gdpGrowth: '+5.4%',
-    inflation: '4.4%',
-    centralBankRate: '12.75%',
-    currency: 'KES (شلن)',
-    currencySymbol: 'KSh',
-    keySectors: ['وادي السافانا التقني (Silicon Savannah)', 'الشاي والزهور', 'الطاقة الحرارية الأرضية (Geothermal)'],
-    descriptionAr: 'العاصمة المالية لشرق أفريقيا، رائدة العالم في الشمول المالي عبر الهاتف المحمول (M-Pesa) وأكثر من 90% من طاقتها الكهربائية مولدة من مصادر متجددة.',
-    descriptionEn: 'East Africa’s financial hub and green-energy powerhouse, driving mobile-money adoption and regional infrastructure interconnections.'
-  },
-  {
-    code: 'MA',
-    slug: 'morocco',
-    nameAr: 'المغرب',
-    nameEn: 'Morocco',
-    capital: 'الرباط (Rabat)',
-    gdp: '$145 Billion',
-    gdpGrowth: '+3.6%',
-    inflation: '1.8%',
-    centralBankRate: '2.75%',
-    currency: 'MAD (درهم مغربي)',
-    currencySymbol: 'د.م',
-    keySectors: ['صناعة السيارات والطيران', 'الفوسفات والأسمدة', 'الهيدروجين الأخضر', 'اللوجستيات (ميناء طنجة المتوسط)'],
-    descriptionAr: 'قوة صناعية وتصديرية كبرى نحو أوروبا وأفريقيا، تمتلك أكبر احتياطي فوسفات في العالم وميناء طنجة المتوسط الرائد على البحر الأبيض المتوسط.',
-    descriptionEn: 'Industrial gateway bridging Africa and Europe, global leader in phosphate derivatives and top exporter of passenger vehicles.'
-  },
-  {
-    code: 'RW',
-    slug: 'rwanda',
-    nameAr: 'رواندا',
-    nameEn: 'Rwanda',
-    capital: 'كيغالي (Kigali)',
-    gdp: '$14 Billion',
-    gdpGrowth: '+7.8%',
-    inflation: '5.0%',
-    centralBankRate: '6.50%',
-    currency: 'RWF (فرنك رواندي)',
-    currencySymbol: 'FRw',
-    keySectors: ['المركز المالي الدولي (KIFC)', 'السياحة البيئية', 'الخدمات اللوجستية الإقليمية', 'الذكاء الاصطناعي'],
-    descriptionAr: 'أسرع اقتصادات القارة نمواً، تُعرف بـ "سنغافورة أفريقيا" بنموذجها المتطور في الحوكمة وسهولة ممارسة الأعمال وجذب الصناديق الاستثمارية الدولية.',
-    descriptionEn: 'The fastest-growing economic innovator in central Africa, positioning Kigali as an offshore financial centre and pan-African technology sandbox.'
-  }
-];
+export const AFRICAN_COUNTRIES: AfricanCountryProfile[] = ALL_54_AFRICAN_COUNTRIES;
 
 export const INITIAL_ARTICLES: Article[] = [
   {

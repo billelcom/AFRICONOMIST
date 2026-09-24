@@ -10,17 +10,28 @@ import { HomeView } from './components/views/HomeView';
 import { CountryView } from './components/views/CountryView';
 import { ArticleView } from './components/views/ArticleView';
 import { EditorialView } from './components/views/EditorialView';
-import { ArchitectureView } from './components/views/ArchitectureView';
 import { INITIAL_ARTICLES, AFRICAN_COUNTRIES, MARKET_TICKERS } from './data/mockData';
 import { Article, AfricanCountryProfile } from './types';
-import { ShieldCheck, Globe, Database, Terminal, FileCode2, Activity } from 'lucide-react';
-import { HealthCheckModal } from './components/HealthCheckModal';
+import { 
+  loadCountriesFromStorage, 
+  saveCountriesToStorage, 
+  rankCountriesDynamically 
+} from './lib/dynamicEconomicRanking';
+import { EconomicDataUpdaterModal } from './components/EconomicDataUpdaterModal';
 
 const STORAGE_KEY = 'africonomist_custom_articles_v1';
 
 export default function App() {
   const [lang, setLang] = useState<'ar' | 'en'>('ar');
-  const [currentTab, setCurrentTab] = useState<'home' | 'country' | 'article' | 'editorial' | 'architecture'>('home');
+  const [currentTab, setCurrentTab] = useState<'home' | 'country' | 'article' | 'editorial'>('home');
+  const [isUpdaterModalOpen, setIsUpdaterModalOpen] = useState<boolean>(false);
+
+  // حالة الدول الـ 54 الديناميكية مع الترتيب التلقائي
+  const [countries, setCountries] = useState<AfricanCountryProfile[]>(() => {
+    const loaded = loadCountriesFromStorage(AFRICAN_COUNTRIES);
+    return rankCountriesDynamically(loaded, 'gdp');
+  });
+
   const [articles, setArticles] = useState<Article[]>(() => {
     // 1. استعادة المقالات فوراً من التخزين الدائم للمتصفح عند التحميل الأول
     if (typeof window !== 'undefined') {
@@ -192,7 +203,33 @@ export default function App() {
     }
   };
 
-  const currentCountry = AFRICAN_COUNTRIES.find(c => c.slug === selectedCountrySlug) || AFRICAN_COUNTRIES[0];
+  // معالجة تحديث معطيات أي دولة وإعادة الترتيب التلقائي الفوري
+  const handleUpdateCountry = (updatedCountry: AfricanCountryProfile) => {
+    setCountries(prev => {
+      // حفظ خريطة الترتيب السابق لاحتساب حركة الصعود أو التراجع
+      const baseRankMap: Record<string, number> = {};
+      prev.forEach(c => {
+        baseRankMap[c.code] = c.rank;
+      });
+
+      // استبدال الدولة المحدثة
+      const replaced = prev.map(c => c.code === updatedCountry.code ? updatedCountry : c);
+
+      // إعادة الترتيب التلقائي الديناميكي لكافة الدول وفق الناتج ومؤشر القوة
+      const reRanked = rankCountriesDynamically(replaced, 'gdp', baseRankMap);
+      saveCountriesToStorage(reRanked);
+      return reRanked;
+    });
+  };
+
+  // استعادة الإحصائيات الرسمية الافتراضية
+  const handleResetCountries = () => {
+    const defaultRanked = rankCountriesDynamically(AFRICAN_COUNTRIES, 'gdp');
+    setCountries(defaultRanked);
+    saveCountriesToStorage(defaultRanked);
+  };
+
+  const currentCountry = countries.find(c => c.slug === selectedCountrySlug) || countries[0];
 
   return (
     <div className={`min-h-screen bg-[#080C14] text-slate-100 flex flex-col font-sans ${isAr ? 'rtl' : 'ltr'}`} dir={isAr ? 'rtl' : 'ltr'}>
@@ -214,14 +251,6 @@ export default function App() {
         lang={lang}
         onToggleLang={() => setLang(prev => prev === 'ar' ? 'en' : 'ar')}
         pendingDraftsCount={pendingDraftsCount}
-        onOpenHealthCheck={() => setIsHealthCheckOpen(true)}
-      />
-
-      {/* Cloud & GitHub Diagnostic Health-Check Modal */}
-      <HealthCheckModal
-        isOpen={isHealthCheckOpen}
-        onClose={() => setIsHealthCheckOpen(false)}
-        lang={lang}
       />
 
       {/* Continuous Live Market Ticker */}
@@ -232,21 +261,23 @@ export default function App() {
         {currentTab === 'home' && (
           <HomeView
             articles={articles}
-            countries={AFRICAN_COUNTRIES}
+            countries={countries}
             tickers={MARKET_TICKERS}
             lang={lang}
             onSelectArticle={handleSelectArticle}
             onSelectCountry={handleSelectCountry}
+            onOpenUpdater={() => setIsUpdaterModalOpen(true)}
           />
         )}
 
         {currentTab === 'country' && (
           <CountryView
             country={currentCountry}
-            allCountries={AFRICAN_COUNTRIES}
+            allCountries={countries}
             onSelectCountry={handleSelectCountry}
             articles={articles}
             onSelectArticle={handleSelectArticle}
+            onOpenUpdater={() => setIsUpdaterModalOpen(true)}
             lang={lang}
           />
         )}
@@ -268,57 +299,103 @@ export default function App() {
             lang={lang}
           />
         )}
-
-        {currentTab === 'architecture' && (
-          <ArchitectureView lang={lang} />
-        )}
       </main>
 
-      {/* Standard Financial Portal Footer */}
-      <footer className="border-t border-slate-800 bg-[#060910] text-slate-400 text-xs py-10 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-6 border-b border-slate-800/80">
-            <div className="flex items-center gap-2">
-              <span className="font-extrabold text-white font-mono text-base tracking-tight">
-                {isAr ? 'آفريكونوميست' : 'AFRICONOMIST'}
-              </span>
-              <span className="text-amber-500 font-bold">·</span>
-              <span className="text-slate-400 font-mono text-xs">
-                {isAr ? 'منصة الصحافة الاقتصادية الأفريقية' : 'African Economic Intelligence'}
-              </span>
+      {/* Dynamic Macroeconomic Data Simulator & Auto Re-ranking Modal */}
+      <EconomicDataUpdaterModal
+        isOpen={isUpdaterModalOpen}
+        onClose={() => setIsUpdaterModalOpen(false)}
+        countries={countries}
+        onUpdateCountry={handleUpdateCountry}
+        onResetAll={handleResetCountries}
+        lang={lang}
+      />
+
+      {/* Professional Financial Media Footer */}
+      <footer className="border-t border-slate-800 bg-[#050811] text-slate-400 text-xs py-12 mt-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 border-b border-slate-800/80">
+            {/* Column 1: Brand Info */}
+            <div className="md:col-span-2 space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="font-black text-white font-mono text-xl tracking-tight">
+                  {isAr ? 'آفريكونوميست' : 'AFRICONOMIST'}
+                </span>
+                <span className="inline-block w-2 h-2 rounded-full bg-amber-500"></span>
+              </div>
+              <p className="text-slate-400 text-xs leading-relaxed max-w-md">
+                {isAr
+                  ? 'المنصة الإعلامية الرائدة في تتبع أسواق المال، استثمارات الطاقة، ومؤشرات الاقتصاد الكلي عبر 54 دولة أفريقية برؤية استقصائية رصينة.'
+                  : 'The premier intelligence platform monitoring capital markets, energy transition, and macroeconomic indicators across 54 African nations.'}
+              </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400">
-              <button 
-                onClick={() => setCurrentTab('architecture')}
-                className="hover:text-amber-400 transition-colors flex items-center gap-1"
-              >
-                <Terminal className="w-3.5 h-3.5 text-amber-500" />
-                <span>{isAr ? 'أوامر التثبيت و Scaffolding' : 'Terminal Scaffolding'}</span>
-              </button>
-              <button 
-                onClick={() => setCurrentTab('editorial')}
-                className="hover:text-rose-400 transition-colors flex items-center gap-1"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-rose-500" />
-                <span>{isAr ? 'بوابة المحررين (RBAC)' : 'Editorial Portal'}</span>
-              </button>
-              <span className="text-slate-700">|</span>
-              <span className="font-mono text-[11px] text-slate-500">
-                Next.js 15 App Router · TypeScript · Tailwind CSS · MongoDB Atlas
-              </span>
+            {/* Column 2: Navigation Links */}
+            <div className="space-y-3">
+              <h4 className="text-white font-semibold text-xs uppercase tracking-wider">
+                {isAr ? 'أقسام المنصة' : 'Sections'}
+              </h4>
+              <ul className="space-y-2 text-xs">
+                <li>
+                  <button 
+                    onClick={() => { setCurrentTab('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    className="hover:text-amber-400 transition-colors"
+                  >
+                    {isAr ? 'الرئيسية والأسواق الحية' : 'Markets & Live Feed'}
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => { setCurrentTab('country'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    className="hover:text-amber-400 transition-colors"
+                  >
+                    {isAr ? 'الملفات الاقتصادية للدول' : 'Country Economic Dossiers'}
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => { setCurrentTab('editorial'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    className="hover:text-amber-400 transition-colors"
+                  >
+                    {isAr ? 'لوحة التحرير والتقارير' : 'Editorial Desk'}
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            {/* Column 3: Coverage & Transparency */}
+            <div className="space-y-3">
+              <h4 className="text-white font-semibold text-xs uppercase tracking-wider">
+                {isAr ? 'معايير التحرير' : 'Standards'}
+              </h4>
+              <p className="text-slate-400 text-xs leading-relaxed">
+                {isAr
+                  ? 'تلتزم المنصة بأعلى معايير التدقيق الاقتصادي المالي والنزاهة الصحفية ومراجعة كافة البيانات بالمصادر الرسمية.'
+                  : 'Committed to rigorous economic fact-checking, financial integrity, and verified official institutional sources.'}
+              </p>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400 gap-2">
+          {/* Copyright bar */}
+          <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-3">
             <p>
               {isAr
-                ? '© 2026 منصة آفريكونوميست (Africonomist). جميع المؤشرات الاقتصادية وأسعار الصرف مستخلصة وفق بروتوكول فحص الحقائق الصارم.'
-                : '© 2026 Africonomist Platform. All macroeconomic feeds and indices verified under Zero-Trust human-in-the-loop protocols.'}
+                ? '© 2026 آفريكونوميست (AFRICONOMIST). كافة الحقوق محفوظة.'
+                : '© 2026 AFRICONOMIST. All rights reserved.'}
             </p>
-            <p className="font-mono text-slate-400">
-              Zero-Trust AI Financial Architecture v2.4 · GitHub Ready
-            </p>
+            <div className="flex items-center gap-4 text-xs text-slate-400">
+              <span className="hover:text-slate-300 transition-colors cursor-pointer">
+                {isAr ? 'سياسة الخصوصية' : 'Privacy Policy'}
+              </span>
+              <span>·</span>
+              <span className="hover:text-slate-300 transition-colors cursor-pointer">
+                {isAr ? 'شروط الخدمة' : 'Terms of Service'}
+              </span>
+              <span>·</span>
+              <span className="hover:text-slate-300 transition-colors cursor-pointer">
+                {isAr ? 'المصادر والشفافية' : 'Methodology'}
+              </span>
+            </div>
           </div>
         </div>
       </footer>

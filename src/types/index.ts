@@ -31,7 +31,7 @@ export interface Article {
   content: string[];
   contentEn: string[];
   category: 'Energy' | 'FinTech' | 'Agribusiness' | 'Mining' | 'Macroeconomics' | 'Markets';
-  countryCode: 'EG' | 'NG' | 'ZA' | 'KE' | 'MA' | 'RW' | 'PAN_AFRICA';
+  countryCode: string;
   countryName: string;
   countryNameEn: string;
   status: ArticleStatus;
@@ -65,12 +65,19 @@ export interface AfricanCountryProfile {
   nameEn: string;
   capital: string;
   gdp: string;
+  gdpNumber: number; // بالمليار دولار
+  population: string;
+  populationNumber: number; // بالملايين
+  rank: number; // الترتيب الاقتصادي 1-54
   gdpGrowth: string;
   inflation: string;
   centralBankRate: string;
   currency: string;
   currencySymbol: string;
   keySectors: string[];
+  powerScore?: number; // مؤشر القوة الاقتصادية المركب المحسوب ديناميكياً
+  rankChange?: number; // التغير في الترتيب مقارنة بالأساس (+1 صعود، -1 هبوط، 0)
+  lastUpdated?: string;
   descriptionAr: string;
   descriptionEn: string;
 }

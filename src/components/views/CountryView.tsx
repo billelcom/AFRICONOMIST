@@ -1,5 +1,6 @@
 import React from 'react';
 import { AfricanCountryProfile, Article } from '../../types';
+import { CountriesRibbon } from '../CountriesRibbon';
 import { 
   Building2, 
   TrendingUp, 
@@ -9,8 +10,9 @@ import {
   FileText, 
   ArrowLeft, 
   ArrowRight,
-  Code2,
-  ExternalLink
+  ExternalLink,
+  Users,
+  Award
 } from 'lucide-react';
 
 interface CountryViewProps {
@@ -19,6 +21,7 @@ interface CountryViewProps {
   onSelectCountry: (slug: string) => void;
   articles: Article[];
   onSelectArticle: (article: Article) => void;
+  onOpenUpdater?: () => void;
   lang: 'ar' | 'en';
 }
 
@@ -28,6 +31,7 @@ export const CountryView: React.FC<CountryViewProps> = ({
   onSelectCountry,
   articles,
   onSelectArticle,
+  onOpenUpdater,
   lang
 }) => {
   const isAr = lang === 'ar';
@@ -35,40 +39,28 @@ export const CountryView: React.FC<CountryViewProps> = ({
 
   return (
     <div className="space-y-8 pb-16">
-      {/* Route & Architecture Banner (Next.js App Router Simulation) */}
-      <div className="p-3.5 rounded-lg bg-slate-900 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2 text-slate-300 font-mono">
-          <Code2 className="w-4 h-4 text-amber-400" />
-          <span className="text-slate-500">{isAr ? 'مسار Next.js الديناميكي: ' : 'Dynamic Route: '}</span>
-          <span className="text-amber-400 font-semibold">/app/countries/[countryCode]/page.tsx</span>
-          <span className="text-slate-600">→</span>
-          <span className="text-emerald-400 font-semibold">/countries/{country.slug}</span>
-        </div>
-
-        {/* Country Quick Selector */}
-        <div className="flex items-center gap-1 overflow-x-auto py-1">
-          {allCountries.map((c) => (
-            <button
-              key={c.code}
-              onClick={() => onSelectCountry(c.slug)}
-              className={`px-2.5 py-1 rounded text-xs transition-colors whitespace-nowrap ${
-                c.slug === country.slug
-                  ? 'bg-amber-500 text-slate-950 font-bold'
-                  : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700'
-              }`}
-            >
-              {isAr ? c.nameAr : c.nameEn}
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* Horizontal Scrollable Countries Ribbon (All 54 African Countries) */}
+      <CountriesRibbon
+        countries={allCountries}
+        selectedSlug={country.slug}
+        onSelectCountry={onSelectCountry}
+        onOpenUpdater={onOpenUpdater}
+        lang={lang}
+      />
 
       {/* Country Header Banner */}
       <div className="p-6 sm:p-8 rounded-xl bg-gradient-to-br from-[#11192e] to-[#0c1322] border border-slate-800">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
             <div className="flex items-center gap-2 text-xs text-amber-400 font-mono mb-2">
-              <span>{isAr ? 'الملف الاقتصادي والمالي الرسمي' : 'Official Sovereign Economic Dossier'}</span>
+              <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">
+                {isAr ? `المرتبة #${country.rank} أفريقياً` : `Rank #${country.rank} in Africa`}
+              </span>
+              {country.rankChange !== undefined && country.rankChange !== 0 && (
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${country.rankChange > 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
+                  {country.rankChange > 0 ? `▲ صعود +${country.rankChange}` : `▼ تراجع ${country.rankChange}`}
+                </span>
+              )}
               <span>·</span>
               <span>{country.code}</span>
               <span>·</span>
@@ -80,10 +72,19 @@ export const CountryView: React.FC<CountryViewProps> = ({
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="px-4 py-2 rounded-lg bg-slate-900 border border-slate-800 text-left">
+            <div className="px-4 py-2 rounded-lg bg-slate-900 border border-slate-800 text-left rtl:text-right ltr:text-left">
               <span className="text-[10px] text-slate-400 block">{isAr ? 'العملة الوطنية' : 'Currency'}</span>
               <span className="text-sm font-bold font-mono text-amber-400">{country.currency}</span>
             </div>
+
+            {onOpenUpdater && (
+              <button
+                onClick={onOpenUpdater}
+                className="px-4 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-2 transition-all shadow-md"
+              >
+                <span>{isAr ? 'تعديل المعطيات ومحاكاة الترتيب' : 'Simulate & Re-rank'}</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -93,14 +94,23 @@ export const CountryView: React.FC<CountryViewProps> = ({
       </div>
 
       {/* Macroeconomic Indicators Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
         <div className="p-4 rounded-xl bg-[#0d1424] border border-slate-800">
           <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
-            <span>{isAr ? 'الناتج المحلي الإجمالي' : 'Nominal GDP'}</span>
+            <span>{isAr ? 'الناتج الإجمالي (GDP)' : 'Nominal GDP'}</span>
             <Coins className="w-4 h-4 text-amber-400" />
           </div>
           <div className="text-xl font-bold font-mono text-white mt-1">{country.gdp}</div>
-          <span className="text-[11px] text-slate-500">{isAr ? 'حسب تقديرات صندوق النقد' : 'IMF Estimate'}</span>
+          <span className="text-[11px] text-slate-500">{isAr ? 'الترتيب: #' + country.rank : 'Rank: #' + country.rank}</span>
+        </div>
+
+        <div className="p-4 rounded-xl bg-[#0d1424] border border-slate-800">
+          <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+            <span>{isAr ? 'عدد السكان' : 'Population'}</span>
+            <Users className="w-4 h-4 text-sky-400" />
+          </div>
+          <div className="text-xl font-bold font-mono text-sky-300 mt-1">{country.population}</div>
+          <span className="text-[11px] text-slate-500">{isAr ? 'بيانات البنك الدولي' : 'World Bank census'}</span>
         </div>
 
         <div className="p-4 rounded-xl bg-[#0d1424] border border-slate-800">
@@ -109,7 +119,7 @@ export const CountryView: React.FC<CountryViewProps> = ({
             <TrendingUp className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="text-xl font-bold font-mono text-emerald-400 mt-1">{country.gdpGrowth}</div>
-          <span className="text-[11px] text-slate-500">{isAr ? 'توقعات البنك الدولي' : 'World Bank Outlook'}</span>
+          <span className="text-[11px] text-slate-500">{isAr ? 'توقعات صندوق النقد' : 'IMF Outlook'}</span>
         </div>
 
         <div className="p-4 rounded-xl bg-[#0d1424] border border-slate-800">
@@ -118,16 +128,16 @@ export const CountryView: React.FC<CountryViewProps> = ({
             <Percent className="w-4 h-4 text-amber-400" />
           </div>
           <div className="text-xl font-bold font-mono text-amber-300 mt-1">{country.inflation}</div>
-          <span className="text-[11px] text-slate-500">{isAr ? 'المؤشر العام لأسعار المستهلك' : 'CPI Year-on-Year'}</span>
+          <span className="text-[11px] text-slate-500">{isAr ? 'المؤشر العام للأسعار' : 'CPI Year-on-Year'}</span>
         </div>
 
-        <div className="p-4 rounded-xl bg-[#0d1424] border border-slate-800">
+        <div className="p-4 rounded-xl bg-[#0d1424] border border-slate-800 col-span-2 sm:col-span-1">
           <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
-            <span>{isAr ? 'سعر الفائدة للمركزي' : 'Policy Interest Rate'}</span>
+            <span>{isAr ? 'سعر الفائدة للمركزي' : 'Policy Rate'}</span>
             <PieChart className="w-4 h-4 text-indigo-400" />
           </div>
           <div className="text-xl font-bold font-mono text-indigo-300 mt-1">{country.centralBankRate}</div>
-          <span className="text-[11px] text-slate-500">{isAr ? 'قرارات لجان السياسة النقدية' : 'Monetary Policy Comm.'}</span>
+          <span className="text-[11px] text-slate-500">{isAr ? 'البنك المركزي' : 'Central Bank'}</span>
         </div>
       </div>
 

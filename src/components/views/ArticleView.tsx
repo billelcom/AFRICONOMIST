@@ -35,22 +35,14 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-20">
-      {/* Route & Architecture Simulator Header */}
-      <div className="p-3.5 rounded-lg bg-slate-900 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2 text-slate-300 font-mono">
-          <Code2 className="w-4 h-4 text-amber-400" />
-          <span className="text-slate-500">{isAr ? 'مسار المقال في Next.js: ' : 'Dynamic Route: '}</span>
-          <span className="text-amber-400 font-semibold">/app/articles/[slug]/page.tsx</span>
-          <span className="text-slate-600">→</span>
-          <span className="text-emerald-400 font-semibold">/articles/{article.slug}</span>
-        </div>
-
+      {/* Article Navigation Bar */}
+      <div className="flex items-center justify-between">
         <button
           onClick={onBack}
-          className="flex items-center gap-1.5 px-3 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors font-medium"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 transition-colors text-xs font-medium"
         >
-          {isAr ? <ArrowRight className="w-3.5 h-3.5" /> : <ArrowLeft className="w-3.5 h-3.5" />}
-          <span>{isAr ? 'العودة للأخبار' : 'Back to News'}</span>
+          {isAr ? <ArrowRight className="w-3.5 h-3.5 text-amber-400" /> : <ArrowLeft className="w-3.5 h-3.5 text-amber-400" />}
+          <span>{isAr ? 'العودة للرئيسية والأسواق' : 'Back to Markets'}</span>
         </button>
       </div>
 

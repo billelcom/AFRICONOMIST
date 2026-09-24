@@ -28,12 +28,18 @@ class ScoutAgent:
 
     def generate_search_queries(self, country: str, sector: str) -> List[str]:
         """
-        توليد كلمات استعلام احترافية مخصصة للبحث المالي والاقتصادي للدولة المحددة
+        توليد كلمات استعلام احترافية مع أولوية قصوى للحداثة اللحظية (اليوم والأسبوع الجاري)
         """
+        import datetime
+        now = datetime.datetime.now()
+        current_year = now.year
+        current_month = now.strftime("%B")
+        
         return [
-            f"{country} economic growth inflation central bank news 2026",
-            f"{country} {sector} investments currency debt market report",
-            f"التطورات الاقتصادية والمالية في {country} استثمار بنوك"
+            f"{country} economic breaking news today this week {current_month} {current_year}",
+            f"{country} central bank interest rate currency markets latest update {current_year}",
+            f"أحدث أخبار الاقتصاد والأسواق في {country} هذا الأسبوع {current_year}",
+            f"{country} {sector} investment deals developments report {current_year}"
         ]
 
     def search_web(self, query: str, limit: int = 3) -> List[Dict[str, str]]:

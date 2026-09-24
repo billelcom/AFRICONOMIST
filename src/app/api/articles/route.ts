@@ -1,13 +1,25 @@
+// src/app/api/articles/route.ts
 import { NextResponse } from "next/server";
 import { getArticlesCollection } from "@/lib/services/mongodb";
+import { checkAndTriggerLazy30MinCycle } from "@/lib/services/articleGenerator";
 
 export const dynamic = "force-dynamic";
 
-// GET: جلب المقالات
+// GET: جلب المقالات مع فحص تلقائي لدورة الـ 30 دقيقة (Lazy Revalidation لبيئة Vercel)
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
+    const autoRefresh = searchParams.get("autoRefresh") !== "false";
+
+    // في بيئة Serverless على Vercel: إذا مر 30 دقيقة منذ آخر مقال، يتم توليد مقال جديد ذاتياً
+    if (autoRefresh) {
+      try {
+        await checkAndTriggerLazy30MinCycle();
+      } catch (lazyErr) {
+        console.warn("Lazy 30-min trigger skipped:", lazyErr);
+      }
+    }
 
     const collection = await getArticlesCollection();
     if (!collection) {

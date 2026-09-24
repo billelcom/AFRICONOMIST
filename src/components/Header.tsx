@@ -13,6 +13,8 @@ import {
   Building2
 } from 'lucide-react';
 import { NavigationModals, NavModalType } from './NavigationModals';
+import { PWABar } from './pwa/PWABar';
+import { PWAInstallButton } from './pwa/PWAInstallButton';
 
 interface HeaderProps {
   currentTab: 'home' | 'country' | 'article' | 'editorial';
@@ -61,8 +63,11 @@ export const Header: React.FC<HeaderProps> = ({
             </p>
           </div>
 
-          {/* الجانب الأيسر (على جهة اليسار): زر تسجيل + أيقونة اللغة + أيقونة القائمة burger */}
+          {/* الجانب الأيسر (على جهة اليسار): شريط PWA + زر تسجيل + أيقونة اللغة + أيقونة القائمة burger */}
           <div className="flex items-center gap-1.5">
+            {/* أدوات PWA (تثبيت + مشاركة + إشعارات) */}
+            <PWABar lang={lang} />
+
             {/* زر تسجيل */}
             <button
               onClick={() => setActiveModal('auth')}
@@ -203,8 +208,13 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             </div>
 
+            {/* زر تثبيت تطبيق الـ PWA للهاتف */}
+            <div className="pt-2 border-t border-slate-800/60">
+              <PWAInstallButton variant="full" lang={lang} />
+            </div>
+
             {/* في الأسفل: غرفة الأخبار تقابلها التسجيل */}
-            <div className="pt-3 border-t border-slate-800/80 flex items-center gap-2">
+            <div className="pt-2 border-t border-slate-800/80 flex items-center gap-2">
               <button
                 onClick={() => handleNavClick(() => onSelectTab('editorial'))}
                 className={`flex-1 p-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
@@ -253,8 +263,11 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </div>
 
-            {/* يقابله: تغيير اللغة + التسجيل + غرفة الأخبار */}
+            {/* يقابله: أدوات PWA + تغيير اللغة + التسجيل + غرفة الأخبار */}
             <div className="flex items-center gap-2.5 shrink-0">
+              {/* أدوات PWA (تثبيت، مشاركة، إشعارات) */}
+              <PWABar lang={lang} />
+
               {/* زر تغيير اللغة */}
               <button
                 onClick={onToggleLang}

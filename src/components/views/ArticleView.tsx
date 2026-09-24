@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Article } from '../../types';
+import { shareContent } from '../../lib/pwa/webShare';
 import { 
   ShieldCheck, 
   Sparkles, 
@@ -39,10 +40,23 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
       <div className="flex items-center justify-between">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 transition-colors text-xs font-medium"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 transition-colors text-xs font-medium cursor-pointer"
         >
           {isAr ? <ArrowRight className="w-3.5 h-3.5 text-amber-400" /> : <ArrowLeft className="w-3.5 h-3.5 text-amber-400" />}
           <span>{isAr ? 'العودة للرئيسية والأسواق' : 'Back to Markets'}</span>
+        </button>
+
+        <button
+          onClick={() => shareContent({
+            title: isAr ? article.title : article.titleEn,
+            text: isAr ? article.summary : article.summaryEn,
+            url: typeof window !== 'undefined' ? window.location.href : undefined
+          })}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-850 text-amber-400 border border-slate-800 hover:border-amber-500/40 transition-colors text-xs font-bold cursor-pointer"
+          title={isAr ? 'مشاركة التقرير عبر واجهة النظام' : 'Share via Web Share'}
+        >
+          <Share2 className="w-3.5 h-3.5" />
+          <span>{isAr ? 'مشاركة التقرير' : 'Share Report'}</span>
         </button>
       </div>
 

@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGradMask" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#070A14"/>
+      <stop offset="50%" stop-color="#0E1626"/>
+      <stop offset="100%" stop-color="#050811"/>
+    </linearGradient>
+    <linearGradient id="goldGradMask" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDE68A"/>
+      <stop offset="40%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+    <linearGradient id="emeraldGradMask" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Full-bleed background extending to corners for safe Android cropping -->
+  <rect width="512" height="512" fill="url(#bgGradMask)"/>
+
+  <!-- Safe Zone Content scaled inside 75% center (384x384 within 512x512) -->
+  <g transform="translate(64, 64) scale(0.75)">
+    <!-- Central stylized graphic -->
+    <g transform="translate(106, 60)">
+      <rect x="50" y="240" width="28" height="90" rx="6" fill="#3B82F6" fill-opacity="0.3"/>
+      <rect x="95" y="190" width="28" height="140" rx="6" fill="url(#emeraldGradMask)" fill-opacity="0.5"/>
+      <rect x="140" y="130" width="28" height="200" rx="6" fill="url(#goldGradMask)" fill-opacity="0.85"/>
+      <rect x="185" y="80" width="28" height="250" rx="6" fill="url(#goldGradMask)"/>
+      <rect x="230" y="160" width="28" height="170" rx="6" fill="url(#emeraldGradMask)"/>
+
+      <path d="M 40 260 Q 120 180 199 90 T 260 50" fill="none" stroke="#FDE68A" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="260" cy="50" r="12" fill="#FDE68A"/>
+      <circle cx="260" cy="50" r="6" fill="#070A14"/>
+
+      <path d="M 60 40 
+               C 120 20, 220 20, 240 60 
+               C 260 90, 240 130, 220 160 
+               C 200 190, 180 230, 170 280 
+               C 160 320, 140 350, 130 355
+               C 120 350, 110 310, 100 270 
+               C 85 220, 50 170, 45 130 
+               C 40 90, 40 50, 60 40 Z" 
+            fill="none" stroke="url(#goldGradMask)" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+    </g>
+
+    <text x="256" y="445" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="34" text-anchor="middle" fill="#FFFFFF" letter-spacing="4">
+      L’AFRICONOMIST
+    </text>
+    <text x="256" y="475" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="20" text-anchor="middle" fill="#F59E0B" letter-spacing="2">
+      لافريكونوميست
+    </text>
+  </g>
+</svg>

@@ -19,8 +19,7 @@ import {
 } from './lib/dynamicEconomicRanking';
 import { 
   getSecondsUntilNextCycle, 
-  getCurrentCycleBoundary, 
-  STORAGE_LAST_CYCLE_KEY, 
+  resetNextCycleTarget,
   checkAndCatchUpMissedCycles, 
   createAutonomousCycleReport 
 } from './lib/cycleScheduler';
@@ -209,7 +208,8 @@ export default function App() {
         createdReport = createAutonomousCycleReport();
       }
 
-      localStorage.setItem(STORAGE_LAST_CYCLE_KEY, String(getCurrentCycleBoundary()));
+      resetNextCycleTarget();
+      setSecondsUntilNextCycle(1800);
       setArticles(prev => {
         const updated = [createdReport!, ...prev];
         saveArticlesToLocal(updated);

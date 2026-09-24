@@ -4,18 +4,58 @@ import { ECONOMIC_SECTORS, JOURNALISTIC_GENRES } from '../data/reportOptions';
 import { Article } from '../types';
 
 export const CYCLE_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes in milliseconds
+export const STORAGE_TARGET_TIMESTAMP_KEY = 'bloomberg_africa_next_cycle_target_timestamp';
 export const STORAGE_LAST_CYCLE_KEY = 'bloomberg_africa_last_cycle_timestamp';
 
 /**
- * حساب الثواني المتبقية حتى النقطة الزمنية القادمة لكل نصف ساعة (:00 أو :30) بدقة تامة ومربوطة بتوقيت الساعة العالمي
- * لا يعيد الضبط أبداً عند تحديث الصفحة بل يستمر في العد التنازلي الحقيقي
+ * الحصول على الثواني المتبقية حتى نهاية دورة الـ 30 دقيقة الحالية
+ * تعتمد على الطابع الزمني المستمر والمحفوظ في localStorage
+ * بحيث إذا حدّث المستخدم الصفحة بعد دقيقة أو 10 دقائق، يستمر التناقص بدقة ولا يعود أبداً لنقطة البداية
  */
 export function getSecondsUntilNextCycle(): number {
-  const now = Date.now();
-  // نحسب نقطة النصف ساعة التالية: مثلاً 10:00:00 أو 10:30:00 أو 11:00:00
-  const nextBoundary = Math.ceil(now / CYCLE_INTERVAL_MS) * CYCLE_INTERVAL_MS;
-  const diffSec = Math.floor((nextBoundary - now) / 1000);
-  return diffSec > 0 ? diffSec : 1800;
+  if (typeof window === 'undefined') {
+    return 1800; // 30 دقيقة في مرحلة SSR
+  }
+
+  try {
+    const now = Date.now();
+    const storedTarget = localStorage.getItem(STORAGE_TARGET_TIMESTAMP_KEY);
+
+    if (storedTarget) {
+      const targetTime = Number(storedTarget);
+      if (!isNaN(targetTime) && targetTime > now) {
+        // الهدف في المستقبل: احسب الثواني المتبقية بدقة
+        const remainingSec = Math.floor((targetTime - now) / 1000);
+        return remainingSec > 0 ? remainingSec : 1;
+      }
+    }
+
+    // إذا لم يكن هناك هدف محفوظ أو كان الهدف قد فات:
+    // ننشئ هدفاً جديداً مدته 30 دقيقة من الآن ونحفظه
+    const newTarget = now + CYCLE_INTERVAL_MS;
+    localStorage.setItem(STORAGE_TARGET_TIMESTAMP_KEY, String(newTarget));
+    localStorage.setItem(STORAGE_LAST_CYCLE_KEY, String(now));
+    return 1800;
+  } catch {
+    return 1800;
+  }
+}
+
+/**
+ * إعادة ضبط وتجديد موعد الدورة القادمة (عند اكتمال إنتاج تقرير نصف ساعي)
+ */
+export function resetNextCycleTarget(fromTimeMs?: number): number {
+  const baseTime = fromTimeMs || Date.now();
+  const nextTarget = baseTime + CYCLE_INTERVAL_MS;
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(STORAGE_TARGET_TIMESTAMP_KEY, String(nextTarget));
+      localStorage.setItem(STORAGE_LAST_CYCLE_KEY, String(baseTime));
+    } catch (err) {
+      console.warn('Could not persist cycle target:', err);
+    }
+  }
+  return 1800;
 }
 
 /**
@@ -33,10 +73,10 @@ export function createAutonomousCycleReport(targetDate?: Date): Article {
   const reportTime = targetDate || new Date();
   const timeId = reportTime.getTime();
 
-  // اختيار دولة وقطاع وقالب صحفي عشوائي من المنظومة القارية الشاملة
+  // اختيار دولة وقطاع وقالب صحفي عشوائي من المنظومة القارية الشاملة (54 دولة · 28 قطاعاً · 18 قالباً)
   const randomCountry = ALL_54_AFRICAN_COUNTRIES[Math.floor(Math.random() * ALL_54_AFRICAN_COUNTRIES.length)];
   const randomSector = ECONOMIC_SECTORS[Math.floor(Math.random() * ECONOMIC_SECTORS.length)];
-  const randomGenre = JOURNALISTIC_GENRES[Math.floor(Math.random() * 4)]; // تقرير إخباري أو تحليل موجز
+  const randomGenre = JOURNALISTIC_GENRES[Math.floor(Math.random() * 4)];
 
   const dateStr = reportTime.toISOString().replace('T', ' ').substring(0, 16);
   const timeOnly = reportTime.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -66,7 +106,7 @@ export function createAutonomousCycleReport(targetDate?: Date): Article {
     sector: randomSector.nameAr,
     authorType: 'AI_AGENT',
     aiModel: 'Gemini 3.6 Flash (Autonomous 30-Min Ingest Cycle)',
-    reviewNotes: `تم إنتاج التقرير آلياً عبر دورة الرصد الدورية نصف الساعية (${timeOnly}) ويخضع لبروتوكول التحقق البشري.`,
+    reviewNotes: `تم إنتاج التقرير آلياً عبر دورة الرصد الدورية نصف الساعية (${timeOnly}) ويخضع لبروتوكول التحقق البشري قبل الاعتماد.`,
     citations: [
       {
         id: `cit-auto-${timeId}-1`,
@@ -104,8 +144,8 @@ export function createAutonomousCycleReport(targetDate?: Date): Article {
 
 /**
  * محرك استدراك الفترات الزمنية الضائعة (Catch-Up Engine):
- * يفحص ما إذا كانت هناك دورات 30 دقيقة مرت أثناء إغلاق الموقع أو انقطاع الجلسة
- * ويقوم بإنشاء التقارير المستحقة فورياً لتقديمها للمراجعة
+ * يفحص ما إذا كانت هناك دورة أو أكثر قد اكتملت أثناء إغلاق الموقع أو النوم أو انقطاع الجلسة
+ * ويقوم بإنشاء التقارير المستحقة فورياً لتقديمها للمراجعة، وتعيين نقطة الهدف التالية
  */
 export function checkAndCatchUpMissedCycles(
   existingArticles: Article[],
@@ -114,37 +154,40 @@ export function checkAndCatchUpMissedCycles(
   if (typeof window === 'undefined') return 0;
 
   try {
-    const currentBoundary = getCurrentCycleBoundary();
-    const storedLastCycleStr = localStorage.getItem(STORAGE_LAST_CYCLE_KEY);
+    const now = Date.now();
+    const storedTarget = localStorage.getItem(STORAGE_TARGET_TIMESTAMP_KEY);
 
-    if (!storedLastCycleStr) {
-      // أول تشغيل للمتصفح: نحفظ نقطة البداية الحالية
-      localStorage.setItem(STORAGE_LAST_CYCLE_KEY, String(currentBoundary));
+    if (!storedTarget) {
+      // تعيين أول دورة
+      resetNextCycleTarget(now);
       return 0;
     }
 
-    const lastCycle = Number(storedLastCycleStr);
-    if (isNaN(lastCycle) || lastCycle <= 0) {
-      localStorage.setItem(STORAGE_LAST_CYCLE_KEY, String(currentBoundary));
+    const targetTime = Number(storedTarget);
+    if (isNaN(targetTime) || targetTime <= 0) {
+      resetNextCycleTarget(now);
       return 0;
     }
 
-    const elapsedMs = currentBoundary - lastCycle;
-    const missedCount = Math.floor(elapsedMs / CYCLE_INTERVAL_MS);
+    // إذا تجاوز الوقت الحالي موعد الهدف (مرت 30 دقيقة أو أكثر أثناء إغلاق الموقع)
+    if (now >= targetTime) {
+      const overdueMs = now - targetTime;
+      const missedCount = 1 + Math.floor(overdueMs / CYCLE_INTERVAL_MS);
 
-    if (missedCount > 0) {
-      // تحديد عدد التقارير المستحقة (بحد أقصى 6 تقارير لمنع التكدس إذا أغلق الموقع لأيام)
+      // توليد التقارير المستحقة (بحد أقصى 6 تقارير لمنع الإغراق في حال الغياب الطويل)
       const countToGenerate = Math.min(missedCount, 6);
       const generatedArticles: Article[] = [];
 
-      for (let i = 1; i <= countToGenerate; i++) {
-        const cycleTime = new Date(lastCycle + (i * CYCLE_INTERVAL_MS));
-        const newReport = createAutonomousCycleReport(cycleTime);
+      for (let i = 0; i < countToGenerate; i++) {
+        const cycleDate = new Date(targetTime + (i * CYCLE_INTERVAL_MS));
+        const newReport = createAutonomousCycleReport(cycleDate);
         generatedArticles.push(newReport);
       }
 
-      // تحديث آخر نقطة دورة تمت معالجتها
-      localStorage.setItem(STORAGE_LAST_CYCLE_KEY, String(currentBoundary));
+      // حساب وتخزين الهدف القادم
+      const newTarget = targetTime + (missedCount * CYCLE_INTERVAL_MS);
+      localStorage.setItem(STORAGE_TARGET_TIMESTAMP_KEY, String(newTarget));
+      localStorage.setItem(STORAGE_LAST_CYCLE_KEY, String(now));
 
       if (generatedArticles.length > 0) {
         onNewArticlesCreated(generatedArticles);

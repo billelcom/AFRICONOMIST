@@ -28,7 +28,7 @@ import {
 import { CreateReportModal } from '../CreateReportModal';
 import { ALL_54_AFRICAN_COUNTRIES } from '../../data/africanCountries';
 import { JOURNALISTIC_GENRES, ECONOMIC_SECTORS } from '../../data/reportOptions';
-import { getSecondsUntilNextCycle, getCurrentCycleBoundary, STORAGE_LAST_CYCLE_KEY } from '../../lib/cycleScheduler';
+import { getSecondsUntilNextCycle, resetNextCycleTarget } from '../../lib/cycleScheduler';
 
 interface EditorialViewProps {
   articles: Article[];
@@ -260,8 +260,8 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
       onAddNewDraft(createdArticle);
       setSelectedArticleId(createdArticle.id);
       setSelectedStatus('pending_review');
-      localStorage.setItem(STORAGE_LAST_CYCLE_KEY, String(getCurrentCycleBoundary()));
-      setInternalSeconds(getSecondsUntilNextCycle());
+      resetNextCycleTarget();
+      setInternalSeconds(1800);
     } finally {
       setInternalIngesting(false);
     }

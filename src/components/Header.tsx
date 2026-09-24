@@ -8,7 +8,8 @@ import {
   SlidersHorizontal,
   ChevronRight,
   TrendingUp,
-  LayoutGrid
+  LayoutGrid,
+  Activity
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -17,6 +18,7 @@ interface HeaderProps {
   lang: 'ar' | 'en';
   onToggleLang: () => void;
   pendingDraftsCount: number;
+  onOpenHealthCheck?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -24,7 +26,8 @@ export const Header: React.FC<HeaderProps> = ({
   onSelectTab,
   lang,
   onToggleLang,
-  pendingDraftsCount
+  pendingDraftsCount,
+  onOpenHealthCheck
 }) => {
   const isAr = lang === 'ar';
 
@@ -47,6 +50,17 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         <div className="flex items-center gap-3">
+          {onOpenHealthCheck && (
+            <button
+              onClick={onOpenHealthCheck}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-colors font-mono text-[11px]"
+              title={isAr ? 'فحص صحة الخدمات السحابية ومستودع GitHub' : 'Cloud Health-Check & GitHub Diagnostics'}
+            >
+              <Activity className="w-3.5 h-3.5 animate-pulse text-emerald-400" />
+              <span>{isAr ? 'فحص السحابة (GitHub)' : 'Cloud Health'}</span>
+            </button>
+          )}
+
           <button
             onClick={onToggleLang}
             className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700/60 transition-colors"

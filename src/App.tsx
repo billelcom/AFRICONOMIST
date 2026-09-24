@@ -13,7 +13,8 @@ import { EditorialView } from './components/views/EditorialView';
 import { ArchitectureView } from './components/views/ArchitectureView';
 import { INITIAL_ARTICLES, AFRICAN_COUNTRIES, MARKET_TICKERS } from './data/mockData';
 import { Article, AfricanCountryProfile } from './types';
-import { ShieldCheck, Globe, Database, Terminal, FileCode2 } from 'lucide-react';
+import { ShieldCheck, Globe, Database, Terminal, FileCode2, Activity } from 'lucide-react';
+import { HealthCheckModal } from './components/HealthCheckModal';
 
 export default function App() {
   const [lang, setLang] = useState<'ar' | 'en'>('ar');
@@ -21,6 +22,7 @@ export default function App() {
   const [articles, setArticles] = useState<Article[]>(INITIAL_ARTICLES);
   const [selectedCountrySlug, setSelectedCountrySlug] = useState<string>('egypt');
   const [selectedArticle, setSelectedArticle] = useState<Article>(INITIAL_ARTICLES[0]);
+  const [isHealthCheckOpen, setIsHealthCheckOpen] = useState<boolean>(false);
 
   const isAr = lang === 'ar';
 
@@ -84,6 +86,14 @@ export default function App() {
         lang={lang}
         onToggleLang={() => setLang(prev => prev === 'ar' ? 'en' : 'ar')}
         pendingDraftsCount={pendingDraftsCount}
+        onOpenHealthCheck={() => setIsHealthCheckOpen(true)}
+      />
+
+      {/* Cloud & GitHub Diagnostic Health-Check Modal */}
+      <HealthCheckModal
+        isOpen={isHealthCheckOpen}
+        onClose={() => setIsHealthCheckOpen(false)}
+        lang={lang}
       />
 
       {/* Continuous Live Market Ticker */}

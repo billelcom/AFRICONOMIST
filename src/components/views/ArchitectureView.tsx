@@ -24,7 +24,7 @@ interface ArchitectureViewProps {
 export const ArchitectureView: React.FC<ArchitectureViewProps> = ({ lang }) => {
   const isAr = lang === 'ar';
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [activeCodeTab, setActiveCodeTab] = useState<'layout' | 'page' | 'country' | 'article' | 'editorial' | 'mongodb' | 'types'>('layout');
+  const [activeCodeTab, setActiveCodeTab] = useState<'layout' | 'page' | 'country' | 'article' | 'editorial' | 'mongodb' | 'firebase' | 'healthCheck' | 'types'>('layout');
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({
     'src': true,
     'app': true,
@@ -500,6 +500,106 @@ export async function approveArticleByEditor(articleId: string, editorName: stri
   );
 }`;
 
+  const codeFirebase = `// ============================================================================
+// ملف: src/lib/services/firebase.ts
+// الدور: مصادقة المحررين البشريين (RBAC) وبث أسعار العملات والأسواق لحظياً
+// ============================================================================
+
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+};
+
+// منع إعادة التهيئة عند التحديث السريع (Hot Reload)
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+
+// خدمة الهوية والمحررين البشريين (RBAC)
+export const auth = getAuth(app);
+
+// خدمة البث الفوري للأسواق ومؤشرات العملات (Realtime Firestore)
+export const dbRealtime = getFirestore(app);
+
+export default app;`;
+
+  const codeHealthCheck = `// ============================================================================
+// ملف: src/app/api/health-check/route.ts
+// الدور: مسار الفحص الذاتي التلقائي (Health-Check API) لـ MongoDB و Firebase
+// الاستخدام: ادخل على http://localhost:3000/api/health-check للتأكد من الاتصال
+// ============================================================================
+
+import { NextResponse } from "next/server";
+import { connectToDatabase } from "@/lib/services/mongodb";
+import { auth, dbRealtime } from "@/lib/services/firebase";
+
+export async function GET() {
+  const diagnostics: Record<string, any> = {
+    timestamp: new Date().toISOString(),
+    envVariables: {
+      MONGODB_URI: Boolean(process.env.MONGODB_URI),
+      MONGODB_DB_NAME: Boolean(process.env.MONGODB_DB_NAME),
+      FIREBASE_API_KEY: Boolean(process.env.NEXT_PUBLIC_FIREBASE_API_KEY),
+      FIREBASE_PROJECT_ID: Boolean(process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID),
+      GEMINI_API_KEY: Boolean(process.env.GEMINI_API_KEY),
+    },
+    mongodb: { status: "pending" },
+    firebase: { status: "pending" },
+  };
+
+  // 1. اختبار الاتصال الحقيقي بقاعدة بيانات MongoDB Atlas
+  try {
+    const { db } = await connectToDatabase();
+    await db.command({ ping: 1 });
+    diagnostics.mongodb = {
+      status: "SUCCESS ✅",
+      message: "تم الاتصال بـ MongoDB Atlas بنجاح فائق!",
+      databaseName: db.databaseName,
+    };
+  } catch (error: any) {
+    diagnostics.mongodb = {
+      status: "FAILED ❌",
+      error: error.message,
+      tip: "تأكد من صحة اسم المستخدم وكلمة السر، وتأكد من تفعيل IP Access: 0.0.0.0/0 في MongoDB Atlas.",
+    };
+  }
+
+  // 2. اختبار تهيئة Firebase
+  try {
+    if (auth && dbRealtime) {
+      diagnostics.firebase = {
+        status: "SUCCESS ✅",
+        message: "تمت تهيئة Firebase Authentication و Firestore بنجاح!",
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      };
+    }
+  } catch (error: any) {
+    diagnostics.firebase = {
+      status: "FAILED ❌",
+      error: error.message,
+      tip: "تأكد من نسخ قيم firebaseConfig بدقة في ملف .env.local.",
+    };
+  }
+
+  const allPassed =
+    diagnostics.mongodb.status.includes("SUCCESS") &&
+    diagnostics.firebase.status.includes("SUCCESS");
+
+  return NextResponse.json(
+    {
+      overallStatus: allPassed ? "ALL_SYSTEMS_OPERATIONAL 🚀" : "ATTENTION_REQUIRED ⚠️",
+      diagnostics,
+    },
+    { status: allPassed ? 200 : 500 }
+  );
+}`;
+
   const codeTypes = `// ============================================================================
 // ملف: src/types/index.ts
 // الدور: تعريف الأنواع الصارمة للمقالات والوكلاء والأسواق ومصادر التوثيق
@@ -923,6 +1023,28 @@ export type FactCheckReport = z.infer<typeof FactCheckSchema>;`;
           </button>
 
           <button
+            onClick={() => setActiveCodeTab('firebase')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-colors ${
+              activeCodeTab === 'firebase'
+                ? 'bg-amber-500 text-slate-950 font-bold'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            lib/services/firebase.ts
+          </button>
+
+          <button
+            onClick={() => setActiveCodeTab('healthCheck')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-colors ${
+              activeCodeTab === 'healthCheck'
+                ? 'bg-emerald-500 text-slate-950 font-bold'
+                : 'text-emerald-400 hover:text-white hover:bg-emerald-950/40 border border-emerald-500/30'
+            }`}
+          >
+            api/health-check/route.ts (الفحص)
+          </button>
+
+          <button
             onClick={() => setActiveCodeTab('types')}
             className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-colors ${
               activeCodeTab === 'types'
@@ -944,6 +1066,8 @@ export type FactCheckReport = z.infer<typeof FactCheckSchema>;`;
               {activeCodeTab === 'article' && 'src/app/articles/[slug]/page.tsx'}
               {activeCodeTab === 'editorial' && 'src/app/(dashboard)/editorial/page.tsx'}
               {activeCodeTab === 'mongodb' && 'src/lib/services/mongodb.ts'}
+              {activeCodeTab === 'firebase' && 'src/lib/services/firebase.ts'}
+              {activeCodeTab === 'healthCheck' && 'src/app/api/health-check/route.ts'}
               {activeCodeTab === 'types' && 'src/types/index.ts'}
             </span>
 
@@ -956,6 +1080,8 @@ export type FactCheckReport = z.infer<typeof FactCheckSchema>;`;
                   article: codeArticle,
                   editorial: codeEditorial,
                   mongodb: codeMongo,
+                  firebase: codeFirebase,
+                  healthCheck: codeHealthCheck,
                   types: codeTypes,
                 };
                 handleCopy('active-code', map[activeCodeTab]);
@@ -974,6 +1100,8 @@ export type FactCheckReport = z.infer<typeof FactCheckSchema>;`;
             {activeCodeTab === 'article' && codeArticle}
             {activeCodeTab === 'editorial' && codeEditorial}
             {activeCodeTab === 'mongodb' && codeMongo}
+            {activeCodeTab === 'firebase' && codeFirebase}
+            {activeCodeTab === 'healthCheck' && codeHealthCheck}
             {activeCodeTab === 'types' && codeTypes}
           </pre>
         </div>

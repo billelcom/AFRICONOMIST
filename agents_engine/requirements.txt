@@ -1,0 +1,12 @@
+# محركات البحث والاتصال بالويب
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+urllib3>=2.0.0
+
+# قاعدة بيانات MongoDB
+pymongo>=4.6.0
+dnspython>=2.6.0
+
+# الذكاء الاصطناعي وإدارة البيئة
+google-genai>=0.1.0
+python-dotenv>=1.0.0

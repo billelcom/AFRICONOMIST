@@ -21,7 +21,8 @@ import {
   ChevronDown,
   ChevronUp,
   X,
-  UserCheck
+  UserCheck,
+  Timer
 } from 'lucide-react';
 import { ECONOMIC_SECTORS, JOURNALISTIC_GENRES } from '../../data/reportOptions';
 import { getCountryFlag } from '../../lib/africanGeoProximity';
@@ -135,18 +136,28 @@ const CreativeReportCard: React.FC<CreativeReportCardProps> = ({ article, onSele
         </p>
       </div>
 
-      {/* أسفل البطاقة: كاتب المقال + عدد القراء بأيقونة وعدد فقط */}
-      <div className="pt-2.5 border-t border-slate-800/70 flex items-center justify-between text-[11px] text-slate-400">
+      {/* أسفل البطاقة: كاتب المقال + دقائق القراءة + عدد القراء بأيقونة وعدد فقط */}
+      <div className="pt-2.5 border-t border-slate-800/70 flex items-center justify-between text-[11px] text-slate-400 gap-2">
         {/* كاتب المقال */}
-        <div className="flex items-center gap-1.5 truncate max-w-[55%]">
+        <div className="flex items-center gap-1.5 truncate max-w-[42%]">
           <span className="text-[10px] text-slate-500 shrink-0">{isAr ? 'بقلم:' : 'By:'}</span>
           <span className="text-slate-300 font-medium truncate text-[11px]">
             {author}
           </span>
         </div>
 
+        {/* دقائق القراءة: الأيقونة والعدد وكلمة دقيقة فقط بين الكاتب وعدد المشاهدات */}
+        <div 
+          className="flex items-center gap-1 text-slate-300 bg-slate-900/90 px-2 py-0.5 rounded-lg border border-slate-800 text-[10.5px] font-medium shrink-0"
+          title={isAr ? `${article.readTimeMinutes || 3} دقيقة قراءة` : `${article.readTimeMinutes || 3} min read`}
+        >
+          <Timer className="w-3 h-3 text-amber-400 shrink-0" />
+          <span className="font-bold text-amber-300 font-mono">{article.readTimeMinutes || 3}</span>
+          <span className="text-slate-400">{isAr ? 'دقيقة' : 'min'}</span>
+        </div>
+
         {/* عدد القراء بأيقونة وعدد فقط + مؤشر التفاصيل */}
-        <div className="flex items-center gap-2.5 shrink-0 font-mono">
+        <div className="flex items-center gap-2 shrink-0 font-mono">
           <div 
             className="flex items-center gap-1 text-amber-400/90 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 text-[10.5px]"
             title={isAr ? 'عدد القراء' : 'Readers count'}

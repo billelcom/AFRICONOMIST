@@ -14,7 +14,21 @@ import {
   Feather,
   Flame,
   Volume2,
-  Calendar
+  Calendar,
+  Timer,
+  CloudSun,
+  Sun,
+  CloudRain,
+  CloudFog,
+  CloudSnow,
+  CloudLightning,
+  Droplets,
+  Wind,
+  Thermometer,
+  Gauge,
+  LocateFixed,
+  MapPin,
+  ChevronDown
 } from 'lucide-react';
 import { getCountryFlag } from '../lib/africanGeoProximity';
 
@@ -308,6 +322,342 @@ interface EditorialLeadCarouselProps {
 // Portal Launch Baseline: September 25, 2026 (تاريخ انطلاق المنصة لحساب الأيام والسنوات تلقائياً)
 const PORTAL_LAUNCH_DATE = new Date('2026-09-25T00:00:00Z');
 
+export interface WeatherCity {
+  id: string;
+  nameAr: string;
+  nameEn: string;
+  countryAr: string;
+  countryEn: string;
+  countryCode: string;
+  lat: number;
+  lon: number;
+  temp: number;
+  conditionAr: string;
+  conditionEn: string;
+  weatherCode: number;
+  humidity: number;
+  windSpeed: number;
+  apparentTemp: number;
+  tempMax: number;
+  tempMin: number;
+  pressure: number;
+}
+
+export const WEATHER_CAPITALS: WeatherCity[] = [
+  {
+    id: 'cairo',
+    nameAr: 'القاهرة',
+    nameEn: 'Cairo',
+    countryAr: 'مصر',
+    countryEn: 'Egypt',
+    countryCode: 'EG',
+    lat: 30.0444,
+    lon: 31.2357,
+    temp: 29,
+    conditionAr: 'مشمس وصافٍ',
+    conditionEn: 'Clear & Sunny',
+    weatherCode: 0,
+    humidity: 48,
+    windSpeed: 14,
+    apparentTemp: 30,
+    tempMax: 32,
+    tempMin: 20,
+    pressure: 1014
+  },
+  {
+    id: 'algiers',
+    nameAr: 'الجزائر العاصمة',
+    nameEn: 'Algiers',
+    countryAr: 'الجزائر',
+    countryEn: 'Algeria',
+    countryCode: 'DZ',
+    lat: 36.7538,
+    lon: 3.0588,
+    temp: 24,
+    conditionAr: 'سماء صافية ومعتدل',
+    conditionEn: 'Clear & Mild',
+    weatherCode: 1,
+    humidity: 58,
+    windSpeed: 16,
+    apparentTemp: 24,
+    tempMax: 26,
+    tempMin: 17,
+    pressure: 1018
+  },
+  {
+    id: 'rabat',
+    nameAr: 'الرباط',
+    nameEn: 'Rabat',
+    countryAr: 'المغرب',
+    countryEn: 'Morocco',
+    countryCode: 'MA',
+    lat: 34.0209,
+    lon: -6.8416,
+    temp: 23,
+    conditionAr: 'رياح أطلسية معتدلة',
+    conditionEn: 'Atlantic Breeze',
+    weatherCode: 1,
+    humidity: 65,
+    windSpeed: 18,
+    apparentTemp: 23,
+    tempMax: 25,
+    tempMin: 16,
+    pressure: 1016
+  },
+  {
+    id: 'tunis',
+    nameAr: 'تونس العاصمة',
+    nameEn: 'Tunis',
+    countryAr: 'تونس',
+    countryEn: 'Tunisia',
+    countryCode: 'TN',
+    lat: 36.8065,
+    lon: 10.1815,
+    temp: 25,
+    conditionAr: 'متوسطي معتدل',
+    conditionEn: 'Mediterranean Mild',
+    weatherCode: 1,
+    humidity: 55,
+    windSpeed: 17,
+    apparentTemp: 25,
+    tempMax: 27,
+    tempMin: 18,
+    pressure: 1015
+  },
+  {
+    id: 'riyadh',
+    nameAr: 'الرياض',
+    nameEn: 'Riyadh',
+    countryAr: 'السعودية',
+    countryEn: 'Saudi Arabia',
+    countryCode: 'SA',
+    lat: 24.7136,
+    lon: 46.6753,
+    temp: 36,
+    conditionAr: 'مشمس وحار',
+    conditionEn: 'Sunny & Hot',
+    weatherCode: 0,
+    humidity: 16,
+    windSpeed: 12,
+    apparentTemp: 35,
+    tempMax: 39,
+    tempMin: 24,
+    pressure: 1010
+  },
+  {
+    id: 'lagos',
+    nameAr: 'أبوجا / لاغوس',
+    nameEn: 'Abuja / Lagos',
+    countryAr: 'نيجيريا',
+    countryEn: 'Nigeria',
+    countryCode: 'NG',
+    lat: 9.0765,
+    lon: 7.3986,
+    temp: 31,
+    conditionAr: 'استوائي رطب',
+    conditionEn: 'Tropical Humid',
+    weatherCode: 2,
+    humidity: 76,
+    windSpeed: 12,
+    apparentTemp: 36,
+    tempMax: 33,
+    tempMin: 24,
+    pressure: 1011
+  },
+  {
+    id: 'nairobi',
+    nameAr: 'نيروبي',
+    nameEn: 'Nairobi',
+    countryAr: 'كينيا',
+    countryEn: 'Kenya',
+    countryCode: 'KE',
+    lat: -1.2921,
+    lon: 36.8219,
+    temp: 22,
+    conditionAr: 'غائم جزئياً ولطيف',
+    conditionEn: 'Partly Cloudy & Cool',
+    weatherCode: 2,
+    humidity: 62,
+    windSpeed: 15,
+    apparentTemp: 22,
+    tempMax: 24,
+    tempMin: 14,
+    pressure: 1016
+  },
+  {
+    id: 'johannesburg',
+    nameAr: 'بريتوريا / جوهانسبرغ',
+    nameEn: 'Pretoria / JHB',
+    countryAr: 'جنوب أفريقيا',
+    countryEn: 'South Africa',
+    countryCode: 'ZA',
+    lat: -25.7479,
+    lon: 28.2293,
+    temp: 21,
+    conditionAr: 'ربيعي معتدل',
+    conditionEn: 'Spring Mild',
+    weatherCode: 0,
+    humidity: 42,
+    windSpeed: 19,
+    apparentTemp: 20,
+    tempMax: 23,
+    tempMin: 11,
+    pressure: 1020
+  },
+  {
+    id: 'addis',
+    nameAr: 'أديس أبابا',
+    nameEn: 'Addis Ababa',
+    countryAr: 'إثيوبيا',
+    countryEn: 'Ethiopia',
+    countryCode: 'ET',
+    lat: 9.0300,
+    lon: 38.7400,
+    temp: 20,
+    conditionAr: 'أجواء مرتفعات غائمة',
+    conditionEn: 'Highland Overcast',
+    weatherCode: 3,
+    humidity: 68,
+    windSpeed: 10,
+    apparentTemp: 20,
+    tempMax: 22,
+    tempMin: 12,
+    pressure: 1019
+  },
+  {
+    id: 'dakar',
+    nameAr: 'داكار',
+    nameEn: 'Dakar',
+    countryAr: 'السنغال',
+    countryEn: 'Senegal',
+    countryCode: 'SN',
+    lat: 14.7167,
+    lon: -17.4677,
+    temp: 28,
+    conditionAr: 'ساحلي دافئ',
+    conditionEn: 'Warm Coastal',
+    weatherCode: 1,
+    humidity: 72,
+    windSpeed: 21,
+    apparentTemp: 31,
+    tempMax: 29,
+    tempMin: 24,
+    pressure: 1012
+  },
+  {
+    id: 'kigali',
+    nameAr: 'كيجالي',
+    nameEn: 'Kigali',
+    countryAr: 'رواندا',
+    countryEn: 'Rwanda',
+    countryCode: 'RW',
+    lat: -1.9441,
+    lon: 30.0619,
+    temp: 25,
+    conditionAr: 'استوائي جبلي لطيف',
+    conditionEn: 'Mild Mountainous',
+    weatherCode: 2,
+    humidity: 60,
+    windSpeed: 11,
+    apparentTemp: 25,
+    tempMax: 27,
+    tempMin: 16,
+    pressure: 1015
+  },
+  {
+    id: 'accra',
+    nameAr: 'أكرا',
+    nameEn: 'Accra',
+    countryAr: 'غانا',
+    countryEn: 'Ghana',
+    countryCode: 'GH',
+    lat: 5.6037,
+    lon: -0.1870,
+    temp: 30,
+    conditionAr: 'ساحلي رطب مشمس',
+    conditionEn: 'Sunny Humid Coastal',
+    weatherCode: 1,
+    humidity: 75,
+    windSpeed: 14,
+    apparentTemp: 34,
+    tempMax: 31,
+    tempMin: 25,
+    pressure: 1011
+  },
+  {
+    id: 'luanda',
+    nameAr: 'لواندا',
+    nameEn: 'Luanda',
+    countryAr: 'أنغولا',
+    countryEn: 'Angola',
+    countryCode: 'AO',
+    lat: -8.8390,
+    lon: 13.2894,
+    temp: 27,
+    conditionAr: 'غائم جزئياً',
+    conditionEn: 'Partly Cloudy',
+    weatherCode: 2,
+    humidity: 70,
+    windSpeed: 15,
+    apparentTemp: 29,
+    tempMax: 28,
+    tempMin: 22,
+    pressure: 1013
+  },
+  {
+    id: 'tripoli',
+    nameAr: 'طرابلس',
+    nameEn: 'Tripoli',
+    countryAr: 'ليبيا',
+    countryEn: 'Libya',
+    countryCode: 'LY',
+    lat: 32.8872,
+    lon: 13.1913,
+    temp: 26,
+    conditionAr: 'مشمس ولطيف',
+    conditionEn: 'Sunny & Pleasant',
+    weatherCode: 0,
+    humidity: 50,
+    windSpeed: 15,
+    apparentTemp: 26,
+    tempMax: 28,
+    tempMin: 18,
+    pressure: 1016
+  }
+];
+
+const getWeatherDetails = (code: number, isArabic: boolean) => {
+  if (code === 0) return { label: isArabic ? 'مشمس وصافٍ' : 'Clear & Sunny', icon: Sun, color: 'text-amber-400' };
+  if (code <= 3) return { label: isArabic ? 'غائم جزئياً' : 'Partly Cloudy', icon: CloudSun, color: 'text-amber-300' };
+  if (code <= 48) return { label: isArabic ? 'ضباب خفيف' : 'Foggy', icon: CloudFog, color: 'text-slate-300' };
+  if (code <= 67) return { label: isArabic ? 'أمطار متفرقة' : 'Rain Showers', icon: CloudRain, color: 'text-sky-400' };
+  if (code <= 77) return { label: isArabic ? 'ثلوج خفيفة' : 'Light Snow', icon: CloudSnow, color: 'text-blue-200' };
+  if (code <= 82) return { label: isArabic ? 'زخات رعدية' : 'Thunder Showers', icon: CloudRain, color: 'text-cyan-400' };
+  if (code <= 99) return { label: isArabic ? 'عواصف رعدية' : 'Thunderstorm', icon: CloudLightning, color: 'text-yellow-400' };
+  return { label: isArabic ? 'طقس معتدل' : 'Mild Weather', icon: CloudSun, color: 'text-amber-400' };
+};
+
+const getDefaultCapital = (): WeatherCity => {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone.toLowerCase();
+    if (tz.includes('cairo') || tz.includes('egypt')) return WEATHER_CAPITALS[0];
+    if (tz.includes('algiers') || tz.includes('algeria')) return WEATHER_CAPITALS[1];
+    if (tz.includes('casablanca') || tz.includes('morocco') || tz.includes('rabat')) return WEATHER_CAPITALS[2];
+    if (tz.includes('tunis')) return WEATHER_CAPITALS[3];
+    if (tz.includes('riyadh')) return WEATHER_CAPITALS[4];
+    if (tz.includes('lagos')) return WEATHER_CAPITALS[5];
+    if (tz.includes('nairobi')) return WEATHER_CAPITALS[6];
+    if (tz.includes('johannesburg')) return WEATHER_CAPITALS[7];
+    if (tz.includes('addis')) return WEATHER_CAPITALS[8];
+    if (tz.includes('dakar')) return WEATHER_CAPITALS[9];
+    if (tz.includes('kigali')) return WEATHER_CAPITALS[10];
+    if (tz.includes('accra')) return WEATHER_CAPITALS[11];
+    if (tz.includes('luanda')) return WEATHER_CAPITALS[12];
+    if (tz.includes('tripoli')) return WEATHER_CAPITALS[13];
+  } catch {}
+  return WEATHER_CAPITALS[0];
+};
+
 export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
   onSelectArticle,
   lang
@@ -317,6 +667,92 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
 
+  // حالة انقلاب بطاقة الساعة إلى الطقس (تستقر في الساعة عند التحديث)
+  const [isWeatherFlipped, setIsWeatherFlipped] = useState<boolean>(false);
+  const [returnCountdown, setReturnCountdown] = useState<number>(120); // 120 ثانية = دقيقتان
+  const [selectedCity, setSelectedCity] = useState<WeatherCity>(() => getDefaultCapital());
+  const [isLocating, setIsLocating] = useState<boolean>(false);
+  const [liveWeather, setLiveWeather] = useState<{
+    temp: number;
+    humidity: number;
+    windSpeed: number;
+    apparentTemp: number;
+    pressure: number;
+    weatherCode: number;
+    tempMax: number;
+    tempMin: number;
+    customCityName?: string;
+  } | null>(null);
+
+  // العودة التلقائية للساعة بعد دقيقتين (120 ثانية) إذا لم يتفاعل المستخدم
+  useEffect(() => {
+    if (!isWeatherFlipped) {
+      setReturnCountdown(120);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setReturnCountdown(prev => {
+        if (prev <= 1) {
+          setIsWeatherFlipped(false);
+          return 120;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isWeatherFlipped]);
+
+  // جلب بيانات الطقس الحية عبر Open-Meteo API
+  const fetchWeatherForCoords = async (lat: number, lon: number, customName?: string) => {
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,surface_pressure&daily=temperature_2m_max,temperature_2m_min&timezone=auto`;
+      const res = await fetch(url);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.current) {
+        setLiveWeather({
+          temp: Math.round(data.current.temperature_2m),
+          humidity: Math.round(data.current.relative_humidity_2m),
+          apparentTemp: Math.round(data.current.apparent_temperature),
+          windSpeed: Math.round(data.current.wind_speed_10m),
+          pressure: Math.round(data.current.surface_pressure),
+          weatherCode: data.current.weather_code,
+          tempMax: data.daily?.temperature_2m_max?.[0] ? Math.round(data.daily.temperature_2m_max[0]) : Math.round(data.current.temperature_2m) + 3,
+          tempMin: data.daily?.temperature_2m_min?.[0] ? Math.round(data.daily.temperature_2m_min[0]) : Math.round(data.current.temperature_2m) - 4,
+          customCityName: customName
+        });
+      }
+    } catch (e) {
+      console.warn('Weather fetch error:', e);
+    }
+  };
+
+  useEffect(() => {
+    if (isWeatherFlipped) {
+      fetchWeatherForCoords(selectedCity.lat, selectedCity.lon);
+    }
+  }, [selectedCity, isWeatherFlipped]);
+
+  // تحديد الموقع يدوياً عبر GPS
+  const handleDetectGPS = () => {
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
+      setIsLocating(true);
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          fetchWeatherForCoords(pos.coords.latitude, pos.coords.longitude, isAr ? 'موقعي الجغرافي (GPS)' : 'Current GPS Location');
+          setIsLocating(false);
+        },
+        () => {
+          setIsLocating(false);
+        },
+        { timeout: 8000 }
+      );
+    }
+  };
+
+  // تحديث الساعة الحية كل ثانية
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentDate(new Date());
@@ -430,36 +866,205 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
     onSelectArticle(art);
   };
 
+  // بيانات الطقس المحسوبة بشكل مباشر مع قيم بديلة فورية تمنع أي فراغ أو تأخر في العرض
+  const weatherDetails = getWeatherDetails(liveWeather?.weatherCode ?? selectedCity.weatherCode, isAr);
+  const activeTemp = liveWeather?.temp ?? selectedCity.temp;
+  const activeHumidity = liveWeather?.humidity ?? selectedCity.humidity;
+  const activeWind = liveWeather?.windSpeed ?? selectedCity.windSpeed;
+  const activeApparent = liveWeather?.apparentTemp ?? selectedCity.apparentTemp;
+  const activePressure = liveWeather?.pressure ?? selectedCity.pressure;
+  const activeTempMax = liveWeather?.tempMax ?? selectedCity.tempMax;
+  const activeTempMin = liveWeather?.tempMin ?? selectedCity.tempMin;
+  const activeCityName = liveWeather?.customCityName || (isAr ? selectedCity.nameAr : selectedCity.nameEn);
+
   return (
     <div className="flex flex-col">
-      {/* في الأعلى بحجم كبير: الساعة الرقمية تأخذ عرض الشاشة، وتحتها بخط صغير جداً اليوم والسنة مقابل التاريخ */}
-      <div className="w-full mb-3 rounded-2xl bg-gradient-to-b from-[#0d1527] via-[#080d19] to-[#050811] border border-slate-800/90 shadow-2xl p-4 sm:p-5 backdrop-blur-xl flex flex-col items-center justify-center relative overflow-hidden">
-        {/* خلفية جمالية خافتة بتوهج كهرماني دقيق */}
-        <div className="absolute inset-0 bg-radial from-amber-500/5 via-transparent to-transparent pointer-events-none" />
+      {/* صندوق الساعة والطقس التفاعلي القابل للانقلاب بحجمه الطبيعي الرشيق تماماً ودون أي تضخم رأسي */}
+      <div className="w-full mb-3 [perspective:1200px]">
+        <div 
+          className="w-full relative h-[92px] sm:h-[98px] transition-transform duration-600 ease-in-out"
+          style={{
+            transformStyle: 'preserve-3d',
+            transform: isWeatherFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+          }}
+        >
+          {/* 1. الوجه الأمامي: الساعة الرقمية الكبرى بحجمها الطبيعي الأصلي الرائع */}
+          <div 
+            style={{
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+            }}
+            className={`absolute inset-0 w-full h-full rounded-2xl bg-gradient-to-b from-[#0d1527] via-[#080d19] to-[#050811] border border-slate-800/90 shadow-xl px-3.5 sm:px-5 py-1.5 sm:py-2 backdrop-blur-xl flex flex-col justify-between transition-opacity duration-300 ${
+              isWeatherFlipped ? 'opacity-0 pointer-events-none z-0' : 'opacity-100 pointer-events-auto z-10'
+            }`}
+          >
+            {/* زر الطقس في الزاوية اليمنى للأعلى */}
+            <button
+              onClick={() => setIsWeatherFlipped(true)}
+              className="absolute top-1.5 right-2 sm:top-2 sm:right-3.5 z-20 flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-900/90 hover:bg-amber-500/20 text-slate-300 hover:text-amber-300 border border-slate-700/80 hover:border-amber-500/50 shadow-sm backdrop-blur-md transition-all group cursor-pointer active:scale-95"
+              title={isAr ? 'عرض بيانات الطقس الحية' : 'View Live Weather'}
+              aria-label="Toggle Weather"
+            >
+              <CloudSun className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+              <span className="text-[10px] sm:text-[11px] font-medium hidden sm:inline">{isAr ? 'الطقس' : 'Weather'}</span>
+            </button>
 
-        {/* 1. الساعة الرقمية الكبرى تأخذ كامل عرض الشاشة */}
-        <div className="w-full text-center py-1 sm:py-2">
-          <span className="font-mono font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-amber-200 drop-shadow-[0_0_35px_rgba(245,158,11,0.35)] select-none">
-            {formatTime(currentDate)}
-          </span>
-        </div>
+            {/* الساعة الرقمية الكبرى تأخذ كامل عرض الشاشة بحجم كبير مثلما كان في الأول */}
+            <div className="w-full text-center my-auto leading-none">
+              <span className="font-mono font-black text-3xl sm:text-5xl md:text-6xl tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-amber-200 drop-shadow-[0_0_20px_rgba(245,158,11,0.25)] select-none">
+                {formatTime(currentDate)}
+              </span>
+            </div>
 
-        {/* 2. تحتها بخط صغير جداً: في جانب (اليوم 01 / السنة الأولى) ومقابلها (التاريخ) */}
-        <div className="w-full flex items-center justify-between pt-2.5 sm:pt-3 border-t border-slate-800/70 text-[10px] sm:text-xs">
-          {/* في جانب: اليوم 01 / السنة الأولى */}
-          <div className="flex items-center gap-1.5 font-bold text-amber-400/95 tracking-wider">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-            <span>
-              {isAr 
-                ? `اليوم ${String(currentDayInYear).padStart(2, '0')} / السنة ${getArabicYearWord(currentYear)}` 
-                : `Day ${String(currentDayInYear).padStart(2, '0')} / Year ${currentYear}`}
-            </span>
+            {/* تحتها بخط صغير جداً: في جانب (اليوم 01 / السنة الأولى) ومقابلها (التاريخ) */}
+            <div className="w-full flex items-center justify-between pt-1 border-t border-slate-800/70 text-[9px] sm:text-[10.5px] leading-none">
+              {/* في جانب: اليوم 01 / السنة الأولى */}
+              <div className="flex items-center gap-1.5 font-bold text-amber-400/95 tracking-wider">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                <span>
+                  {isAr 
+                    ? `اليوم ${String(currentDayInYear).padStart(2, '0')} / السنة ${getArabicYearWord(currentYear)}` 
+                    : `Day ${String(currentDayInYear).padStart(2, '0')} / Year ${currentYear}`}
+                </span>
+              </div>
+
+              {/* مقابلها: التاريخ */}
+              <div className="flex items-center gap-1 text-slate-400 font-medium">
+                <Calendar className="w-3 h-3 text-amber-500/80 shrink-0" />
+                <span>{formatDate(currentDate, isAr)}</span>
+              </div>
+            </div>
           </div>
 
-          {/* مقابلها: التاريخ */}
-          <div className="flex items-center gap-1.5 text-slate-400 font-medium">
-            <Calendar className="w-3.5 h-3.5 text-amber-500/80 shrink-0" />
-            <span>{formatDate(currentDate, isAr)}</span>
+          {/* 2. الوجه الخلفي: بطاقة الطقس بنفس الحجم الطبيعي تماماً مع تصغير كافة بيانات الطقس وإظهارها فوراً وبدقة */}
+          <div 
+            style={{
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+              transform: 'rotateY(180deg)',
+            }}
+            className={`absolute inset-0 w-full h-full rounded-2xl bg-gradient-to-b from-[#0d1527] via-[#080d19] to-[#050811] border border-amber-500/40 shadow-xl px-3 sm:px-4 py-1.5 backdrop-blur-xl flex flex-col justify-between transition-opacity duration-300 ${
+              isWeatherFlipped ? 'opacity-100 pointer-events-auto z-10' : 'opacity-0 pointer-events-none z-0'
+            }`}
+          >
+            {/* الشريط العلوي المصغر: محدد العاصمة + زر GPS + اسم المدينة والحالة + زر العودة للساعة */}
+            <div className="w-full flex items-center justify-between gap-1.5 leading-none">
+              <div className="flex items-center gap-1 min-w-0">
+                <div className="relative flex items-center bg-slate-900/90 border border-slate-700/80 rounded px-1.5 py-0.5 text-[9.5px] text-slate-200 shadow-sm focus-within:border-amber-500">
+                  <MapPin className="w-2.5 h-2.5 text-amber-400 shrink-0 mr-1 rtl:mr-0 rtl:ml-1" />
+                  <select
+                    value={selectedCity.id}
+                    onChange={(e) => {
+                      const found = WEATHER_CAPITALS.find(c => c.id === e.target.value);
+                      if (found) {
+                        setSelectedCity(found);
+                        fetchWeatherForCoords(found.lat, found.lon);
+                      }
+                    }}
+                    className="bg-transparent text-white font-medium text-[9.5px] focus:outline-none cursor-pointer pr-3 rtl:pr-0 rtl:pl-3 truncate max-w-[105px] sm:max-w-[150px]"
+                    aria-label="Select Capital City"
+                  >
+                    {WEATHER_CAPITALS.map(city => (
+                      <option key={city.id} value={city.id} className="bg-slate-900 text-white text-[10px]">
+                        {isAr ? `${city.nameAr} (${city.countryAr})` : `${city.nameEn} (${city.countryEn})`}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-2 h-2 text-slate-400 pointer-events-none absolute right-1 rtl:right-auto rtl:left-1" />
+                </div>
+
+                {/* زر الكشف التلقائي عبر GPS */}
+                <button
+                  onClick={handleDetectGPS}
+                  disabled={isLocating}
+                  className="p-1 rounded bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-amber-400 border border-slate-700/80 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
+                  title={isAr ? 'تحديد موقعي التلقائي عبر GPS' : 'Detect Location via GPS'}
+                  aria-label="Detect GPS Location"
+                >
+                  <LocateFixed className={`w-2.5 h-2.5 ${isLocating ? 'animate-spin text-amber-400' : ''}`} />
+                </button>
+
+                {/* اسم المنطقة وحالتها بخط مصغر */}
+                <span className="text-[9px] font-bold text-amber-300/90 truncate max-w-[90px] sm:max-w-[140px] hidden xs:inline">
+                  {activeCityName} · {weatherDetails.label}
+                </span>
+              </div>
+
+              {/* زر الساعة للعودة للساعة */}
+              <button
+                onClick={() => setIsWeatherFlipped(false)}
+                className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[9.5px] sm:text-[10px] shadow-sm transition-all cursor-pointer active:scale-95 shrink-0"
+                title={isAr ? 'العودة إلى الساعة الرقمية' : 'Return to Clock'}
+                aria-label="Return to Clock"
+              >
+                <Clock className="w-2.5 h-2.5 text-slate-950" />
+                <span>{isAr ? 'الساعة' : 'Clock'}</span>
+              </button>
+            </div>
+
+            {/* الجزء الأوسط: درجة الحرارة + أيقونة الطقس + شبكة المؤشرات بأحجام مصغرة وأنيقة جداً */}
+            <div className="w-full flex items-center justify-between gap-1.5 my-auto py-0.5">
+              {/* درجة الحرارة والحالة */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                <div className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shadow-inner">
+                  {React.createElement(weatherDetails.icon, {
+                    className: `w-4 h-4 ${weatherDetails.color}`
+                  })}
+                </div>
+                <div className="flex items-baseline gap-1 leading-none">
+                  <span className="text-xl sm:text-2xl font-mono font-black text-white">
+                    {activeTemp}°
+                  </span>
+                  <span className="text-[9.5px] font-bold text-amber-400">C</span>
+                  <span className="text-[8.5px] text-slate-400 font-mono hidden sm:inline mr-0.5 rtl:mr-0 rtl:ml-0.5">
+                    ▲{activeTempMax}° ▼{activeTempMin}°
+                  </span>
+                </div>
+              </div>
+
+              {/* شبكة المؤشرات الأربعة بأيقونات وخطوط مصغرة جداً (الرطوبة، الرياح، الحرارة المحسوسة، الضغط) */}
+              <div className="flex items-center gap-1 flex-wrap justify-end text-[8.5px] sm:text-[9.5px] font-mono leading-none">
+                {/* الرطوبة */}
+                <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-slate-900/80 border border-slate-800 text-sky-300" title={isAr ? 'الرطوبة النسبية' : 'Humidity'}>
+                  <Droplets className="w-2.5 h-2.5 text-sky-400 shrink-0" />
+                  <span className="font-bold">{activeHumidity}%</span>
+                </div>
+
+                {/* الرياح */}
+                <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-slate-900/80 border border-slate-800 text-emerald-300" title={isAr ? 'سرعة الرياح' : 'Wind Speed'}>
+                  <Wind className="w-2.5 h-2.5 text-emerald-400 shrink-0" />
+                  <span className="font-bold">{activeWind} <span className="font-sans text-[7.5px]">{isAr ? 'كم' : 'km'}</span></span>
+                </div>
+
+                {/* المحسوسة */}
+                <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-slate-900/80 border border-slate-800 text-amber-300" title={isAr ? 'الحرارة المحسوسة' : 'Feels Like'}>
+                  <Thermometer className="w-2.5 h-2.5 text-amber-400 shrink-0" />
+                  <span className="font-bold">{activeApparent}°</span>
+                </div>
+
+                {/* الضغط */}
+                <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-slate-900/80 border border-slate-800 text-purple-300 hidden sm:flex" title={isAr ? 'الضغط الجوي' : 'Pressure'}>
+                  <Gauge className="w-2.5 h-2.5 text-purple-400 shrink-0" />
+                  <span className="font-bold">{activePressure} <span className="font-sans text-[7.5px]">hPa</span></span>
+                </div>
+              </div>
+            </div>
+
+            {/* الشريط السفلي المصغر: شارة الرصد المباشر + عداد العودة التلقائية للساعة خلال دقيقتين */}
+            <div className="w-full flex items-center justify-between pt-1 border-t border-slate-800/70 text-[8.5px] text-slate-400 leading-none">
+              <div className="flex items-center gap-1 truncate">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                <span className="text-slate-300 font-medium truncate">
+                  {isAr ? 'محطة الرصد الجوي لعواصم إفريقيا (Open-Meteo)' : 'African Weather Station'}
+                </span>
+              </div>
+
+              {/* مؤشر العودة التلقائية للساعة بعد دقيقتين */}
+              <div className="flex items-center gap-1 text-amber-400/90 font-mono bg-amber-500/10 px-1 py-0.5 rounded border border-amber-500/20 shrink-0">
+                <Timer className="w-2 h-2 text-amber-400" />
+                <span>{isAr ? 'عودة:' : 'Auto:'} {Math.floor(returnCountdown / 60)}:{String(returnCountdown % 60).padStart(2, '0')}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -608,6 +1213,13 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
                   <span className="font-bold text-slate-200 truncate">
                     {isAr ? story.columnistName : story.columnistNameEn}
                   </span>
+                </div>
+
+                {/* دقائق القراءة: الأيقونة والعدد وكلمة دقيقة فقط بين الكاتب وعدد المشاهدات */}
+                <div className="flex items-center gap-1.5 text-slate-300 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800 text-[11px] font-medium shrink-0">
+                  <Timer className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span className="font-bold text-amber-300 font-mono">{story.readTimeMinutes}</span>
+                  <span className="text-slate-400">{isAr ? 'دقيقة' : 'min'}</span>
                 </div>
 
                 {/* المشاهدات مع الأيقونة والعدد + نسبة الدقة */}

@@ -13,7 +13,8 @@ import {
   Award,
   Feather,
   Flame,
-  Volume2
+  Volume2,
+  Calendar
 } from 'lucide-react';
 import { getCountryFlag } from '../lib/africanGeoProximity';
 
@@ -304,6 +305,9 @@ interface EditorialLeadCarouselProps {
   lang: 'ar' | 'en';
 }
 
+// Portal Launch Baseline: September 25, 2026 (تاريخ انطلاق المنصة لحساب الأيام والسنوات تلقائياً)
+const PORTAL_LAUNCH_DATE = new Date('2026-09-25T00:00:00Z');
+
 export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
   onSelectArticle,
   lang
@@ -311,6 +315,43 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
   const isAr = lang === 'ar';
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDate(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // حساب أيام وسنوات المنصة بشكل تلقائي
+  const msElapsed = Math.max(0, currentDate.getTime() - PORTAL_LAUNCH_DATE.getTime());
+  const totalDays = Math.max(1, Math.floor(msElapsed / (1000 * 60 * 60 * 24)) + 1);
+  const currentYear = Math.floor((totalDays - 1) / 365) + 1;
+  const currentDayInYear = ((totalDays - 1) % 365) + 1;
+
+  const getArabicYearWord = (yr: number) => {
+    const ordinals = ['الأولى', 'الثانية', 'الثالثة', 'الرابعة', 'الخامسة', 'السادسة', 'السابعة', 'الثامنة', 'التاسعة', 'العاشرة'];
+    return ordinals[yr - 1] || `${yr}`;
+  };
+
+  const formatDate = (d: Date, isArabic: boolean) => {
+    try {
+      return d.toLocaleDateString(isArabic ? 'ar-EG' : 'en-US', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+    } catch {
+      return d.toDateString();
+    }
+  };
+
+  const formatTime = (d: Date) => {
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  };
 
   const scrollToIndex = (idx: number) => {
     if (!scrollRef.current) return;
@@ -391,61 +432,34 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
 
   return (
     <div className="flex flex-col">
-      {/* Top Header of Editorial Desk: Headline + Controls */}
-      <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-800/80">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-600/30 border border-amber-500/40 flex items-center justify-center text-amber-400">
-            <Feather className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-base sm:text-lg font-black text-white">
-                {isAr ? 'الافتتاحيات والتقارير الرئيسية للصحيفة' : 'Editorials & Lead Investigations'}
-              </h2>
-              <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                8 {isAr ? 'مقالات وسلايدات' : 'Slides'}
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-400">
-              {isAr ? 'افتتاحيات رؤساء التحرير والتحقيقات الكبرى الخاصة بـ «لافريكونوميست»' : 'Official editorial desk columns & major continental front-page specials'}
-            </p>
-          </div>
+      {/* في الأعلى بحجم كبير: الساعة الرقمية تأخذ عرض الشاشة، وتحتها بخط صغير جداً اليوم والسنة مقابل التاريخ */}
+      <div className="w-full mb-3 rounded-2xl bg-gradient-to-b from-[#0d1527] via-[#080d19] to-[#050811] border border-slate-800/90 shadow-2xl p-4 sm:p-5 backdrop-blur-xl flex flex-col items-center justify-center relative overflow-hidden">
+        {/* خلفية جمالية خافتة بتوهج كهرماني دقيق */}
+        <div className="absolute inset-0 bg-radial from-amber-500/5 via-transparent to-transparent pointer-events-none" />
+
+        {/* 1. الساعة الرقمية الكبرى تأخذ كامل عرض الشاشة */}
+        <div className="w-full text-center py-1 sm:py-2">
+          <span className="font-mono font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-amber-200 drop-shadow-[0_0_35px_rgba(245,158,11,0.35)] select-none">
+            {formatTime(currentDate)}
+          </span>
         </div>
 
-        {/* Carousel Slider Controls (Arrows + Counter) */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-mono text-slate-400 hidden sm:inline">
-            <span className="text-amber-400 font-bold">{currentIndex + 1}</span> / {EDITORIAL_LEAD_STORIES.length}
-          </span>
+        {/* 2. تحتها بخط صغير جداً: في جانب (اليوم 01 / السنة الأولى) ومقابلها (التاريخ) */}
+        <div className="w-full flex items-center justify-between pt-2.5 sm:pt-3 border-t border-slate-800/70 text-[10px] sm:text-xs">
+          {/* في جانب: اليوم 01 / السنة الأولى */}
+          <div className="flex items-center gap-1.5 font-bold text-amber-400/95 tracking-wider">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+            <span>
+              {isAr 
+                ? `اليوم ${String(currentDayInYear).padStart(2, '0')} / السنة ${getArabicYearWord(currentYear)}` 
+                : `Day ${String(currentDayInYear).padStart(2, '0')} / Year ${currentYear}`}
+            </span>
+          </div>
 
-          <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800">
-            <button
-              onClick={() => scrollToIndex(currentIndex - 1)}
-              disabled={currentIndex === 0}
-              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                currentIndex === 0 
-                  ? 'text-slate-600 cursor-not-allowed' 
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800 active:scale-90'
-              }`}
-              title={isAr ? 'المقال السابق' : 'Previous story'}
-              aria-label="Previous story"
-            >
-              {isAr ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-            </button>
-
-            <button
-              onClick={() => scrollToIndex(currentIndex + 1)}
-              disabled={currentIndex === EDITORIAL_LEAD_STORIES.length - 1}
-              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                currentIndex === EDITORIAL_LEAD_STORIES.length - 1
-                  ? 'text-slate-600 cursor-not-allowed'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800 active:scale-90'
-              }`}
-              title={isAr ? 'المقال التالي' : 'Next story'}
-              aria-label="Next story"
-            >
-              {isAr ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-            </button>
+          {/* مقابلها: التاريخ */}
+          <div className="flex items-center gap-1.5 text-slate-400 font-medium">
+            <Calendar className="w-3.5 h-3.5 text-amber-500/80 shrink-0" />
+            <span>{formatDate(currentDate, isAr)}</span>
           </div>
         </div>
       </div>

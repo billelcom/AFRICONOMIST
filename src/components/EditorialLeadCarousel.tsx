@@ -813,7 +813,7 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
             {/* الصف العلوي: أزرار منصات التواصل الاجتماعي الـ 5 + زر العودة للساعة */}
             <div className="w-full flex items-center justify-between gap-1 leading-none">
               <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap min-w-0">
-                <span className="text-[8.5px] sm:text-[9.5px] font-bold text-amber-400 shrink-0">
+                <span className="text-[9px] sm:text-[10px] font-bold text-amber-400 shrink-0">
                   {isAr ? 'تابعنا وشارك:' : 'Connect:'}
                 </span>
 
@@ -822,10 +822,10 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
                   href="https://facebook.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-600/15 hover:bg-blue-600/30 border border-blue-500/40 text-blue-400 text-[8px] sm:text-[8.5px] font-medium transition-colors shadow-sm cursor-pointer"
+                  className="flex items-center gap-1 px-2 py-0.5 sm:py-1 rounded-md bg-blue-600/15 hover:bg-blue-600/30 border border-blue-500/40 text-blue-400 text-[8.5px] sm:text-[9.5px] font-medium transition-colors shadow-sm cursor-pointer"
                   title={isAr ? 'فيسبوك (Facebook)' : 'Facebook'}
                 >
-                  <Facebook className="w-2.5 h-2.5" />
+                  <Facebook className="w-3 h-3" />
                   <span className="hidden xs:inline">{isAr ? 'فيسبوك' : 'Facebook'}</span>
                 </a>
 
@@ -834,10 +834,10 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
                   href="https://x.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-sky-500/15 hover:bg-sky-500/30 border border-sky-400/40 text-sky-400 text-[8px] sm:text-[8.5px] font-medium transition-colors shadow-sm cursor-pointer"
+                  className="flex items-center gap-1 px-2 py-0.5 sm:py-1 rounded-md bg-sky-500/15 hover:bg-sky-500/30 border border-sky-400/40 text-sky-400 text-[8.5px] sm:text-[9.5px] font-medium transition-colors shadow-sm cursor-pointer"
                   title={isAr ? 'تويتر / إكس (Twitter/X)' : 'Twitter/X'}
                 >
-                  <Twitter className="w-2.5 h-2.5" />
+                  <Twitter className="w-3 h-3" />
                   <span className="hidden xs:inline">{isAr ? 'تويتر' : 'Twitter'}</span>
                 </a>
 
@@ -846,10 +846,10 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
                   href="https://youtube.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-600/15 hover:bg-red-600/30 border border-red-500/40 text-red-400 text-[8px] sm:text-[8.5px] font-medium transition-colors shadow-sm cursor-pointer"
+                  className="flex items-center gap-1 px-2 py-0.5 sm:py-1 rounded-md bg-red-600/15 hover:bg-red-600/30 border border-red-500/40 text-red-400 text-[8.5px] sm:text-[9.5px] font-medium transition-colors shadow-sm cursor-pointer"
                   title={isAr ? 'يوتيوب (YouTube)' : 'YouTube'}
                 >
-                  <Youtube className="w-2.5 h-2.5" />
+                  <Youtube className="w-3 h-3" />
                   <span className="hidden xs:inline">{isAr ? 'يوتيوب' : 'YouTube'}</span>
                 </a>
 
@@ -858,10 +858,10 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
                   href="https://instagram.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-pink-600/15 hover:bg-pink-600/30 border border-pink-500/40 text-pink-400 text-[8px] sm:text-[8.5px] font-medium transition-colors shadow-sm cursor-pointer"
+                  className="flex items-center gap-1 px-2 py-0.5 sm:py-1 rounded-md bg-pink-600/15 hover:bg-pink-600/30 border border-pink-500/40 text-pink-400 text-[8.5px] sm:text-[9.5px] font-medium transition-colors shadow-sm cursor-pointer"
                   title={isAr ? 'انستغرام (Instagram)' : 'Instagram'}
                 >
-                  <Instagram className="w-2.5 h-2.5" />
+                  <Instagram className="w-3 h-3" />
                   <span className="hidden xs:inline">{isAr ? 'انستغرام' : 'Instagram'}</span>
                 </a>
 
@@ -870,10 +870,10 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
                   href="https://tiktok.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-cyan-500/15 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 text-[8px] sm:text-[8.5px] font-medium transition-colors shadow-sm cursor-pointer"
+                  className="flex items-center gap-1 px-2 py-0.5 sm:py-1 rounded-md bg-cyan-500/15 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 text-[8.5px] sm:text-[9.5px] font-medium transition-colors shadow-sm cursor-pointer"
                   title={isAr ? 'تيكتوك (TikTok)' : 'TikTok'}
                 >
-                  <Music2 className="w-2.5 h-2.5" />
+                  <Music2 className="w-3 h-3" />
                   <span className="hidden xs:inline">{isAr ? 'تيكتوك' : 'TikTok'}</span>
                 </a>
               </div>
@@ -881,7 +881,7 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
               {/* زر الساعة للعودة للساعة */}
               <button
                 onClick={() => setActiveCardFace('clock')}
-                className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[9px] sm:text-[9.5px] shadow-sm transition-all cursor-pointer active:scale-95 shrink-0"
+                className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[9px] sm:text-[10px] shadow-sm transition-all cursor-pointer active:scale-95 shrink-0"
                 title={isAr ? 'العودة إلى الساعة الرقمية' : 'Return to Clock'}
                 aria-label="Return to Clock"
               >
@@ -891,8 +891,8 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
             </div>
 
             {/* الصف الأوسط: المدير العام مسؤول النشر والناشر مع فاصل رفيع في الأعلى وآخر في الأسفل */}
-            <div className="w-full py-0.5 my-auto border-t border-b border-slate-800/80 flex items-center justify-between text-[7.5px] sm:text-[8px] leading-tight text-slate-300 font-medium">
-              <div className="flex items-center gap-1 truncate">
+            <div className="w-full py-1 my-0.5 border-t border-b border-slate-800/80 flex items-center justify-between text-[8px] sm:text-[9px] leading-tight text-slate-300 font-medium">
+              <div className="flex items-center gap-1.5 truncate">
                 <span className="text-amber-400/90 font-semibold shrink-0">
                   {isAr ? 'المدير العام مسؤول النشر:' : 'Publishing Director:'}
                 </span>
@@ -914,38 +914,38 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
                   className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-mono font-bold shrink-0 transition-colors cursor-pointer"
                   title={isAr ? 'تواصل عبر واتساب' : 'Chat on WhatsApp'}
                 >
-                  <MessageCircle className="w-2.5 h-2.5 text-emerald-400 shrink-0" />
-                  <span dir="ltr" className="text-[7.5px] sm:text-[8px]">+213656180056</span>
+                  <MessageCircle className="w-3 h-3 text-emerald-400 shrink-0" />
+                  <span dir="ltr" className="text-[8px] sm:text-[9px]">+213656180056</span>
                 </a>
               </div>
             </div>
 
             {/* الصف السفلي: حقل الاشتراك في الرسائل البريدية + زر اشتراك + مؤقت العودة التلقائية */}
-            <div className="w-full flex items-center justify-between gap-1.5 pt-0.5 text-[8.5px] leading-none">
+            <div className="w-full flex items-center justify-between gap-1.5 text-[8.5px] leading-none">
               <form onSubmit={handleNewsletterSubmit} className="flex-1 flex items-center gap-1.5 min-w-0">
-                <div className="relative flex-1 flex items-center bg-slate-900/90 border border-slate-700/80 rounded px-1.5 py-0.5 text-slate-200 shadow-sm focus-within:border-amber-500 transition-colors min-w-0">
-                  <Mail className="w-2.5 h-2.5 text-amber-400 shrink-0 mr-1 rtl:mr-0 rtl:ml-1" />
+                <div className="relative flex-1 h-7 sm:h-[30px] flex items-center bg-slate-900/90 border border-slate-700/80 rounded-md px-2 text-slate-200 shadow-inner focus-within:border-amber-500 transition-colors min-w-0">
+                  <Mail className="w-3 h-3 text-amber-400 shrink-0 mr-1.5 rtl:mr-0 rtl:ml-1.5" />
                   <input
                     type="email"
                     required
                     value={newsletterEmail}
                     onChange={(e) => setNewsletterEmail(e.target.value)}
                     placeholder={isAr ? 'أدخل بريدك للاشتراك في النشرة الاقتصادية اليومية...' : 'Enter your email for the daily economic newsletter...'}
-                    className="w-full bg-transparent text-[8px] sm:text-[8.5px] text-white placeholder-slate-400 focus:outline-none truncate"
+                    className="w-full bg-transparent text-[8.5px] sm:text-[9.5px] text-white placeholder-slate-400 focus:outline-none truncate"
                   />
                 </div>
                 <button
                   type="submit"
-                  className="px-2.5 py-0.5 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[8.5px] transition-all cursor-pointer shrink-0 shadow-sm active:scale-95 flex items-center gap-1"
+                  className="h-7 sm:h-[30px] px-3 rounded-md bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[9px] sm:text-[9.5px] transition-all cursor-pointer shrink-0 shadow-sm active:scale-95 flex items-center gap-1"
                 >
                   {isNewsletterSubscribed ? (
                     <>
-                      <Check className="w-2.5 h-2.5 text-emerald-950" />
+                      <Check className="w-3 h-3 text-emerald-950" />
                       <span>{isAr ? 'تم الاشتراك!' : 'Subscribed!'}</span>
                     </>
                   ) : (
                     <>
-                      <Send className="w-2.5 h-2.5 text-slate-950" />
+                      <Send className="w-3 h-3 text-slate-950" />
                       <span>{isAr ? 'اشتراك' : 'Subscribe'}</span>
                     </>
                   )}
@@ -953,8 +953,8 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
               </form>
 
               {/* مؤشر العودة التلقائية للساعة بعد دقيقتين */}
-              <div className="flex items-center gap-1 text-amber-400/90 font-mono bg-amber-500/10 px-1 py-0.5 rounded border border-amber-500/20 shrink-0 hidden sm:flex">
-                <Timer className="w-2 h-2 text-amber-400" />
+              <div className="h-7 sm:h-[30px] flex items-center gap-1 text-amber-400/90 font-mono bg-amber-500/10 px-1.5 rounded-md border border-amber-500/20 shrink-0 hidden sm:flex text-[8.5px] sm:text-[9px]">
+                <Timer className="w-2.5 h-2.5 text-amber-400" />
                 <span>{isAr ? 'عودة:' : 'Auto:'} {Math.floor(returnCountdown / 60)}:{String(returnCountdown % 60).padStart(2, '0')}</span>
               </div>
             </div>

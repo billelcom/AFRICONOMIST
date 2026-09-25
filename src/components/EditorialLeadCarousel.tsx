@@ -69,6 +69,8 @@ export const EDITORIAL_LEAD_STORIES: EditorialStory[] = [
     countryCode: 'NG',
     columnistName: 'فريق التحقيقات الاستقصائية المشتركة',
     columnistNameEn: 'Joint Investigative Desk',
+    columnistRole: 'هيئة التحقيقات الاستقصائية لغرب أفريقيا',
+    columnistRoleEn: 'West Africa Investigative Reporting Desk',
     viewsCount: 34120,
     factScore: 97,
     readTimeMinutes: 4,
@@ -388,9 +390,9 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col">
       {/* Top Header of Editorial Desk: Headline + Controls */}
-      <div className="flex items-center justify-between pb-1 border-b border-slate-800/80">
+      <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-800/80">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-600/30 border border-amber-500/40 flex items-center justify-center text-amber-400">
             <Feather className="w-4 h-4" />
@@ -448,11 +450,11 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
         </div>
       </div>
 
-      {/* Horizontal Carousel Track (يتم سحبه أفقياً كسلايدات) */}
+      {/* Horizontal Carousel Track (سلايدات متناسقة الارتفاع تماماً دون أي تفاوت) */}
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar pb-2"
+        className="flex items-stretch gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar pb-0"
         style={{ scrollSnapType: 'x mandatory' }}
       >
         {EDITORIAL_LEAD_STORIES.map((story, idx) => {
@@ -461,11 +463,11 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
             <div
               key={story.id}
               onClick={() => handleStoryClick(story)}
-              className="w-full min-w-full sm:min-w-[540px] md:min-w-[620px] lg:min-w-[680px] snap-center rounded-2xl overflow-hidden border border-slate-800/90 hover:border-amber-500/50 bg-gradient-to-b from-[#0f172a] via-[#0b1120] to-[#070b14] transition-all shadow-xl group cursor-pointer flex flex-col justify-between"
+              className="w-full min-w-full sm:min-w-[540px] md:min-w-[620px] lg:min-w-[680px] snap-center rounded-2xl overflow-hidden border border-slate-800/90 hover:border-amber-500/50 bg-gradient-to-b from-[#0f172a] via-[#0b1120] to-[#070b14] transition-all duration-300 shadow-xl group cursor-pointer flex flex-col justify-between h-full"
             >
-              <div>
+              <div className="flex flex-col flex-1">
                 {/* 1. صورة أو فيديو في الأعلى يأخذ كامل عرض البطاقة */}
-                <div className="w-full h-56 sm:h-72 relative overflow-hidden bg-slate-950">
+                <div className="w-full h-56 sm:h-72 relative overflow-hidden bg-slate-950 shrink-0">
                   <img
                     src={story.imageUrl}
                     alt={isAr ? story.title : story.titleEn}
@@ -520,51 +522,72 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
                   </div>
                 </div>
 
-                {/* 3. تحت الصورة أو الفيديو: العنوان ثم الملخص الأطول */}
-                <div className="p-5 sm:p-7 space-y-3.5">
-                  {/* إن كانت افتتاحية أو عمود: تظهر صورة صاحب الافتتاحية مع اسمه ولقبه */}
-                  {story.isColumn && story.columnistAvatar && (
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-900/80 border border-amber-500/30">
-                      <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 border-2 border-amber-500 shadow-md">
-                        <img
-                          src={story.columnistAvatar}
-                          alt={story.columnistName || 'Columnist'}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-black text-amber-400">
-                            {story.genre === 'افتتاحية اليوم'
-                              ? (isAr ? 'صاحب الافتتاحية:' : 'Editorial Columnist:')
-                              : (isAr ? 'الخبير الاقتصادي:' : 'Expert Columnist:')}
-                          </span>
-                          <span className="text-xs font-bold text-white">
-                            {isAr ? story.columnistName : story.columnistNameEn}
-                          </span>
+                {/* 3. تحت الصورة أو الفيديو: الكاتب/المكتب التحريري، العنوان، ثم الملخص الموحد */}
+                <div className="p-5 sm:p-6 pb-4 sm:pb-5 space-y-3 flex-1 flex flex-col justify-between">
+                  <div className="space-y-3">
+                    {/* إن كانت افتتاحية أو عمود: تظهر صورة صاحب الافتتاحية مع اسمه ولقبه، وفي المقالات الأخرى يظهر مكتب التحرير المتخصص */}
+                    {story.isColumn && story.columnistAvatar ? (
+                      <div className="flex items-center gap-3 p-2.5 sm:p-3 rounded-xl bg-slate-900/80 border border-amber-500/40">
+                        <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 border-2 border-amber-500 shadow-md">
+                          <img
+                            src={story.columnistAvatar}
+                            alt={story.columnistName || 'Columnist'}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
                         </div>
-                        <p className="text-[11px] text-slate-400 font-serif">
-                          {isAr ? story.columnistRole : story.columnistRoleEn}
-                        </p>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-black text-amber-400">
+                              {story.genre === 'افتتاحية اليوم'
+                                ? (isAr ? 'صاحب الافتتاحية:' : 'Editorial Columnist:')
+                                : (isAr ? 'الخبير الاقتصادي:' : 'Expert Columnist:')}
+                            </span>
+                            <span className="text-xs font-bold text-white truncate">
+                              {isAr ? story.columnistName : story.columnistNameEn}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-400 font-serif truncate">
+                            {isAr ? story.columnistRole : story.columnistRoleEn}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    ) : (
+                      <div className="flex items-center gap-3 p-2.5 sm:p-3 rounded-xl bg-slate-900/50 border border-slate-800/80">
+                        <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 bg-slate-800 border border-slate-700/80 flex items-center justify-center text-amber-400 shadow-inner">
+                          <Feather className="w-5 h-5 text-amber-400" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-bold text-amber-400/90">
+                              {isAr ? 'مكتب التحقيقات الاقتصادية:' : 'Editorial Desk Analysis:'}
+                            </span>
+                            <span className="text-xs font-bold text-white truncate">
+                              {isAr ? story.columnistName : story.columnistNameEn}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-400 font-serif truncate">
+                            {isAr ? (story.columnistRole || 'هيئة التحرير والتقارير الاستقصائية') : (story.columnistRoleEn || 'Editorial Desk & Field Investigations')}
+                          </p>
+                        </div>
+                      </div>
+                    )}
 
-                  {/* العنوان */}
-                  <h3 className="text-xl sm:text-2xl font-black text-white group-hover:text-amber-300 transition-colors leading-snug">
-                    {isAr ? story.title : story.titleEn}
-                  </h3>
+                    {/* العنوان المتناسق */}
+                    <h3 className="text-xl sm:text-2xl font-black text-white group-hover:text-amber-300 transition-colors leading-snug line-clamp-2 min-h-[3.25rem] sm:min-h-[3.75rem] flex items-center">
+                      {isAr ? story.title : story.titleEn}
+                    </h3>
 
-                  {/* الملخص الأطول نوعاً ما */}
-                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
-                    {isAr ? story.summary : story.summaryEn}
-                  </p>
+                    {/* الملخص الموحد 50 كلمة */}
+                    <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
+                      {isAr ? story.summary : story.summaryEn}
+                    </p>
+                  </div>
                 </div>
               </div>
 
               {/* 4. أسفل البطاقة: كاتب المقال والمشاهدات ومؤشر الدقة */}
-              <div className="px-5 sm:px-7 py-4 border-t border-slate-800/80 bg-slate-950/50 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="px-5 sm:px-6 py-3.5 sm:py-4 border-t border-slate-800/80 bg-slate-950/60 flex flex-wrap items-center justify-between gap-3 text-xs shrink-0">
                 {/* كاتب المقال */}
                 <div className="flex items-center gap-2 text-slate-300 truncate">
                   <span className="text-[11px] text-slate-400">{isAr ? 'بقلم:' : 'By:'}</span>
@@ -600,8 +623,8 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
         })}
       </div>
 
-      {/* Slide Indicators Pills (1 to 8) */}
-      <div className="flex items-center justify-center gap-1.5 pt-1">
+      {/* Slide Indicators Pills (1 to 8) مباشرة تحت صندوق كاتب المقال وعدد المشاهدات دون أي فراغ */}
+      <div className="flex items-center justify-center gap-1.5 pt-2 pb-0">
         {EDITORIAL_LEAD_STORIES.map((_, i) => (
           <button
             key={i}

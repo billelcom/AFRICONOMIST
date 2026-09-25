@@ -28,7 +28,17 @@ import {
   Gauge,
   LocateFixed,
   MapPin,
-  ChevronDown
+  ChevronDown,
+  Share2,
+  Facebook,
+  Twitter,
+  Youtube,
+  Instagram,
+  Music2,
+  Mail,
+  Send,
+  Check,
+  MessageCircle
 } from 'lucide-react';
 import { getCountryFlag, TIMEZONE_TO_COUNTRY_MAP } from '../lib/africanGeoProximity';
 
@@ -368,8 +378,10 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
 
-  // حالة انقلاب بطاقة الساعة إلى الطقس (تستقر في الساعة عند التحديث)
-  const [isWeatherFlipped, setIsWeatherFlipped] = useState<boolean>(false);
+  // حالة وجه البطاقة التفاعلي: الساعة (افتراضي)، الطقس، التواصل والمشاركة (تستقر في الساعة عند التحديث)
+  const [activeCardFace, setActiveCardFace] = useState<'clock' | 'weather' | 'social'>('clock');
+  const [newsletterEmail, setNewsletterEmail] = useState<string>('');
+  const [isNewsletterSubscribed, setIsNewsletterSubscribed] = useState<boolean>(false);
   const [returnCountdown, setReturnCountdown] = useState<number>(120); // 120 ثانية = دقيقتان
   const [selectedCity, setSelectedCity] = useState<WeatherCity>(() => getDefaultCapital());
   const [isLocating, setIsLocating] = useState<boolean>(false);
@@ -387,7 +399,7 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
 
   // العودة التلقائية للساعة بعد دقيقتين (120 ثانية) إذا لم يتفاعل المستخدم
   useEffect(() => {
-    if (!isWeatherFlipped) {
+    if (activeCardFace === 'clock') {
       setReturnCountdown(120);
       return;
     }
@@ -395,7 +407,7 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
     const interval = setInterval(() => {
       setReturnCountdown(prev => {
         if (prev <= 1) {
-          setIsWeatherFlipped(false);
+          setActiveCardFace('clock');
           return 120;
         }
         return prev - 1;
@@ -403,7 +415,19 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isWeatherFlipped]);
+  }, [activeCardFace]);
+
+  // الاشتراك في النشرة البريدية
+  const handleNewsletterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newsletterEmail.trim()) {
+      setIsNewsletterSubscribed(true);
+      setTimeout(() => {
+        setIsNewsletterSubscribed(false);
+        setNewsletterEmail('');
+      }, 4000);
+    }
+  };
 
   // جلب بيانات الطقس الحية عبر Open-Meteo API
   const fetchWeatherForCoords = async (lat: number, lon: number, customName?: string) => {
@@ -431,10 +455,10 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
   };
 
   useEffect(() => {
-    if (isWeatherFlipped) {
+    if (activeCardFace === 'weather') {
       fetchWeatherForCoords(selectedCity.lat, selectedCity.lon);
     }
-  }, [selectedCity, isWeatherFlipped]);
+  }, [selectedCity, activeCardFace]);
 
   // تحديد الموقع يدوياً عبر GPS
   const handleDetectGPS = () => {
@@ -586,7 +610,7 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
           className="w-full relative h-[92px] sm:h-[98px] transition-transform duration-600 ease-in-out"
           style={{
             transformStyle: 'preserve-3d',
-            transform: isWeatherFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+            transform: activeCardFace !== 'clock' ? 'rotateY(180deg)' : 'rotateY(0deg)',
           }}
         >
           {/* 1. الوجه الأمامي: الساعة الرقمية الكبرى بحجمها الطبيعي الأصلي الرائع */}
@@ -596,12 +620,23 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
               WebkitBackfaceVisibility: 'hidden',
             }}
             className={`absolute inset-0 w-full h-full rounded-2xl bg-gradient-to-b from-[#0d1527] via-[#080d19] to-[#050811] border border-slate-800/90 shadow-xl px-3.5 sm:px-5 py-1.5 sm:py-2 backdrop-blur-xl flex flex-col justify-between transition-opacity duration-300 ${
-              isWeatherFlipped ? 'opacity-0 pointer-events-none z-0' : 'opacity-100 pointer-events-auto z-10'
+              activeCardFace !== 'clock' ? 'opacity-0 pointer-events-none z-0' : 'opacity-100 pointer-events-auto z-10'
             }`}
           >
+            {/* زر التواصل والمشاركة في الجهة المقابلة لزر الطقس */}
+            <button
+              onClick={() => setActiveCardFace('social')}
+              className="absolute top-1.5 left-2 sm:top-2 sm:left-3.5 z-20 flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-900/90 hover:bg-amber-500/20 text-slate-300 hover:text-amber-300 border border-slate-700/80 hover:border-amber-500/50 shadow-sm backdrop-blur-md transition-all group cursor-pointer active:scale-95"
+              title={isAr ? 'منصات التواصل والمشاركة والنشرة البريدية' : 'Social Platforms & Newsletter'}
+              aria-label="Toggle Social & Newsletter"
+            >
+              <Share2 className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+              <span className="text-[10px] sm:text-[11px] font-medium hidden sm:inline">{isAr ? 'تواصل ومشاركة' : 'Connect'}</span>
+            </button>
+
             {/* زر الطقس في الزاوية اليمنى للأعلى */}
             <button
-              onClick={() => setIsWeatherFlipped(true)}
+              onClick={() => setActiveCardFace('weather')}
               className="absolute top-1.5 right-2 sm:top-2 sm:right-3.5 z-20 flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-900/90 hover:bg-amber-500/20 text-slate-300 hover:text-amber-300 border border-slate-700/80 hover:border-amber-500/50 shadow-sm backdrop-blur-md transition-all group cursor-pointer active:scale-95"
               title={isAr ? 'عرض بيانات الطقس الحية' : 'View Live Weather'}
               aria-label="Toggle Weather"
@@ -645,7 +680,7 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
               transform: 'rotateY(180deg)',
             }}
             className={`absolute inset-0 w-full h-full rounded-2xl bg-gradient-to-b from-[#0d1527] via-[#080d19] to-[#050811] border border-amber-500/40 shadow-xl px-3 sm:px-4 py-1.5 backdrop-blur-xl flex flex-col justify-between transition-opacity duration-300 ${
-              isWeatherFlipped ? 'opacity-100 pointer-events-auto z-10' : 'opacity-0 pointer-events-none z-0'
+              activeCardFace === 'weather' ? 'opacity-100 pointer-events-auto z-10' : 'opacity-0 pointer-events-none z-0'
             }`}
           >
             {/* الشريط العلوي المصغر: محدد الدولة والعاصمة (يأخذ أكثر من 65% من عرض البطاقة) + زر GPS + زر العودة للساعة */}
@@ -689,7 +724,7 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
 
               {/* زر الساعة للعودة للساعة */}
               <button
-                onClick={() => setIsWeatherFlipped(false)}
+                onClick={() => setActiveCardFace('clock')}
                 className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[9px] sm:text-[9.5px] shadow-sm transition-all cursor-pointer active:scale-95 shrink-0"
                 title={isAr ? 'العودة إلى الساعة الرقمية' : 'Return to Clock'}
                 aria-label="Return to Clock"
@@ -758,6 +793,167 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
 
               {/* مؤشر العودة التلقائية للساعة بعد دقيقتين */}
               <div className="flex items-center gap-1 text-amber-400/90 font-mono bg-amber-500/10 px-1 py-0.5 rounded border border-amber-500/20 shrink-0">
+                <Timer className="w-2 h-2 text-amber-400" />
+                <span>{isAr ? 'عودة:' : 'Auto:'} {Math.floor(returnCountdown / 60)}:{String(returnCountdown % 60).padStart(2, '0')}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. الوجه الثالث: بطاقة التواصل والمشاركة والنشرة البريدية بنفس المقاييس تماماً */}
+          <div 
+            style={{
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+              transform: 'rotateY(180deg)',
+            }}
+            className={`absolute inset-0 w-full h-full rounded-2xl bg-gradient-to-b from-[#0d1527] via-[#080d19] to-[#050811] border border-amber-500/40 shadow-xl px-3 sm:px-4 py-1.5 backdrop-blur-xl flex flex-col justify-between transition-opacity duration-300 ${
+              activeCardFace === 'social' ? 'opacity-100 pointer-events-auto z-10' : 'opacity-0 pointer-events-none z-0'
+            }`}
+          >
+            {/* الصف العلوي: أزرار منصات التواصل الاجتماعي الـ 5 + زر العودة للساعة */}
+            <div className="w-full flex items-center justify-between gap-1 leading-none">
+              <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap min-w-0">
+                <span className="text-[8.5px] sm:text-[9.5px] font-bold text-amber-400 shrink-0">
+                  {isAr ? 'تابعنا وشارك:' : 'Connect:'}
+                </span>
+
+                {/* فيسبوك */}
+                <a
+                  href="https://facebook.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-600/15 hover:bg-blue-600/30 border border-blue-500/40 text-blue-400 text-[8px] sm:text-[8.5px] font-medium transition-colors shadow-sm cursor-pointer"
+                  title={isAr ? 'فيسبوك (Facebook)' : 'Facebook'}
+                >
+                  <Facebook className="w-2.5 h-2.5" />
+                  <span className="hidden xs:inline">{isAr ? 'فيسبوك' : 'Facebook'}</span>
+                </a>
+
+                {/* تويتر / إكس */}
+                <a
+                  href="https://x.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-sky-500/15 hover:bg-sky-500/30 border border-sky-400/40 text-sky-400 text-[8px] sm:text-[8.5px] font-medium transition-colors shadow-sm cursor-pointer"
+                  title={isAr ? 'تويتر / إكس (Twitter/X)' : 'Twitter/X'}
+                >
+                  <Twitter className="w-2.5 h-2.5" />
+                  <span className="hidden xs:inline">{isAr ? 'تويتر' : 'Twitter'}</span>
+                </a>
+
+                {/* يوتيوب */}
+                <a
+                  href="https://youtube.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-600/15 hover:bg-red-600/30 border border-red-500/40 text-red-400 text-[8px] sm:text-[8.5px] font-medium transition-colors shadow-sm cursor-pointer"
+                  title={isAr ? 'يوتيوب (YouTube)' : 'YouTube'}
+                >
+                  <Youtube className="w-2.5 h-2.5" />
+                  <span className="hidden xs:inline">{isAr ? 'يوتيوب' : 'YouTube'}</span>
+                </a>
+
+                {/* انستغرام */}
+                <a
+                  href="https://instagram.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-pink-600/15 hover:bg-pink-600/30 border border-pink-500/40 text-pink-400 text-[8px] sm:text-[8.5px] font-medium transition-colors shadow-sm cursor-pointer"
+                  title={isAr ? 'انستغرام (Instagram)' : 'Instagram'}
+                >
+                  <Instagram className="w-2.5 h-2.5" />
+                  <span className="hidden xs:inline">{isAr ? 'انستغرام' : 'Instagram'}</span>
+                </a>
+
+                {/* تيكتوك */}
+                <a
+                  href="https://tiktok.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-cyan-500/15 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 text-[8px] sm:text-[8.5px] font-medium transition-colors shadow-sm cursor-pointer"
+                  title={isAr ? 'تيكتوك (TikTok)' : 'TikTok'}
+                >
+                  <Music2 className="w-2.5 h-2.5" />
+                  <span className="hidden xs:inline">{isAr ? 'تيكتوك' : 'TikTok'}</span>
+                </a>
+              </div>
+
+              {/* زر الساعة للعودة للساعة */}
+              <button
+                onClick={() => setActiveCardFace('clock')}
+                className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[9px] sm:text-[9.5px] shadow-sm transition-all cursor-pointer active:scale-95 shrink-0"
+                title={isAr ? 'العودة إلى الساعة الرقمية' : 'Return to Clock'}
+                aria-label="Return to Clock"
+              >
+                <Clock className="w-2.5 h-2.5 text-slate-950" />
+                <span>{isAr ? 'الساعة' : 'Clock'}</span>
+              </button>
+            </div>
+
+            {/* الصف الأوسط: المدير العام مسؤول النشر والناشر مع فاصل رفيع في الأعلى وآخر في الأسفل */}
+            <div className="w-full py-0.5 my-auto border-t border-b border-slate-800/80 flex items-center justify-between text-[7.5px] sm:text-[8px] leading-tight text-slate-300 font-medium">
+              <div className="flex items-center gap-1 truncate">
+                <span className="text-amber-400/90 font-semibold shrink-0">
+                  {isAr ? 'المدير العام مسؤول النشر:' : 'Publishing Director:'}
+                </span>
+                <span className="text-white font-bold shrink-0">
+                  {isAr ? 'بلال عويش' : 'Billel Aouiche'}
+                </span>
+                <span className="text-slate-600 mx-0.5">/</span>
+                <span className="text-amber-400/90 font-semibold shrink-0">
+                  {isAr ? 'الناشر:' : 'Publisher:'}
+                </span>
+                <span className="text-amber-300 font-bold tracking-wide shrink-0">
+                  GOODATA
+                </span>
+                <span className="text-slate-600 mx-0.5">/</span>
+                <a
+                  href="https://wa.me/213656180056"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-mono font-bold shrink-0 transition-colors cursor-pointer"
+                  title={isAr ? 'تواصل عبر واتساب' : 'Chat on WhatsApp'}
+                >
+                  <MessageCircle className="w-2.5 h-2.5 text-emerald-400 shrink-0" />
+                  <span dir="ltr" className="text-[7.5px] sm:text-[8px]">+213656180056</span>
+                </a>
+              </div>
+            </div>
+
+            {/* الصف السفلي: حقل الاشتراك في الرسائل البريدية + زر اشتراك + مؤقت العودة التلقائية */}
+            <div className="w-full flex items-center justify-between gap-1.5 pt-0.5 text-[8.5px] leading-none">
+              <form onSubmit={handleNewsletterSubmit} className="flex-1 flex items-center gap-1.5 min-w-0">
+                <div className="relative flex-1 flex items-center bg-slate-900/90 border border-slate-700/80 rounded px-1.5 py-0.5 text-slate-200 shadow-sm focus-within:border-amber-500 transition-colors min-w-0">
+                  <Mail className="w-2.5 h-2.5 text-amber-400 shrink-0 mr-1 rtl:mr-0 rtl:ml-1" />
+                  <input
+                    type="email"
+                    required
+                    value={newsletterEmail}
+                    onChange={(e) => setNewsletterEmail(e.target.value)}
+                    placeholder={isAr ? 'أدخل بريدك للاشتراك في النشرة الاقتصادية اليومية...' : 'Enter your email for the daily economic newsletter...'}
+                    className="w-full bg-transparent text-[8px] sm:text-[8.5px] text-white placeholder-slate-400 focus:outline-none truncate"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="px-2.5 py-0.5 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[8.5px] transition-all cursor-pointer shrink-0 shadow-sm active:scale-95 flex items-center gap-1"
+                >
+                  {isNewsletterSubscribed ? (
+                    <>
+                      <Check className="w-2.5 h-2.5 text-emerald-950" />
+                      <span>{isAr ? 'تم الاشتراك!' : 'Subscribed!'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-2.5 h-2.5 text-slate-950" />
+                      <span>{isAr ? 'اشتراك' : 'Subscribe'}</span>
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* مؤشر العودة التلقائية للساعة بعد دقيقتين */}
+              <div className="flex items-center gap-1 text-amber-400/90 font-mono bg-amber-500/10 px-1 py-0.5 rounded border border-amber-500/20 shrink-0 hidden sm:flex">
                 <Timer className="w-2 h-2 text-amber-400" />
                 <span>{isAr ? 'عودة:' : 'Auto:'} {Math.floor(returnCountdown / 60)}:{String(returnCountdown % 60).padStart(2, '0')}</span>
               </div>

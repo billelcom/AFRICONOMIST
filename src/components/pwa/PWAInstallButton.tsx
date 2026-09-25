@@ -7,23 +7,28 @@ import { usePWA } from '../../lib/pwa/usePWA';
 
 interface PWAInstallButtonProps {
   className?: string;
-  variant?: 'compact' | 'full' | 'banner';
+  variant?: 'compact' | 'full' | 'banner' | 'icon-only';
+  iconOnly?: boolean;
   lang?: 'ar' | 'en';
 }
 
 export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
   className = '',
   variant = 'compact',
+  iconOnly = false,
   lang = 'ar'
 }) => {
   const isAr = lang === 'ar';
   const { isInstallable, isInstalled, isIOS, install } = usePWA();
   const [showIOSModal, setShowIOSModal] = useState<boolean>(false);
+  const [showGenericModal, setShowGenericModal] = useState<boolean>(false);
   const [justInstalled, setJustInstalled] = useState<boolean>(false);
+
+  const isIconMode = variant === 'icon-only' || iconOnly;
 
   // If already installed as standalone PWA
   if (isInstalled) {
-    if (variant === 'compact') return null;
+    if (isIconMode || variant === 'compact') return null;
     return (
       <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
         <Check className="w-3.5 h-3.5" />
@@ -43,25 +48,32 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
     } else if (isIOS) {
       setShowIOSModal(true);
     } else {
-      // Browser doesn't trigger beforeinstallprompt yet; show helpful hint
-      alert(isAr 
-        ? 'لتثبيت التطبيق على جهازك: اضغط على خيارات المتصفح (⋮) ثم اختر "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية".' 
-        : 'To install: Tap your browser menu (⋮) and select "Install App" or "Add to Home Screen".'
-      );
+      setShowGenericModal(true);
     }
   };
 
   return (
     <>
-      {variant === 'compact' ? (
+      {isIconMode ? (
+        <button
+          onClick={handleClick}
+          type="button"
+          className={`p-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 transition-colors text-xs flex items-center justify-center cursor-pointer shadow-sm active:scale-95 ${className}`}
+          title={isAr ? 'تثبيت التطبيق على الهاتف' : 'Install PWA to Device'}
+          aria-label={isAr ? 'تثبيت التطبيق' : 'Install App'}
+        >
+          <Download className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+        </button>
+      ) : variant === 'compact' ? (
         <button
           onClick={handleClick}
           type="button"
           className={`px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500/20 via-amber-500/15 to-transparent hover:from-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer ${className}`}
           title={isAr ? 'تثبيت التطبيق على الهاتف أو الحاسوب' : 'Install PWA to Device'}
+          aria-label={isAr ? 'تثبيت التطبيق' : 'Install App'}
         >
           <Download className="w-3.5 h-3.5 text-amber-400 animate-bounce" />
-          <span>{isAr ? 'تثبيت التطبيق' : 'Install App'}</span>
+          <span className="hidden md:inline">{isAr ? 'تثبيت التطبيق' : 'Install App'}</span>
         </button>
       ) : (
         <button
@@ -84,6 +96,62 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
             PWA
           </span>
         </button>
+      )}
+
+      {/* Generic Browser Guided Install Modal */}
+      {showGenericModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+          onClick={() => setShowGenericModal(false)}
+        >
+          <div 
+            className="w-full max-w-sm rounded-3xl bg-[#0B101E] border border-amber-500/40 p-6 shadow-2xl space-y-4 text-right animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Download className="w-5 h-5 text-amber-400" />
+                <h3 className="text-sm font-bold text-white">
+                  {isAr ? 'تثبيت تطبيق لافريكونوميست' : 'Install L’Africonomist'}
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowGenericModal(false)}
+                className="p-1 rounded-lg bg-slate-900 text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed">
+              {isAr 
+                ? 'لتثبيت التطبيق على هاتفك أو حاسوبك والاستمتاع بتجربة أسرع بدون إنترنت:'
+                : 'To install the app on your device for a fast, offline-ready native experience:'}
+            </p>
+
+            <ol className="space-y-2.5 text-xs text-slate-200 pr-1">
+              <li className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 font-bold flex items-center justify-center text-[10px] shrink-0">1</span>
+                <span>{isAr ? 'اضغط على زر خيارات المتصفح (الأيقونة ⋮ في الأعلى أو الأسفل).' : 'Tap the browser options button (⋮).'}</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 font-bold flex items-center justify-center text-[10px] shrink-0">2</span>
+                <span>{isAr ? 'اختر "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية".' : 'Select "Install App" or "Add to Home Screen".'}</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 font-bold flex items-center justify-center text-[10px] shrink-0">3</span>
+                <span>{isAr ? 'سيظهر رمز لافريكونوميست مباشرة على جهازك كـ تطبيق أصلي.' : 'The Africonomist icon will appear as an app.'}</span>
+              </li>
+            </ol>
+
+            <button
+              onClick={() => setShowGenericModal(false)}
+              className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-colors"
+            >
+              {isAr ? 'فهمت ذلك' : 'Got it'}
+            </button>
+          </div>
+        </div>
       )}
 
       {/* iOS Safari Guided Install Sheet */}

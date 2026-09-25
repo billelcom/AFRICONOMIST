@@ -19,9 +19,10 @@ import { PWAInstallButton } from './PWAInstallButton';
 
 interface PWABarProps {
   lang: 'ar' | 'en';
+  iconOnly?: boolean;
 }
 
-export const PWABar: React.FC<PWABarProps> = ({ lang }) => {
+export const PWABar: React.FC<PWABarProps> = ({ lang, iconOnly = false }) => {
   const isAr = lang === 'ar';
   const { 
     isPushSupported, 
@@ -81,9 +82,13 @@ export const PWABar: React.FC<PWABarProps> = ({ lang }) => {
 
       {/* Action triggers that integrate into headers / sidebars / footers */}
       <div className="flex items-center gap-1.5">
-        {/* Install Button */}
+        {/* Install Button (Icon-only on mobile or when specified) */}
         {!isInstalled && (
-          <PWAInstallButton variant="compact" lang={lang} />
+          <PWAInstallButton 
+            variant={iconOnly ? 'icon-only' : 'compact'} 
+            iconOnly={iconOnly} 
+            lang={lang} 
+          />
         )}
 
         {/* Native Web Share Button */}

@@ -53,28 +53,40 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex flex-col cursor-pointer select-none group"
           >
             <div className="flex items-center gap-1.5">
-              <span className="font-brand-artistic font-bold text-white text-[15px] sm:text-base tracking-wide leading-tight group-hover:text-amber-400 transition-colors">
+              <span className={`font-brand-artistic font-bold text-white leading-tight group-hover:text-amber-400 transition-colors ${
+                isAr 
+                  ? 'text-[15px] sm:text-base tracking-wide' 
+                  : 'text-[11px] sm:text-xs tracking-wider uppercase'
+              }`}>
                 {isAr ? 'لافريكونوميست' : 'L’AFRICONOMIST'}
               </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+              <span className={`rounded-full bg-amber-500 animate-pulse ${
+                isAr ? 'w-1.5 h-1.5' : 'w-1 h-1'
+              }`}></span>
             </div>
-            <p className="text-[9.5px] font-serif text-amber-400/90 font-medium pt-1 leading-none">
+            <p className={`font-serif text-amber-400/90 font-medium leading-none ${
+              isAr ? 'text-[9.5px] pt-1' : 'text-[7.5px] pt-0.5 tracking-tight'
+            }`}>
               {isAr ? 'صحيفة الاقتصاد الإفريقي' : 'African Economic Journal'}
             </p>
           </div>
 
-          {/* الجانب الأيسر (على جهة اليسار): شريط PWA + زر تسجيل + أيقونة اللغة + أيقونة القائمة burger */}
-          <div className="flex items-center gap-1.5">
-            {/* أدوات PWA (تثبيت + مشاركة + إشعارات) */}
-            <PWABar lang={lang} />
+          {/* الجانب الأيسر (على جهة اليسار): شريط PWA (أيقونة التثبيت فقط في الهاتف) + زر تسجيل + أيقونة اللغة + أيقونة القائمة burger */}
+          <div className="flex items-center gap-1 sm:gap-1.5">
+            {/* أدوات PWA: في الهاتف تظهر أيقونة التثبيت فقط دون العبارة النصية */}
+            <PWABar lang={lang} iconOnly={true} />
 
             {/* زر تسجيل */}
             <button
               onClick={() => setActiveModal('auth')}
-              className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-[11px] flex items-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer"
+              className={`rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black flex items-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer ${
+                isAr 
+                  ? 'px-2.5 py-1 text-[11px]' 
+                  : 'px-1.5 py-0.5 text-[9px] font-bold'
+              }`}
               title={isAr ? 'تسجيل الدخول / العضوية' : 'Sign In'}
             >
-              <User className="w-3 h-3" />
+              <User className={isAr ? "w-3 h-3" : "w-2.5 h-2.5"} />
               <span>{isAr ? 'تسجيل' : 'Sign In'}</span>
             </button>
 
@@ -252,19 +264,27 @@ export const Header: React.FC<HeaderProps> = ({
             {/* اللوغو والشعار */}
             <div 
               onClick={() => onSelectTab('home')}
-              className="flex items-center gap-2.5 cursor-pointer group shrink-0 select-none"
+              className="flex items-center gap-2 cursor-pointer group shrink-0 select-none"
             >
-              <span className="font-brand-artistic font-bold tracking-normal text-white text-xl lg:text-2xl group-hover:text-amber-400 transition-colors">
+              <span className={`font-brand-artistic font-bold text-white group-hover:text-amber-400 transition-colors ${
+                isAr 
+                  ? 'text-xl lg:text-2xl tracking-normal' 
+                  : 'text-sm lg:text-[15px] tracking-wider uppercase font-black'
+              }`}>
                 {isAr ? 'لافريكونوميست' : 'L’AFRICONOMIST'}
               </span>
-              <span className="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-              <span className="text-xs text-amber-400/90 font-serif font-medium whitespace-nowrap">
+              <span className={`inline-block rounded-full bg-amber-500 animate-pulse ${
+                isAr ? 'w-2 h-2' : 'w-1.5 h-1.5'
+              }`}></span>
+              <span className={`text-amber-400/90 font-serif font-medium whitespace-nowrap ${
+                isAr ? 'text-xs' : 'text-[10.5px] tracking-tight'
+              }`}>
                 {isAr ? 'صحيفة الاقتصاد الإفريقي' : 'African Economic Journal'}
               </span>
             </div>
 
             {/* يقابله: أدوات PWA + تغيير اللغة + التسجيل + غرفة الأخبار */}
-            <div className="flex items-center gap-2.5 shrink-0">
+            <div className="flex items-center gap-2 lg:gap-2.5 shrink-0">
               {/* أدوات PWA (تثبيت، مشاركة، إشعارات) */}
               <PWABar lang={lang} />
 
@@ -281,9 +301,13 @@ export const Header: React.FC<HeaderProps> = ({
               {/* زر تسجيل */}
               <button
                 onClick={() => setActiveModal('auth')}
-                className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-sm transition-all whitespace-nowrap cursor-pointer active:scale-95"
+                className={`rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black flex items-center gap-1.5 shadow-sm transition-all whitespace-nowrap cursor-pointer active:scale-95 ${
+                  isAr 
+                    ? 'px-3.5 py-1.5 text-xs' 
+                    : 'px-2.5 py-1 text-[10.5px] font-bold'
+                }`}
               >
-                <User className="w-3.5 h-3.5" />
+                <User className={isAr ? "w-3.5 h-3.5" : "w-3 h-3"} />
                 <span>{isAr ? 'تسجيل' : 'Sign In'}</span>
               </button>
 

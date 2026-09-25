@@ -42,12 +42,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ar" dir="rtl" className="dark">
+    <html lang="ar" dir="rtl" className="dark" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
-      <body className="bg-[#080C14] text-slate-100 min-h-screen">
+      <body className="bg-[#080C14] text-slate-100 min-h-screen" suppressHydrationWarning>
         <PWAInitializer />
         {children}
       </body>

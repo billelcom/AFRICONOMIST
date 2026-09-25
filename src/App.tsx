@@ -460,11 +460,17 @@ export default function App() {
             {/* Column 1: Brand Info */}
             <div className="md:col-span-2 space-y-3">
               <div className="flex items-center gap-2">
-                <span className="font-black text-white font-mono text-xl tracking-tight">
+                <span className={`font-black text-white font-mono tracking-tight ${
+                  isAr ? 'text-xl' : 'text-base tracking-wider'
+                }`}>
                   {isAr ? 'لافريكونوميست' : 'L’AFRICONOMIST'}
                 </span>
-                <span className="inline-block w-2 h-2 rounded-full bg-amber-500"></span>
-                <span className="text-xs text-amber-400 font-serif font-semibold">
+                <span className={`inline-block rounded-full bg-amber-500 ${
+                  isAr ? 'w-2 h-2' : 'w-1.5 h-1.5'
+                }`}></span>
+                <span className={`text-amber-400 font-serif font-semibold ${
+                  isAr ? 'text-xs' : 'text-[11px] tracking-tight'
+                }`}>
                   {isAr ? 'صحيفة الاقتصاد الإفريقي' : 'African Economic Journal'}
                 </span>
               </div>

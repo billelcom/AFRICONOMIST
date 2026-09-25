@@ -12,6 +12,7 @@ import { HomeView } from './components/views/HomeView';
 import { CountryView } from './components/views/CountryView';
 import { ArticleView } from './components/views/ArticleView';
 import { EditorialView } from './components/views/EditorialView';
+import { DataJournalismView } from './components/views/DataJournalismView';
 import { INITIAL_ARTICLES, AFRICAN_COUNTRIES, MARKET_TICKERS } from './data/mockData';
 import { Article, AfricanCountryProfile } from './types';
 import { 
@@ -34,7 +35,7 @@ const STORAGE_KEY = 'africonomist_custom_articles_v1';
 
 export default function App() {
   const [lang, setLang] = useState<'ar' | 'en'>('ar');
-  const [currentTab, setCurrentTab] = useState<'home' | 'country' | 'article' | 'editorial'>('home');
+  const [currentTab, setCurrentTab] = useState<'home' | 'country' | 'article' | 'editorial' | 'data-journalism'>('home');
   const [isUpdaterModalOpen, setIsUpdaterModalOpen] = useState<boolean>(false);
 
   // حالة الدول الـ 54 الديناميكية مع الترتيب التلقائي (متطابقة مع الخادم لمنع تعارض الـ Hydration)
@@ -569,6 +570,17 @@ export default function App() {
             secondsUntilNextCycle={secondsUntilNextCycle}
             isAutomatedIngesting={isAutomatedIngesting}
             onTriggerAutomatedCycleNow={handleTriggerAutonomousCycle}
+          />
+        )}
+
+        {currentTab === 'data-journalism' && (
+          <DataJournalismView
+            countries={countries}
+            articles={articles}
+            lang={lang}
+            onSelectCountry={handleSelectCountry}
+            onSelectArticle={handleSelectArticle}
+            onOpenUpdater={() => setIsUpdaterModalOpen(true)}
           />
         )}
       </main>

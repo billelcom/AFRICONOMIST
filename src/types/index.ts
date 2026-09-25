@@ -41,6 +41,12 @@ export interface Article {
   journalisticType?: string;
   sector?: string;
   authorType: 'AI_AGENT' | 'HUMAN_JOURNALIST' | 'HYBRID';
+  authorName?: string;
+  authorNameEn?: string;
+  authorRole?: string;
+  authorRoleEn?: string;
+  readersCount?: number;
+  imageUrl?: string;
   aiModel?: string;
   reviewedBy?: string;
   reviewNotes?: string;

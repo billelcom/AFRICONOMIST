@@ -17,8 +17,8 @@ import { PWABar } from './pwa/PWABar';
 import { PWAInstallButton } from './pwa/PWAInstallButton';
 
 interface HeaderProps {
-  currentTab: 'home' | 'country' | 'article' | 'editorial';
-  onSelectTab: (tab: 'home' | 'country' | 'article' | 'editorial') => void;
+  currentTab: 'home' | 'country' | 'article' | 'editorial' | 'data-journalism';
+  onSelectTab: (tab: 'home' | 'country' | 'article' | 'editorial' | 'data-journalism') => void;
   lang: 'ar' | 'en';
   onToggleLang: () => void;
   pendingDraftsCount: number;
@@ -203,8 +203,12 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* 7. صحافة البيانات */}
               <button
-                onClick={() => handleNavClick(() => onSelectTab('home'))}
-                className="p-2.5 rounded-xl text-right flex items-center gap-2 border bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white transition-all"
+                onClick={() => handleNavClick(() => onSelectTab('data-journalism'))}
+                className={`p-2.5 rounded-xl text-right flex items-center gap-2 border transition-all ${
+                  currentTab === 'data-journalism'
+                    ? 'bg-teal-500/15 text-teal-300 border-teal-500/30 font-bold'
+                    : 'bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white'
+                }`}
               >
                 <BarChart3 className="w-3.5 h-3.5 text-teal-400 shrink-0" />
                 <span className="truncate">{isAr ? 'صحافة البيانات' : 'Data Journalism'}</span>
@@ -367,8 +371,12 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* 4. صحافة البيانات */}
               <button
-                onClick={() => onSelectTab('home')}
-                className="px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-850 transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer"
+                onClick={() => onSelectTab('data-journalism')}
+                className={`px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer ${
+                  currentTab === 'data-journalism'
+                    ? 'bg-teal-500/15 text-teal-300 font-bold border border-teal-500/30'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                }`}
               >
                 <BarChart3 className="w-3.5 h-3.5 text-teal-400" />
                 <span>{isAr ? 'صحافة البيانات' : 'Data Journalism'}</span>

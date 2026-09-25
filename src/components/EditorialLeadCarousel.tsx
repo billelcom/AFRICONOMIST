@@ -30,7 +30,7 @@ import {
   MapPin,
   ChevronDown
 } from 'lucide-react';
-import { getCountryFlag } from '../lib/africanGeoProximity';
+import { getCountryFlag, TIMEZONE_TO_COUNTRY_MAP } from '../lib/africanGeoProximity';
 
 export interface EditorialStory {
   id: string;
@@ -322,309 +322,8 @@ interface EditorialLeadCarouselProps {
 // Portal Launch Baseline: September 25, 2026 (تاريخ انطلاق المنصة لحساب الأيام والسنوات تلقائياً)
 const PORTAL_LAUNCH_DATE = new Date('2026-09-25T00:00:00Z');
 
-export interface WeatherCity {
-  id: string;
-  nameAr: string;
-  nameEn: string;
-  countryAr: string;
-  countryEn: string;
-  countryCode: string;
-  lat: number;
-  lon: number;
-  temp: number;
-  conditionAr: string;
-  conditionEn: string;
-  weatherCode: number;
-  humidity: number;
-  windSpeed: number;
-  apparentTemp: number;
-  tempMax: number;
-  tempMin: number;
-  pressure: number;
-}
-
-export const WEATHER_CAPITALS: WeatherCity[] = [
-  {
-    id: 'cairo',
-    nameAr: 'القاهرة',
-    nameEn: 'Cairo',
-    countryAr: 'مصر',
-    countryEn: 'Egypt',
-    countryCode: 'EG',
-    lat: 30.0444,
-    lon: 31.2357,
-    temp: 29,
-    conditionAr: 'مشمس وصافٍ',
-    conditionEn: 'Clear & Sunny',
-    weatherCode: 0,
-    humidity: 48,
-    windSpeed: 14,
-    apparentTemp: 30,
-    tempMax: 32,
-    tempMin: 20,
-    pressure: 1014
-  },
-  {
-    id: 'algiers',
-    nameAr: 'الجزائر العاصمة',
-    nameEn: 'Algiers',
-    countryAr: 'الجزائر',
-    countryEn: 'Algeria',
-    countryCode: 'DZ',
-    lat: 36.7538,
-    lon: 3.0588,
-    temp: 24,
-    conditionAr: 'سماء صافية ومعتدل',
-    conditionEn: 'Clear & Mild',
-    weatherCode: 1,
-    humidity: 58,
-    windSpeed: 16,
-    apparentTemp: 24,
-    tempMax: 26,
-    tempMin: 17,
-    pressure: 1018
-  },
-  {
-    id: 'rabat',
-    nameAr: 'الرباط',
-    nameEn: 'Rabat',
-    countryAr: 'المغرب',
-    countryEn: 'Morocco',
-    countryCode: 'MA',
-    lat: 34.0209,
-    lon: -6.8416,
-    temp: 23,
-    conditionAr: 'رياح أطلسية معتدلة',
-    conditionEn: 'Atlantic Breeze',
-    weatherCode: 1,
-    humidity: 65,
-    windSpeed: 18,
-    apparentTemp: 23,
-    tempMax: 25,
-    tempMin: 16,
-    pressure: 1016
-  },
-  {
-    id: 'tunis',
-    nameAr: 'تونس العاصمة',
-    nameEn: 'Tunis',
-    countryAr: 'تونس',
-    countryEn: 'Tunisia',
-    countryCode: 'TN',
-    lat: 36.8065,
-    lon: 10.1815,
-    temp: 25,
-    conditionAr: 'متوسطي معتدل',
-    conditionEn: 'Mediterranean Mild',
-    weatherCode: 1,
-    humidity: 55,
-    windSpeed: 17,
-    apparentTemp: 25,
-    tempMax: 27,
-    tempMin: 18,
-    pressure: 1015
-  },
-  {
-    id: 'riyadh',
-    nameAr: 'الرياض',
-    nameEn: 'Riyadh',
-    countryAr: 'السعودية',
-    countryEn: 'Saudi Arabia',
-    countryCode: 'SA',
-    lat: 24.7136,
-    lon: 46.6753,
-    temp: 36,
-    conditionAr: 'مشمس وحار',
-    conditionEn: 'Sunny & Hot',
-    weatherCode: 0,
-    humidity: 16,
-    windSpeed: 12,
-    apparentTemp: 35,
-    tempMax: 39,
-    tempMin: 24,
-    pressure: 1010
-  },
-  {
-    id: 'lagos',
-    nameAr: 'أبوجا / لاغوس',
-    nameEn: 'Abuja / Lagos',
-    countryAr: 'نيجيريا',
-    countryEn: 'Nigeria',
-    countryCode: 'NG',
-    lat: 9.0765,
-    lon: 7.3986,
-    temp: 31,
-    conditionAr: 'استوائي رطب',
-    conditionEn: 'Tropical Humid',
-    weatherCode: 2,
-    humidity: 76,
-    windSpeed: 12,
-    apparentTemp: 36,
-    tempMax: 33,
-    tempMin: 24,
-    pressure: 1011
-  },
-  {
-    id: 'nairobi',
-    nameAr: 'نيروبي',
-    nameEn: 'Nairobi',
-    countryAr: 'كينيا',
-    countryEn: 'Kenya',
-    countryCode: 'KE',
-    lat: -1.2921,
-    lon: 36.8219,
-    temp: 22,
-    conditionAr: 'غائم جزئياً ولطيف',
-    conditionEn: 'Partly Cloudy & Cool',
-    weatherCode: 2,
-    humidity: 62,
-    windSpeed: 15,
-    apparentTemp: 22,
-    tempMax: 24,
-    tempMin: 14,
-    pressure: 1016
-  },
-  {
-    id: 'johannesburg',
-    nameAr: 'بريتوريا / جوهانسبرغ',
-    nameEn: 'Pretoria / JHB',
-    countryAr: 'جنوب أفريقيا',
-    countryEn: 'South Africa',
-    countryCode: 'ZA',
-    lat: -25.7479,
-    lon: 28.2293,
-    temp: 21,
-    conditionAr: 'ربيعي معتدل',
-    conditionEn: 'Spring Mild',
-    weatherCode: 0,
-    humidity: 42,
-    windSpeed: 19,
-    apparentTemp: 20,
-    tempMax: 23,
-    tempMin: 11,
-    pressure: 1020
-  },
-  {
-    id: 'addis',
-    nameAr: 'أديس أبابا',
-    nameEn: 'Addis Ababa',
-    countryAr: 'إثيوبيا',
-    countryEn: 'Ethiopia',
-    countryCode: 'ET',
-    lat: 9.0300,
-    lon: 38.7400,
-    temp: 20,
-    conditionAr: 'أجواء مرتفعات غائمة',
-    conditionEn: 'Highland Overcast',
-    weatherCode: 3,
-    humidity: 68,
-    windSpeed: 10,
-    apparentTemp: 20,
-    tempMax: 22,
-    tempMin: 12,
-    pressure: 1019
-  },
-  {
-    id: 'dakar',
-    nameAr: 'داكار',
-    nameEn: 'Dakar',
-    countryAr: 'السنغال',
-    countryEn: 'Senegal',
-    countryCode: 'SN',
-    lat: 14.7167,
-    lon: -17.4677,
-    temp: 28,
-    conditionAr: 'ساحلي دافئ',
-    conditionEn: 'Warm Coastal',
-    weatherCode: 1,
-    humidity: 72,
-    windSpeed: 21,
-    apparentTemp: 31,
-    tempMax: 29,
-    tempMin: 24,
-    pressure: 1012
-  },
-  {
-    id: 'kigali',
-    nameAr: 'كيجالي',
-    nameEn: 'Kigali',
-    countryAr: 'رواندا',
-    countryEn: 'Rwanda',
-    countryCode: 'RW',
-    lat: -1.9441,
-    lon: 30.0619,
-    temp: 25,
-    conditionAr: 'استوائي جبلي لطيف',
-    conditionEn: 'Mild Mountainous',
-    weatherCode: 2,
-    humidity: 60,
-    windSpeed: 11,
-    apparentTemp: 25,
-    tempMax: 27,
-    tempMin: 16,
-    pressure: 1015
-  },
-  {
-    id: 'accra',
-    nameAr: 'أكرا',
-    nameEn: 'Accra',
-    countryAr: 'غانا',
-    countryEn: 'Ghana',
-    countryCode: 'GH',
-    lat: 5.6037,
-    lon: -0.1870,
-    temp: 30,
-    conditionAr: 'ساحلي رطب مشمس',
-    conditionEn: 'Sunny Humid Coastal',
-    weatherCode: 1,
-    humidity: 75,
-    windSpeed: 14,
-    apparentTemp: 34,
-    tempMax: 31,
-    tempMin: 25,
-    pressure: 1011
-  },
-  {
-    id: 'luanda',
-    nameAr: 'لواندا',
-    nameEn: 'Luanda',
-    countryAr: 'أنغولا',
-    countryEn: 'Angola',
-    countryCode: 'AO',
-    lat: -8.8390,
-    lon: 13.2894,
-    temp: 27,
-    conditionAr: 'غائم جزئياً',
-    conditionEn: 'Partly Cloudy',
-    weatherCode: 2,
-    humidity: 70,
-    windSpeed: 15,
-    apparentTemp: 29,
-    tempMax: 28,
-    tempMin: 22,
-    pressure: 1013
-  },
-  {
-    id: 'tripoli',
-    nameAr: 'طرابلس',
-    nameEn: 'Tripoli',
-    countryAr: 'ليبيا',
-    countryEn: 'Libya',
-    countryCode: 'LY',
-    lat: 32.8872,
-    lon: 13.1913,
-    temp: 26,
-    conditionAr: 'مشمس ولطيف',
-    conditionEn: 'Sunny & Pleasant',
-    weatherCode: 0,
-    humidity: 50,
-    windSpeed: 15,
-    apparentTemp: 26,
-    tempMax: 28,
-    tempMin: 18,
-    pressure: 1016
-  }
-];
+export { type WeatherCity, WEATHER_CAPITALS } from '../data/africanWeatherCapitals';
+import { WEATHER_CAPITALS } from '../data/africanWeatherCapitals';
 
 const getWeatherDetails = (code: number, isArabic: boolean) => {
   if (code === 0) return { label: isArabic ? 'مشمس وصافٍ' : 'Clear & Sunny', icon: Sun, color: 'text-amber-400' };
@@ -639,23 +338,25 @@ const getWeatherDetails = (code: number, isArabic: boolean) => {
 
 const getDefaultCapital = (): WeatherCity => {
   try {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone.toLowerCase();
-    if (tz.includes('cairo') || tz.includes('egypt')) return WEATHER_CAPITALS[0];
-    if (tz.includes('algiers') || tz.includes('algeria')) return WEATHER_CAPITALS[1];
-    if (tz.includes('casablanca') || tz.includes('morocco') || tz.includes('rabat')) return WEATHER_CAPITALS[2];
-    if (tz.includes('tunis')) return WEATHER_CAPITALS[3];
-    if (tz.includes('riyadh')) return WEATHER_CAPITALS[4];
-    if (tz.includes('lagos')) return WEATHER_CAPITALS[5];
-    if (tz.includes('nairobi')) return WEATHER_CAPITALS[6];
-    if (tz.includes('johannesburg')) return WEATHER_CAPITALS[7];
-    if (tz.includes('addis')) return WEATHER_CAPITALS[8];
-    if (tz.includes('dakar')) return WEATHER_CAPITALS[9];
-    if (tz.includes('kigali')) return WEATHER_CAPITALS[10];
-    if (tz.includes('accra')) return WEATHER_CAPITALS[11];
-    if (tz.includes('luanda')) return WEATHER_CAPITALS[12];
-    if (tz.includes('tripoli')) return WEATHER_CAPITALS[13];
+    const tz = typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : '';
+    const lowerTz = (tz || '').toLowerCase();
+    
+    // 1. المطابقة الدقيقة عبر خريطة المناطق الزمنية الإفريقية
+    if (tz && TIMEZONE_TO_COUNTRY_MAP[tz]) {
+      const code = TIMEZONE_TO_COUNTRY_MAP[tz];
+      const match = WEATHER_CAPITALS.find(c => c.countryCode === code);
+      if (match) return match;
+    }
+
+    // 2. البحث التلقائي عبر اسم العاصمة أو الدولة في معرّف المنطقة الزمنية للمستخدم
+    const matched = WEATHER_CAPITALS.find(c => 
+      (c.id && lowerTz.includes(c.id)) ||
+      (c.nameEn && lowerTz.includes(c.nameEn.toLowerCase().replace(/[^a-z]/g, ''))) ||
+      (c.countryEn && lowerTz.includes(c.countryEn.toLowerCase().replace(/[^a-z]/g, '')))
+    );
+    if (matched) return matched;
   } catch {}
-  return WEATHER_CAPITALS[0];
+  return WEATHER_CAPITALS.find(c => c.countryCode === 'DZ') || WEATHER_CAPITALS[0];
 };
 
 export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
@@ -947,10 +648,11 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
               isWeatherFlipped ? 'opacity-100 pointer-events-auto z-10' : 'opacity-0 pointer-events-none z-0'
             }`}
           >
-            {/* الشريط العلوي المصغر: محدد العاصمة + زر GPS + اسم المدينة والحالة + زر العودة للساعة */}
-            <div className="w-full flex items-center justify-between gap-1.5 leading-none">
-              <div className="flex items-center gap-1 min-w-0">
-                <div className="relative flex items-center bg-slate-900/90 border border-slate-700/80 rounded px-1.5 py-0.5 text-[9.5px] text-slate-200 shadow-sm focus-within:border-amber-500">
+            {/* الشريط العلوي المصغر: محدد الدولة والعاصمة (يأخذ أكثر من 65% من عرض البطاقة) + زر GPS + زر العودة للساعة */}
+            <div className="w-full flex items-center justify-between gap-1 leading-none">
+              <div className="flex items-center gap-1 w-[67%] shrink-0 min-w-0">
+                {/* إطار الدولة مع العاصمة بعرض كامل داخل الـ 67% وتنسيق خط أصغر وأجمل */}
+                <div className="relative flex items-center w-full bg-slate-900/90 border border-slate-700/80 rounded px-1.5 py-0.5 text-slate-200 shadow-sm focus-within:border-amber-500 transition-colors">
                   <MapPin className="w-2.5 h-2.5 text-amber-400 shrink-0 mr-1 rtl:mr-0 rtl:ml-1" />
                   <select
                     value={selectedCity.id}
@@ -961,12 +663,12 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
                         fetchWeatherForCoords(found.lat, found.lon);
                       }
                     }}
-                    className="bg-transparent text-white font-medium text-[9.5px] focus:outline-none cursor-pointer pr-3 rtl:pr-0 rtl:pl-3 truncate max-w-[105px] sm:max-w-[150px]"
-                    aria-label="Select Capital City"
+                    className="w-full bg-transparent text-slate-100 font-medium text-[8px] sm:text-[9px] focus:outline-none cursor-pointer pr-3.5 rtl:pr-0 rtl:pl-3.5 truncate leading-tight"
+                    aria-label="Select African Country and Capital"
                   >
                     {WEATHER_CAPITALS.map(city => (
-                      <option key={city.id} value={city.id} className="bg-slate-900 text-white text-[10px]">
-                        {isAr ? `${city.nameAr} (${city.countryAr})` : `${city.nameEn} (${city.countryEn})`}
+                      <option key={city.id} value={city.id} className="bg-slate-900 text-slate-200 text-[8.5px] py-0.5">
+                        {isAr ? `${city.countryAr} - ${city.nameAr}` : `${city.countryEn} - ${city.nameEn}`}
                       </option>
                     ))}
                   </select>
@@ -977,23 +679,18 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
                 <button
                   onClick={handleDetectGPS}
                   disabled={isLocating}
-                  className="p-1 rounded bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-amber-400 border border-slate-700/80 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
+                  className="p-1 rounded bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-amber-400 border border-slate-700/80 transition-colors shadow-sm cursor-pointer shrink-0 disabled:opacity-50"
                   title={isAr ? 'تحديد موقعي التلقائي عبر GPS' : 'Detect Location via GPS'}
                   aria-label="Detect GPS Location"
                 >
                   <LocateFixed className={`w-2.5 h-2.5 ${isLocating ? 'animate-spin text-amber-400' : ''}`} />
                 </button>
-
-                {/* اسم المنطقة وحالتها بخط مصغر */}
-                <span className="text-[9px] font-bold text-amber-300/90 truncate max-w-[90px] sm:max-w-[140px] hidden xs:inline">
-                  {activeCityName} · {weatherDetails.label}
-                </span>
               </div>
 
               {/* زر الساعة للعودة للساعة */}
               <button
                 onClick={() => setIsWeatherFlipped(false)}
-                className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[9.5px] sm:text-[10px] shadow-sm transition-all cursor-pointer active:scale-95 shrink-0"
+                className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[9px] sm:text-[9.5px] shadow-sm transition-all cursor-pointer active:scale-95 shrink-0"
                 title={isAr ? 'العودة إلى الساعة الرقمية' : 'Return to Clock'}
                 aria-label="Return to Clock"
               >

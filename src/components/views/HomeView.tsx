@@ -25,6 +25,8 @@ import {
 } from 'lucide-react';
 import { ECONOMIC_SECTORS, JOURNALISTIC_GENRES } from '../../data/reportOptions';
 import { getCountryFlag } from '../../lib/africanGeoProximity';
+import { DraggableFloatingContainer } from '../DraggableFloatingContainer';
+import { EditorialLeadCarousel } from '../EditorialLeadCarousel';
 
 interface HomeViewProps {
   articles: Article[];
@@ -468,93 +470,21 @@ export const HomeView: React.FC<HomeViewProps> = ({
   // =========================================================================
   return (
     <div className="space-y-8 pb-16">
-      {/* Hero Financial Ticker & Macro Indicators */}
-      <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {tickers.slice(0, 4).map((ticker) => (
-          <div 
-            key={ticker.symbol}
-            className="p-3.5 rounded-lg bg-[#0e1422] border border-slate-800/80 hover:border-slate-700 transition-colors"
-          >
-            <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
-              <span className="font-mono font-medium">{ticker.symbol}</span>
-              <span className={`flex items-center text-[11px] font-mono font-semibold ${ticker.isPositive ? 'text-emerald-400' : 'text-rose-400'}`}>
-                {ticker.isPositive ? '+' : ''}{ticker.change}
-              </span>
-            </div>
-            <div className="text-lg font-bold text-white font-mono tracking-tight">
-              {ticker.price}
-            </div>
-            <p className="text-[11px] text-slate-400 truncate mt-0.5">
-              {isAr ? ticker.nameAr : ticker.name}
-            </p>
-          </div>
-        ))}
-      </section>
+      {/* Editorial Lead Stories Carousel (8 Horizontal Slides with Columnist Card & Videos) + Desktop Top Economies Section */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Main Editorial Carousel (8 Cols on Desktop, Full Width on Mobile) */}
+        <div className="lg:col-span-8">
+          <EditorialLeadCarousel
+            onSelectArticle={onSelectArticle}
+            lang={lang}
+          />
+        </div>
 
-      {/* Main Hero Story + Desktop Top Economies Section */}
-      {featuredArticle && (
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Main Breaking Analysis (8 Cols) */}
-          <div 
-            onClick={() => onSelectArticle(featuredArticle)}
-            className="lg:col-span-8 p-6 sm:p-8 rounded-xl bg-gradient-to-b from-[#101728] to-[#0b101c] border border-slate-800 hover:border-amber-500/50 transition-all cursor-pointer group relative overflow-hidden shadow-lg"
-          >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
-
-            {/* Zero-Pill Clean Metadata Header */}
-            <div className="flex flex-wrap items-center gap-2 text-xs text-amber-500 mb-3 font-medium">
-              <span className="text-amber-400 font-bold uppercase tracking-wider">
-                {isAr ? 'تقرير استقصائي معتمد' : 'Verified Lead Story'}
-              </span>
-              <span aria-hidden="true" className="text-slate-600">·</span>
-              <span className="text-slate-400">{isAr ? featuredArticle.countryName : featuredArticle.countryNameEn}</span>
-              <span aria-hidden="true" className="text-slate-600">·</span>
-              <span className="text-slate-400 flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5" />
-                {featuredArticle.readTimeMinutes} {isAr ? 'دقائق قراءة' : 'min read'}
-              </span>
-              <span aria-hidden="true" className="text-slate-600">·</span>
-              <span className="text-emerald-400 flex items-center gap-1 font-mono">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                {featuredArticle.factCheck.score}% {isAr ? 'دقة حقائق' : 'Fact Score'}
-              </span>
-            </div>
-
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight mb-4 group-hover:text-amber-300 transition-colors">
-              {isAr ? featuredArticle.title : featuredArticle.titleEn}
-            </h1>
-
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-6 font-normal">
-              {isAr ? featuredArticle.summary : featuredArticle.summaryEn}
-            </p>
-
-            {/* Zero-Trust AI & Verification Footer Note */}
-            <div className="pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between text-xs text-slate-400 gap-3">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>
-                  {isAr ? 'صيغ بواسطة: ' : 'Drafted by: '}
-                  <strong className="text-slate-300 font-normal">{featuredArticle.aiModel}</strong>
-                </span>
-                <span aria-hidden="true" className="text-slate-600">|</span>
-                <span className="text-emerald-300">
-                  {isAr ? 'اعتماد المحرر: ' : 'Reviewed by: '}
-                  {featuredArticle.reviewedBy}
-                </span>
-              </div>
-
-              <span className="inline-flex items-center gap-1 text-amber-400 group-hover:translate-x-1 transition-transform font-medium">
-                {isAr ? 'اقرأ التحليل الكامل وتتبع المصادر' : 'Read Full Analysis & Citations'}
-                <ArrowUpRight className="w-4 h-4" />
-              </span>
-            </div>
-          </div>
-
-          {/* 
-            قسم أكبر الاقتصاديات الأفريقية:
-            يبقى على حاله بالنسبة للحاسوب (hidden lg:block lg:col-span-4)
-          */}
-          <div className="hidden lg:block lg:col-span-4 space-y-4">
+        {/* 
+          قسم أكبر الاقتصاديات الأفريقية:
+          يبقى على حاله بالنسبة للحاسوب (hidden lg:block lg:col-span-4)
+        */}
+        <div className="hidden lg:block lg:col-span-4 space-y-4">
             <div className="p-5 rounded-xl bg-[#0d1320] border border-slate-800">
               <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-800">
                 <h2 className="text-sm font-bold text-white flex items-center gap-2">
@@ -604,119 +534,132 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </div>
           </div>
         </section>
-      )}
 
       {/* =========================================================================
           MOBILE TWO-STAGE ACCORDION: أكبر الاقتصادات الأفريقية (خاص بالهاتف فقط)
-          المرحلة 1: أيقونة طافية على اليمين أو اليسار حسب اللغة.
+          المرحلة 1: أيقونة طافية على اليمين أو اليسار قابلة للسحب والتحريك بحرية.
           عند الضغط يظهر شريط فيه العنوان مع سهم للأسفل.
           المرحلة 2: عند الضغط على السهم/الشريط تظهر القائمة الحالية لأكبر الاقتصادات الأفريقية.
          ========================================================================= */}
       <div className="lg:hidden">
-        {/* المرحلة 0: الأيقونة الطافية على اليمين أو اليسار حسب اللغة */}
-        {mobileAccordionStage === 0 && (
-          <button
-            onClick={() => setMobileAccordionStage(1)}
-            className={`fixed bottom-24 z-30 flex items-center gap-2 p-3 sm:p-3.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-2xl shadow-amber-500/30 hover:scale-105 active:scale-95 transition-all border border-amber-300/40 cursor-pointer ${
-              isAr ? 'right-4 sm:right-6' : 'left-4 sm:left-6'
-            }`}
-            aria-label={isAr ? 'فتح أكبر الاقتصادات الأفريقية' : 'Open Top African Economies'}
-            title={isAr ? 'أكبر الاقتصادات الأفريقية' : 'Top African Economies'}
-          >
-            <Globe2 className="w-5 h-5 text-slate-950" />
-            <span className="text-xs font-black tracking-tight hidden xs:inline sm:inline">
-              {isAr ? 'أكبر الاقتصادات' : 'Top Economies'}
-            </span>
-            <span className="w-2 h-2 rounded-full bg-slate-950 animate-ping"></span>
-          </button>
-        )}
-
-        {/* المرحلة 1 & 2: شريط فيه العنوان مع سهم للأسفل */}
-        {mobileAccordionStage > 0 && (
-          <div className={`fixed bottom-20 z-30 max-w-[94vw] sm:max-w-md w-full shadow-2xl rounded-2xl bg-[#090e1a]/98 backdrop-blur-xl border border-amber-500/40 ring-1 ring-amber-500/20 overflow-hidden animate-in slide-in-from-bottom-4 duration-300 ${
-            isAr ? 'right-3 sm:right-6' : 'left-3 sm:left-6'
-          }`}>
-            {/* شريط العنوان مع سهم للأسفل / للأعلى (المرحلة 1) */}
-            <div 
-              onClick={() => setMobileAccordionStage(prev => prev === 1 ? 2 : 1)}
-              className="px-4 py-3 bg-gradient-to-r from-slate-900 via-[#0d1424] to-slate-900 flex items-center justify-between cursor-pointer border-b border-slate-800/80 select-none group"
-            >
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400 border border-amber-500/30">
-                  <Globe2 className="w-4 h-4" />
-                </div>
-                <h3 className="text-xs sm:text-sm font-bold text-white group-hover:text-amber-300 transition-colors">
-                  {isAr ? 'أكبر الاقتصادات الأفريقية' : 'Top African Economies'}
-                </h3>
-                <span className="text-[10px] text-amber-400 font-mono px-1.5 py-0.2 rounded bg-amber-500/10 font-bold">
-                  8
-                </span>
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                {/* سهم للأسفل في المرحلة 1، أو للأعلى في المرحلة 2 */}
-                <div className="p-1 rounded-lg bg-slate-800 text-amber-400 group-hover:bg-slate-700 transition-colors">
-                  {mobileAccordionStage === 2 ? (
-                    <ChevronUp className="w-4 h-4" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 animate-bounce" />
-                  )}
-                </div>
-
-                {/* زر تصغير للعودة للأيقونة الطافية */}
+        <DraggableFloatingContainer
+          defaultAlign={isAr ? 'right' : 'left'}
+          defaultBottomOffset={100}
+          zIndex={36}
+        >
+          {({ isDragging }) => (
+            <div className="relative">
+              {/* المرحلة 0: الأيقونة الطافية القابلة للسحب والنقل */}
+              {mobileAccordionStage === 0 && (
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setMobileAccordionStage(0);
+                  onClick={() => {
+                    if (!isDragging) {
+                      setMobileAccordionStage(1);
+                    }
                   }}
-                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-                  title={isAr ? 'تصغير' : 'Minimize'}
+                  className="flex items-center gap-2 p-3 sm:p-3.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-2xl shadow-amber-500/30 hover:scale-105 active:scale-95 transition-all border border-amber-300/40 cursor-grab active:cursor-grabbing"
+                  aria-label={isAr ? 'فتح أكبر الاقتصادات الأفريقية' : 'Open Top African Economies'}
+                  title={isAr ? 'أكبر الاقتصادات الأفريقية (اسحب للتحريك)' : 'Top African Economies (Drag to move)'}
                 >
-                  <X className="w-4 h-4" />
+                  <Globe2 className="w-5 h-5 text-slate-950" />
+                  <span className="text-xs font-black tracking-tight hidden xs:inline sm:inline">
+                    {isAr ? 'أكبر الاقتصادات' : 'Top Economies'}
+                  </span>
+                  <span className="w-2 h-2 rounded-full bg-slate-950 animate-ping"></span>
                 </button>
-              </div>
-            </div>
+              )}
 
-            {/* المرحلة 2: القائمة الحالية لأكبر الاقتصاديات الأفريقية */}
-            {mobileAccordionStage === 2 && (
-              <div className="p-3 max-h-[55vh] overflow-y-auto space-y-2 animate-in fade-in duration-200">
-                <div className="grid grid-cols-2 gap-2">
-                  {countries.slice(0, 8).map((c) => {
-                    const flag = getCountryFlag(c.code);
-                    return (
+              {/* المرحلة 1 & 2: شريط فيه العنوان مع سهم للأسفل */}
+              {mobileAccordionStage > 0 && (
+                <div className="w-[92vw] sm:w-[380px] shadow-2xl rounded-2xl bg-[#090e1a]/98 backdrop-blur-xl border border-amber-500/40 ring-1 ring-amber-500/20 overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+                  {/* شريط العنوان مع سهم للأسفل / للأعلى (المرحلة 1) */}
+                  <div 
+                    onClick={() => {
+                      if (!isDragging) {
+                        setMobileAccordionStage(prev => prev === 1 ? 2 : 1);
+                      }
+                    }}
+                    className="px-4 py-3 bg-gradient-to-r from-slate-900 via-[#0d1424] to-slate-900 flex items-center justify-between cursor-pointer border-b border-slate-800/80 select-none group"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400 border border-amber-500/30">
+                        <Globe2 className="w-4 h-4" />
+                      </div>
+                      <h3 className="text-xs sm:text-sm font-bold text-white group-hover:text-amber-300 transition-colors">
+                        {isAr ? 'أكبر الاقتصادات الأفريقية' : 'Top African Economies'}
+                      </h3>
+                      <span className="text-[10px] text-amber-400 font-mono px-1.5 py-0.2 rounded bg-amber-500/10 font-bold">
+                        8
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      {/* سهم للأسفل في المرحلة 1، أو للأعلى في المرحلة 2 */}
+                      <div className="p-1 rounded-lg bg-slate-800 text-amber-400 group-hover:bg-slate-700 transition-colors">
+                        {mobileAccordionStage === 2 ? (
+                          <ChevronUp className="w-4 h-4" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 animate-bounce" />
+                        )}
+                      </div>
+
+                      {/* زر تصغير للعودة للأيقونة الطافية */}
                       <button
-                        key={c.code}
-                        onClick={() => {
-                          onSelectCountry(c.slug);
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setMobileAccordionStage(0);
                         }}
-                        className="p-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-right rtl:text-right ltr:text-left transition-all flex flex-col justify-between"
+                        className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                        title={isAr ? 'تصغير' : 'Minimize'}
                       >
-                        <div className="flex items-center justify-between w-full">
-                          <span className="text-xs font-bold text-slate-200 truncate flex items-center gap-1">
-                            <span className="text-sm">{flag}</span>
-                            <span>#{c.rank} {isAr ? c.nameAr : c.nameEn}</span>
-                          </span>
-                          <span className="text-[10px] text-emerald-400 font-mono">{c.gdpGrowth}</span>
-                        </div>
-                        <div className="text-[11px] text-slate-400 font-mono mt-1 flex items-center justify-between">
-                          <span className="text-amber-400 font-bold">{c.gdp}</span>
-                          <span className="text-[9.5px] text-slate-500">{c.code}</span>
-                        </div>
+                        <X className="w-4 h-4" />
                       </button>
-                    );
-                  })}
-                </div>
+                    </div>
+                  </div>
 
-                <div className="pt-2 border-t border-slate-800/60 text-center">
-                  <span className="text-[10px] text-slate-400">
-                    {isAr ? 'اضغط على أي دولة لعرض ملفها الاقتصادي وتقاريرها' : 'Tap any nation to view detailed profile'}
-                  </span>
+                  {/* المرحلة 2: القائمة الحالية لأكبر الاقتصاديات الأفريقية */}
+                  {mobileAccordionStage === 2 && (
+                    <div className="p-3 max-h-[55vh] overflow-y-auto space-y-2 animate-in fade-in duration-200">
+                      <div className="grid grid-cols-2 gap-2">
+                        {countries.slice(0, 8).map((c) => {
+                          const flag = getCountryFlag(c.code);
+                          return (
+                            <button
+                              key={c.code}
+                              onClick={() => {
+                                onSelectCountry(c.slug);
+                                setMobileAccordionStage(0);
+                              }}
+                              className="p-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800/80 text-right rtl:text-right ltr:text-left transition-all flex flex-col justify-between"
+                            >
+                              <div className="flex items-center justify-between w-full">
+                                <span className="text-xs font-bold text-slate-200 truncate flex items-center gap-1">
+                                  <span className="text-sm">{flag}</span>
+                                  <span>#{c.rank} {isAr ? c.nameAr : c.nameEn}</span>
+                                </span>
+                                <span className="text-[10px] text-emerald-400 font-mono">{c.gdpGrowth}</span>
+                              </div>
+                              <div className="text-[11px] text-slate-400 font-mono mt-1 flex items-center justify-between">
+                                <span className="text-amber-400 font-bold">{c.gdp}</span>
+                                <span className="text-[9.5px] text-slate-500">{c.code}</span>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-800/60 text-center">
+                        <span className="text-[10px] text-slate-400">
+                          {isAr ? 'اضغط على أي دولة لعرض ملفها الاقتصادي وتقاريرها' : 'Tap any nation to view detailed profile'}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
+        </DraggableFloatingContainer>
       </div>
 
       {/* 

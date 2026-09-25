@@ -30,6 +30,7 @@ import { ALL_54_AFRICAN_COUNTRIES } from './data/africanCountries';
 import { ECONOMIC_SECTORS, JOURNALISTIC_GENRES } from './data/reportOptions';
 import { EconomicDataUpdaterModal } from './components/EconomicDataUpdaterModal';
 import { CompactNavigationRibbons } from './components/CompactNavigationRibbons';
+import { CurrencyExchangeWidget } from './components/CurrencyExchangeWidget';
 
 const STORAGE_KEY = 'africonomist_custom_articles_v1';
 
@@ -594,6 +595,9 @@ export default function App() {
         onResetAll={handleResetCountries}
         lang={lang}
       />
+
+      {/* Draggable Currency Exchange & Conversion Widget (Available Everywhere) */}
+      <CurrencyExchangeWidget lang={lang} />
 
       {/* Professional Financial Media Footer */}
       <footer className="border-t border-slate-800 bg-[#050811] text-slate-400 text-xs py-12 mt-auto">

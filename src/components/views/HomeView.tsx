@@ -256,7 +256,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <div className="pt-3 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-400">
                 <span className="flex items-center gap-1 font-mono">
                   <Clock className="w-3 h-3 text-slate-500" />
-                  {article.publishedAt ? article.publishedAt.split(' ')[0] : 'Today'}
+                  {typeof article.publishedAt === 'string' && article.publishedAt.includes(' ')
+                    ? article.publishedAt.split(' ')[0]
+                    : (typeof article.publishedAt === 'string' ? article.publishedAt : 'Today')}
                 </span>
 
                 <span className="text-amber-400 group-hover:translate-x-0.5 transition-transform flex items-center gap-1 font-medium">

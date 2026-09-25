@@ -465,22 +465,30 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
 
         const syntheticArticles: Article[] = seedCountries.map((c, idx) => {
           const genre = seedGenres[idx % seedGenres.length] || JOURNALISTIC_GENRES[0];
+          const sectorWord = typeof sector?.nameAr === 'string' && sector.nameAr.includes(' ')
+            ? sector.nameAr.split(' ')[0]
+            : (sector?.nameAr || 'القطاع');
+          const genreName = genre?.nameAr || 'تقرير';
+          const countryAr = c?.nameAr || 'أفريقيا';
+          const countryEn = c?.nameEn || 'Africa';
+          const sectorAr = sector?.nameAr || 'القطاع الاقتصادي';
+
           return {
-            id: `sec_${sector.id}_${c.code}_${idx}`,
-            slug: `sec-${sector.id}-${c.slug}`,
-            title: `${genre.nameAr}: مؤشرات إستراتيجية في ${sector.nameAr.split(' ')[0]} بدولة ${c.nameAr}`,
-            titleEn: `${genre.nameEn}: Macro Shift in ${c.nameEn}`,
-            summary: `رصد استقصائي يحلل تدفقات ${sector.nameAr} في ${c.nameAr} ومطابقتها مع المعايير القارية والموازنة التقديرية.`,
-            summaryEn: `Detailed intelligence analysis on capital allocations and policy frameworks in ${c.nameEn}.`,
+            id: `sec_${sector?.id || 'gen'}_${c?.code || idx}_${idx}`,
+            slug: `sec-${sector?.id || 'gen'}-${c?.slug || idx}`,
+            title: `${genreName}: مؤشرات إستراتيجية في ${sectorWord} بدولة ${countryAr}`,
+            titleEn: `${genre?.nameEn || 'Report'}: Macro Shift in ${countryEn}`,
+            summary: `رصد استقصائي يحلل تدفقات ${sectorAr} في ${countryAr} ومطابقتها مع المعايير القارية والموازنة التقديرية.`,
+            summaryEn: `Detailed intelligence analysis on capital allocations and policy frameworks in ${countryEn}.`,
             content: [
-              `تكشف المتابعات التحريرية في لافريكونوميست لقطاع ${sector.nameAr} داخل ${c.nameAr} عن اتجاهات استثمارية واعدة تستقطب اهتمام المؤسسات المالية الدولية.`,
+              `تكشف المتابعات التحريرية في لافريكونوميست لقطاع ${sectorAr} داخل ${countryAr} عن اتجاهات استثمارية واعدة تستقطب اهتمام المؤسسات المالية الدولية.`,
               `تم التحقق من بيانات الإنتاج وحركة المعاملات البنكية وإحالتها لغرفة الأخبار للمصادقة التحريرية.`
             ],
-            contentEn: [`Editorial intelligence tracker for ${c.nameEn}.`],
+            contentEn: [`Editorial intelligence tracker for ${countryEn}.`],
             category: 'Macroeconomics',
-            countryCode: c.code,
-            countryName: c.nameAr,
-            countryNameEn: c.nameEn,
+            countryCode: c?.code || 'AFR',
+            countryName: countryAr,
+            countryNameEn: countryEn,
             status: idx % 2 === 0 ? 'pending_review' : 'published',
             generationType: 'automated_periodic',
             journalisticType: genre.nameAr,

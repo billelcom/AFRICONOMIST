@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef, ReactNode } from 'react';
+import React, { useState, useEffect, useRef, ReactNode, useCallback } from 'react';
 
 interface DraggableFloatingContainerProps {
   initialPosition?: { x: number; y: number };
   defaultAlign?: 'right' | 'left';
   defaultBottomOffset?: number;
+  isOpen?: boolean;
   children: (props: { isDragging: boolean }) => ReactNode;
   className?: string;
   zIndex?: number;
@@ -13,14 +14,25 @@ export const DraggableFloatingContainer: React.FC<DraggableFloatingContainerProp
   initialPosition,
   defaultAlign = 'right',
   defaultBottomOffset = 100,
+  isOpen = false,
   children,
   className = '',
   zIndex = 35
 }) => {
-  const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
+  // Position of the icon when closed
+  const [iconPos, setIconPos] = useState<{ x: number; y: number } | null>(null);
+  // Current active rendered position (on screen)
+  const [activePos, setActivePos] = useState<{ x: number; y: number } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+
   const containerRef = useRef<HTMLDivElement>(null);
-  const dragStartRef = useRef<{ mouseX: number; mouseY: number; startX: number; startY: number; moved: boolean }>({
+  const dragStartRef = useRef<{
+    mouseX: number;
+    mouseY: number;
+    startX: number;
+    startY: number;
+    moved: boolean;
+  }>({
     mouseX: 0,
     mouseY: 0,
     startX: 0,
@@ -28,48 +40,132 @@ export const DraggableFloatingContainer: React.FC<DraggableFloatingContainerProp
     moved: false
   });
 
-  // Calculate default position on client-side mount
+  // Remember if open accordion was intentionally dragged by user while open
+  const openDraggedRef = useRef<boolean>(false);
+
+  // Initialize icon position on mount
   useEffect(() => {
     if (initialPosition) {
-      setPosition(initialPosition);
+      setIconPos(initialPosition);
+      setActivePos(initialPosition);
       return;
     }
 
-    const updateDefaultPos = () => {
+    const calcDefaultPos = () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
       const x = defaultAlign === 'right' ? Math.max(16, w - 80) : 16;
       const y = Math.max(80, h - defaultBottomOffset);
-      setPosition({ x, y });
+      const pos = { x, y };
+      setIconPos(pos);
+      setActivePos(pos);
     };
 
-    updateDefaultPos();
-    window.addEventListener('resize', updateDefaultPos);
-    return () => window.removeEventListener('resize', updateDefaultPos);
+    calcDefaultPos();
+    window.addEventListener('resize', calcDefaultPos);
+    return () => window.removeEventListener('resize', calcDefaultPos);
   }, [defaultAlign, defaultBottomOffset, initialPosition]);
 
-  // Keep inside screen bounds if window resizes
-  useEffect(() => {
-    if (!position || !containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const maxX = window.innerWidth - (rect.width || 60) - 10;
-    const maxY = window.innerHeight - (rect.height || 60) - 10;
+  // Helper to calculate opened position based on icon placement
+  const calculateOpenedPosition = useCallback((currentIconPos: { x: number; y: number }, rectWidth: number, rectHeight: number) => {
+    const screenW = window.innerWidth;
+    const screenH = window.innerHeight;
+    const iconCenterX = currentIconPos.x + 30;
+    const ratio = iconCenterX / screenW;
 
-    let newX = Math.max(10, Math.min(position.x, maxX));
-    let newY = Math.max(60, Math.min(position.y, maxY));
-
-    if (newX !== position.x || newY !== position.y) {
-      setPosition({ x: newX, y: newY });
+    let targetX: number;
+    // On mobile (< 640px) or if icon is placed in the center (between 33% and 67%):
+    // Center directly on screen
+    if (screenW < 640 || (ratio >= 0.33 && ratio <= 0.67)) {
+      targetX = Math.max(10, Math.round((screenW - rectWidth) / 2));
+    } else if (ratio > 0.67) {
+      // Anchored to the right
+      targetX = Math.max(10, screenW - rectWidth - 16);
+    } else {
+      // Anchored to the left
+      targetX = 16;
     }
-  }, [position]);
 
+    // Vertically: ensure the accordion fits entirely within the viewport without overflowing
+    const idealY = currentIconPos.y;
+    const maxY = Math.max(65, screenH - rectHeight - 16);
+    const targetY = Math.max(65, Math.min(idealY, maxY));
+
+    return { x: targetX, y: targetY };
+  }, []);
+
+  // When isOpen changes or container size changes
+  useEffect(() => {
+    if (!iconPos || !containerRef.current) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const elemW = rect.width || (isOpen ? 380 : 56);
+    const elemH = rect.height || (isOpen ? 350 : 56);
+
+    if (isOpen) {
+      // If user hasn't explicitly dragged the opened window, position it properly
+      if (!openDraggedRef.current) {
+        const nextPos = calculateOpenedPosition(iconPos, elemW, elemH);
+        setActivePos(nextPos);
+      } else {
+        // Just clamp the existing position so it never overflows
+        setActivePos((prev) => {
+          if (!prev) return prev;
+          const screenW = window.innerWidth;
+          const screenH = window.innerHeight;
+          const clampedX = Math.max(10, Math.min(prev.x, screenW - elemW - 10));
+          const clampedY = Math.max(65, Math.min(prev.y, screenH - elemH - 12));
+          if (clampedX === prev.x && clampedY === prev.y) return prev;
+          return { x: clampedX, y: clampedY };
+        });
+      }
+    } else {
+      // Returning to closed icon: restore icon position
+      openDraggedRef.current = false;
+      setActivePos(iconPos);
+    }
+  }, [isOpen, iconPos, calculateOpenedPosition]);
+
+  // ResizeObserver to adjust positioning if content expands (e.g. stage 1 -> stage 2)
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const element = containerRef.current;
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        if (width <= 0 || height <= 0) continue;
+
+        if (isOpen && iconPos && !openDraggedRef.current) {
+          const nextPos = calculateOpenedPosition(iconPos, width, height);
+          setActivePos(nextPos);
+        } else if (isOpen) {
+          // Re-clamp
+          const screenW = window.innerWidth;
+          const screenH = window.innerHeight;
+          setActivePos((prev) => {
+            if (!prev) return prev;
+            const clampedX = Math.max(10, Math.min(prev.x, screenW - width - 10));
+            const clampedY = Math.max(65, Math.min(prev.y, screenH - height - 12));
+            if (clampedX === prev.x && clampedY === prev.y) return prev;
+            return { x: clampedX, y: clampedY };
+          });
+        }
+      }
+    });
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [isOpen, iconPos, calculateOpenedPosition]);
+
+  // Pointer drag logic
   const handlePointerDown = (clientX: number, clientY: number) => {
-    if (!position) return;
+    if (!activePos) return;
     dragStartRef.current = {
       mouseX: clientX,
       mouseY: clientY,
-      startX: position.x,
-      startY: position.y,
+      startX: activePos.x,
+      startY: activePos.y,
       moved: false
     };
 
@@ -92,15 +188,27 @@ export const DraggableFloatingContainer: React.FC<DraggableFloatingContainerProp
         const elemWidth = rect?.width || 56;
         const elemHeight = rect?.height || 56;
 
-        const clampedX = Math.max(8, Math.min(nextX, window.innerWidth - elemWidth - 8));
-        const clampedY = Math.max(50, Math.min(nextY, window.innerHeight - elemHeight - 12));
+        const screenW = window.innerWidth;
+        const screenH = window.innerHeight;
 
-        setPosition({ x: clampedX, y: clampedY });
+        const clampedX = Math.max(8, Math.min(nextX, screenW - elemWidth - 8));
+        const clampedY = Math.max(50, Math.min(nextY, screenH - elemHeight - 12));
+
+        const updatedPos = { x: clampedX, y: clampedY };
+        setActivePos(updatedPos);
+
+        if (!isOpen) {
+          // If dragging the closed icon, update saved icon position
+          setIconPos(updatedPos);
+        } else {
+          // Dragging the opened window
+          openDraggedRef.current = true;
+        }
       }
     };
 
     const handlePointerUp = () => {
-      setTimeout(() => setIsDragging(false), 50);
+      setTimeout(() => setIsDragging(false), 60);
       window.removeEventListener('mousemove', handlePointerMove);
       window.removeEventListener('mouseup', handlePointerUp);
       window.removeEventListener('touchmove', handlePointerMove);
@@ -113,29 +221,30 @@ export const DraggableFloatingContainer: React.FC<DraggableFloatingContainerProp
     window.addEventListener('touchend', handlePointerUp);
   };
 
-  if (!position) return null;
+  if (!activePos) return null;
 
   return (
     <div
       ref={containerRef}
       style={{
         position: 'fixed',
-        left: `${position.x}px`,
-        top: `${position.y}px`,
-        zIndex
+        left: `${activePos.x}px`,
+        top: `${activePos.y}px`,
+        zIndex,
+        transition: isDragging ? 'none' : 'left 0.22s ease-out, top 0.22s ease-out'
       }}
       className={`select-none touch-none ${className}`}
       onMouseDown={(e) => {
-        // Only trigger drag on main button or header, ignore form inputs
         const target = e.target as HTMLElement;
-        if (target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'TEXTAREA') {
+        if (target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'TEXTAREA' || target.closest('button')) {
+          // Don't drag if clicking buttons or form inputs
           return;
         }
         handlePointerDown(e.clientX, e.clientY);
       }}
       onTouchStart={(e) => {
         const target = e.target as HTMLElement;
-        if (target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'TEXTAREA') {
+        if (target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'TEXTAREA' || target.closest('button')) {
           return;
         }
         handlePointerDown(e.touches[0].clientX, e.touches[0].clientY);

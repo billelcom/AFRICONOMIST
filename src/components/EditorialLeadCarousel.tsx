@@ -48,47 +48,14 @@ export interface EditorialStory {
 }
 
 export const EDITORIAL_LEAD_STORIES: EditorialStory[] = [
-  // 1. الافتتاحية الكبرى لرئيس التحرير (Editorial Column with Columnist Portrait)
+  // 1. تقرير المحروقات وغرب أفريقيا (مع فيديو تحليلي)
   {
     id: 'edit-lead-001',
-    slug: 'editorial-african-monetary-sovereignty',
-    title: 'افتتاحية العدد: معركة السيادة النقدية الإفريقية.. لماذا حان الوقت لإنهاء هيمنة العملات الوسيطة في تجارة الـ 54 دولة؟',
-    titleEn: 'Editorial: The African Monetary Sovereignty Frontier.. Terminating Intermediary Currencies in Continental Trade',
-    summary: 'في هذه الافتتاحية الاستراتيجية، نضع الإصبع على المعضلة الهيكلية الكبرى التي تستنزف اقتصادات القارة: يدفع المنتجون والمصرفيون الأفارقة أكثر من 5 مليارات دولار سنوياً كرسوم وساطة وتحويل لمصارف خارجية لتسوية صفقات بين دول متجاورة. إن التفعيل الكامل لمنظومة PAPSS وربط البورصات الوطنية ليس ترفاً مالياً، بل شرط وجودي لتحقيق التكامل الصناعي وحماية العملات المحلية من الصدمات التضخمية الخارجية.',
-    summaryEn: 'In this strategic editorial, we address the foremost structural drain on African capital: over $5 billion paid annually in third-party FX routing fees. Full PAPSS activation and regional exchange integration are non-negotiable keystones of continental economic sovereignty.',
-    imageUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80',
-    isColumn: true,
-    columnistName: 'د. طارق المنصوري',
-    columnistNameEn: 'Dr. Tarek Al-Mansouri',
-    columnistRole: 'رئيس التحرير التنفيذي وكبير الاقتصاديين',
-    columnistRoleEn: 'Executive Editor-in-Chief & Chief Economist',
-    columnistAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
-    date: '2026-09-25',
-    time: '08:30',
-    genre: 'افتتاحية رئيس التحرير',
-    genreEn: 'Editor-in-Chief Column',
-    sector: 'السيادة النقدية والاقتصاد الكلي',
-    sectorEn: 'Monetary Sovereignty & Macroeconomics',
-    countryName: 'عموم أفريقيا',
-    countryNameEn: 'Pan-Africa',
-    countryCode: 'PAN',
-    viewsCount: 28450,
-    factScore: 99,
-    readTimeMinutes: 5,
-    content: [
-      'على مدى عقود طويلة، ظلت التجارة الإفريقية البينية أسيرة منظومة تسوية نقدية تعود لحقبة ما بعد الاستعمار.',
-      'تظهر حسابات بنك التصدير والاستيراد الإفريقي أن تسوية تجارة المنسوجات والأغذية بين أبيدجان وأكرا، أو بين الجزائر وداكار، تمر عبر بنوك مراسلة في باريس أو نيويورك، ما يفرض تكاليف شحن وتحويل مضاعفة تؤدي إلى تآكل هوامش أرباح المصنعين الأفارقة.',
-      'إن الحل موجود اليوم بين أيدينا: اعتماد نظام المدفوعات الإفريقي الموحد بالعملات المحلية، ورفع الاحتياطيات السيادية بالذهب والمعادن الإفريقية لحماية استقلالية القرار الاقتصادي.'
-    ]
-  },
-  // 2. تقرير المحروقات وغرب أفريقيا (مع فيديو تحليلي)
-  {
-    id: 'edit-lead-002',
     slug: 'dangote-mega-refinery-pan-african-revolution',
     title: 'مصفاة دانغوتي تعيد رسم خارطة تجارة المحروقات في غرب أفريقيا بتدفقات قياسية نحو 6 دول إقليمية',
-    titleEn: 'Dangote Mega Refinery Reshapes West Africa Fuel Trade with Record Distribution Flows',
-    summary: 'مع بلوغ الطاقة التكريرية 650 ألف برميل يومياً، تبدأ نيجيريا رسمياً تصدير المشتقات إلى غانا والسنغال وكوت ديفوار وتوغو وبنين، موفرة أكثر من 12 مليار دولار سنوياً من فاتورة الاستيراد الخارجية وعاكسة عقوداً من التبعية النفطية لمصافي روتردام وسويسرا.',
-    summaryEn: 'With 650,000 bpd capacity online, the Lagos refinery initiates pipeline and tanker flows across ECOWAS, reversing decades of refined fuel dependency.',
+    titleEn: 'Dangote Mega Refinery Reshapes West Africa Fuel Trade with Record Regional Distribution',
+    summary: 'تجسد مصفاة دانغوتي النيجيرية تحولاً هيكلياً استراتيجياً لأسواق الطاقة في غرب أفريقيا؛ إذ توفر طاقتها التكريرية البالغة 650 ألف برميل يومياً نحو 12 مليار دولار سنوياً من فاتورة الاستيراد الخارجية، مع بدء تصدير المشتقات إلى ست دول إقليمية، ما يعزز استقرار العملة الوطنية ويحقق الاكتفاء الذاتي والتكامل الصناعي لدول القارة.',
+    summaryEn: 'The Dangote Mega Refinery represents a strategic structural transformation for West African energy markets; its 650,000 bpd capacity saves $12 billion annually in foreign import bills while initiating exports to six regional nations, bolstering sovereign currency stability and achieving comprehensive industrial self-sufficiency for the African continent.',
     imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
     hasVideo: true,
     date: '2026-09-25',
@@ -111,14 +78,14 @@ export const EDITORIAL_LEAD_STORIES: EditorialStory[] = [
       'صرح محافظ البنك المركزي النيجيري بأن كبح استيراد الوقود يمثل نقطة التحول الكبرى لتعافي احتياطيات النقد الأجنبي.'
     ]
   },
-  // 3. تقرير الهيدروجين والممر المصري
+  // 2. تقرير الهيدروجين والممر المصري
   {
-    id: 'edit-lead-003',
+    id: 'edit-lead-002',
     slug: 'egypt-sczone-green-hydrogen-refueling-nexus',
     title: 'مصر تستقطب 18 مليار دولار في مشاريع الهيدروجين الأخضر بمحور قناة السويس لتزويد الأساطيل العالمية',
-    titleEn: 'Egypt Secures $18B in Green Hydrogen Commitments at Suez Canal Economic Zone',
-    summary: 'توقيع اتفاقيات ملزمة مع تحالفات أوروبية وآسيوية لتزويد الأساطيل البحرية المارة عبر قناة السويس بالوقود الأخضر النظيف وتصدير الأمونيا الخضراء إلى الاتحاد الأوروبي بحلول عام 2028، مدعومة بمجمعات شمسية ورياح في خليج السويس وأسوان تتجاوز قدرتها 10 غيغاوات.',
-    summaryEn: 'Binding framework agreements position SCZone as the primary zero-emission maritime refueling nexus on global sea trade routes.',
+    titleEn: 'Egypt Secures $18B Green Hydrogen Nexus at Suez Canal Economic Zone for Maritime Fleets',
+    summary: 'تجسد مشاريع الهيدروجين الأخضر بمحور قناة السويس تحولاً طاقوياً استراتيجياً واعداً للاقتصاد القاري؛ إذ تستقطب الاتفاقيات الملزمة 18 مليار دولار لتزويد الأساطيل الدولية بالوقود النظيف وتصدير الأمونيا الخضراء للأسواق الأوروبية بحلول 2028، بالاعتماد على محطات شمسية وريحية بقدرة 10 غيغاوات، ما يرسخ مكانة أفريقيا كمركز رائد للطاقة المتجددة والصناعات المستدامة.',
+    summaryEn: 'Suez Canal Economic Zone green hydrogen projects represent a promising strategic energy transition for the continental economy; binding agreements secure $18 billion to supply global maritime fleets with clean fuel and export green ammonia to European markets by 2028, establishing Africa as a foremost hub for renewable energy industries.',
     imageUrl: 'https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&w=1200&q=80',
     date: '2026-09-24',
     time: '17:40',
@@ -141,47 +108,14 @@ export const EDITORIAL_LEAD_STORIES: EditorialStory[] = [
       'تتضمن المشروعات عقود شراء طويلة الأجل تضمن تدفقات دولارية مستقرة للموازنة المصرية.'
     ]
   },
-  // 4. عمود مالي متخصص: أسواق المال والبورصات (Columnist Card)
+  // 3. تحقيق ممر لوبيتو وسكك حديد بنغيلا
   {
-    id: 'edit-lead-004',
-    slug: 'column-jse-nairobi-integrated-capital-markets',
-    title: 'عمود رأي: بورصة جوهانسبرغ ونيروبي والقاهرة.. لماذا نحتاج إلى سوق أسهم إفريقية موحدة بتريليون دولار؟',
-    titleEn: 'Column: JSE, Nairobi and EGX.. Why Africa Needs a Unified $1T Pan-African Equity Market',
-    summary: 'إن التجزئة القائمة في أسواق المال الإفريقية تحرم شركات التكنولوجيا والشركات الصناعية الواعدة من سيولة عميقة. إن الإدراج المزدوج وتوحيد منصات المقاصة الرقمية بين كبرى بورصات القارة كفيل بخلق قوة مالية تضاهي أسواق المال الناشئة في آسيا وتوفر تمويلاً حقيقياً للمشاريع الإفريقية.',
-    summaryEn: 'Fragmentation across African capital markets restricts growth-stage ventures. Harmonizing listing frameworks and clearing pipes will unlock institutional dry powder.',
-    imageUrl: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1200&q=80',
-    isColumn: true,
-    columnistName: 'ثاندو نكوسي',
-    columnistNameEn: 'Thando Nkosi',
-    columnistRole: 'كبير خبراء أسواق الأسهم ورأس المال - جوهانسبرغ',
-    columnistRoleEn: 'Chief Capital Markets Strategist - JSE',
-    columnistAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
-    date: '2026-09-24',
-    time: '14:20',
-    genre: 'عمود رأي اقتصادي',
-    genreEn: 'Markets Opinion Column',
-    sector: 'الأسواق المالية وبورصات الأوراق',
-    sectorEn: 'Capital Markets & Exchanges',
-    countryName: 'جنوب أفريقيا',
-    countryNameEn: 'South Africa',
-    countryCode: 'ZA',
-    viewsCount: 19630,
-    factScore: 98,
-    readTimeMinutes: 3,
-    content: [
-      'سجلت بورصة جوهانسبرغ طلباً غير مسبوق من شركات الدفع الرقمي الإفريقية الراغبة في جمع التمويل.',
-      'تتيح النافذة المزدوجة بالراند والدولار مرونة تشغيلية واستثمارية لم تشهدها القارة من قبل.',
-      'الربط التداولي مع كينيا ونيجيريا سيبني أعمق بركة سيولة قارية للشركات الناشئة.'
-    ]
-  },
-  // 5. تحقيق ممر لوبيتو وسكك حديد بنغيلا
-  {
-    id: 'edit-lead-005',
+    id: 'edit-lead-003',
     slug: 'lobito-critical-minerals-rail-corridor',
     title: 'ممر لوبيتو وسكك حديد بنغيلا: كيف يخطف الأطلسي معادن بطاريات الكونغو وزامبيا من موانئ الشرق؟',
-    titleEn: 'The Lobito Corridor: How the Atlantic is Securing DRC and Zambia Battery Minerals',
-    summary: 'تحالف استثماري دولي يقوده صندوق أنغولا السيادي وبنك التنمية الإفريقي يضخ 3.5 مليار دولار لتحديث وتوسعة خط سكك حديد بنغيلا، ما يختصر مدة نقل النحاس والكوبالت الاستراتيجي نحو الأسواق الأطلسية بنحو 20 يوماً ويغير قواعد اللعبة الجيوسياسية للطاقة النظيفة.',
-    summaryEn: 'International development finance accelerates Lobito rail corridor, shaving 20 days off battery metal transits to Atlantic manufacturing hubs.',
+    titleEn: 'The Lobito Corridor: How the Atlantic Secures DRC & Zambia Battery Minerals',
+    summary: 'يجسد ممر لوبيتو وسكك حديد بنغيلا في أنغولا تحولاً لوجستياً استراتيجياً لنقل الثروات التعدينية الأفريقية؛ إذ يضخ التحالف الدولي 3.5 مليار دولار لتحديث الخط الحديدي، ما يختصر زمن نقل النحاس والكوبالت إلى المحيط الأطلسي بنحو 20 يوماً، مع تقليص تكاليف الشحن وتأمين سلاسل الإمداد للبطاريات وحماية القيمة المضافة للتعدين القاري.',
+    summaryEn: 'The Lobito Corridor and Benguela Railway represent a strategic logistics transformation for African mineral wealth; international consortia inject $3.5 billion to modernize the rail line, reducing transit time for copper and cobalt to the Atlantic by 20 days while securing battery supply chains and continental value addition.',
     imageUrl: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=1200&q=80',
     hasVideo: true,
     date: '2026-09-24',
@@ -205,14 +139,47 @@ export const EDITORIAL_LEAD_STORIES: EditorialStory[] = [
       'يمنح المشروع البديل الأسرع والأكثر أماناً لمناجم النحاس في وسط القارة.'
     ]
   },
-  // 6. ممر الغاز الجزائري الأوروبي
+  // 4. الشريحة الرابعة: افتتاحية اليوم (Today's Editorial with Dr. Tarek Al-Mansouri)
   {
-    id: 'edit-lead-006',
+    id: 'edit-lead-004',
+    slug: 'editorial-african-monetary-sovereignty',
+    title: 'افتتاحية اليوم: معركة السيادة النقدية الإفريقية.. لماذا حان الوقت لإنهاء هيمنة العملات الوسيطة في تجارة الـ 54 دولة؟',
+    titleEn: 'Today\'s Editorial: African Monetary Sovereignty.. Ending Intermediary Currency Dominance in Continental Trade',
+    summary: 'تجسد معركة السيادة النقدية الأفريقية القضية المركزية لمستقبل التنمية المستدامة في القارة؛ إذ يدفع المصنعون والمصرفيون نحو 5 مليارات دولار سنوياً كرسوم وساطة خارجية لتسوية التجارة البينية، ما يفرض تسريع تفعيل منصة المقاصة القارية والتعامل بالعملات الوطنية وتثبيت الاحتياطيات بالمعادن والذهب، لإنهاء التبعية المالية الخارجية وبناء استقلال نقدي أفريقي متين.',
+    summaryEn: 'African monetary sovereignty represents the central imperative for sustainable continental development; domestic producers and bankers pay $5 billion annually in foreign intermediation fees for intra-African trade settlements, necessitating the rapid rollout of PAPSS, local currency clearing, and gold reserves to build resilient African financial independence.',
+    imageUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80',
+    isColumn: true,
+    columnistName: 'د. طارق المنصوري',
+    columnistNameEn: 'Dr. Tarek Al-Mansouri',
+    columnistRole: 'رئيس التحرير التنفيذي وكبير الاقتصاديين',
+    columnistRoleEn: 'Executive Editor-in-Chief & Chief Economist',
+    columnistAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
+    date: '2026-09-25',
+    time: '08:30',
+    genre: 'افتتاحية اليوم',
+    genreEn: 'Today\'s Editorial',
+    sector: 'السيادة النقدية والاقتصاد الكلي',
+    sectorEn: 'Monetary Sovereignty & Macroeconomics',
+    countryName: 'عموم أفريقيا',
+    countryNameEn: 'Pan-Africa',
+    countryCode: 'PAN',
+    viewsCount: 28450,
+    factScore: 99,
+    readTimeMinutes: 5,
+    content: [
+      'على مدى عقود طويلة، ظلت التجارة الإفريقية البينية أسيرة منظومة تسوية نقدية تعود لحقبة ما بعد الاستعمار.',
+      'تظهر حسابات بنك التصدير والاستيراد الإفريقي أن تسوية تجارة المنسوجات والأغذية بين أبيدجان وأكرا، أو بين الجزائر وداكار، تمر عبر بنوك مراسلة في باريس أو نيويورك، ما يفرض تكاليف شحن وتحويل مضاعفة تؤدي إلى تآكل هوامش أرباح المصنعين الأفارقة.',
+      'إن الحل موجود اليوم بين أيدينا: اعتماد نظام المدفوعات الإفريقي الموحد بالعملات المحلية، ورفع الاحتياطيات السيادية بالذهب والمعادن الإفريقية لحماية استقلالية القرار الاقتصادي.'
+    ]
+  },
+  // 5. ممر الغاز الجزائري الأوروبي
+  {
+    id: 'edit-lead-005',
     slug: 'algeria-south2-hydrogen-energy-bridge',
     title: 'الجزائر تطلق ممر "ساوث هيدج" لتصدير الهيدروجين النظيف واستقرار أمن الطاقة في جنوب أوروبا',
     titleEn: 'Algeria Launches "SoutH2" Clean Hydrogen Mega-Corridor to Southern Europe',
-    summary: 'تحالف سوناطراك مع مشغلي شبكات الغاز الإيطالية والألمانية يضع أسس ممر ينقل 4 ملايين طن من الهيدروجين الأخضر سنوياً بحلول 2030، موظفاً الطاقة الشمسية الهائلة في الصحراء الجزائرية لتأمين إمدادات المجمعات الصناعية في بافاريا وشمال إيطاليا.',
-    summaryEn: 'Sonatrach and European TSOs finalize SoutH2 pipeline pacts delivering 4M tons of Saharan green hydrogen to Central European industry.',
+    summary: 'يجسد ممر ساوث هيدج الجزائري تحولاً استراتيجياً لأسواق الطاقة الإقليمية والربط القاري؛ إذ يتيح التحالف مع شبكات الغاز الإيطالية والألمانية تصدير 4 ملايين طن من الهيدروجين الأخضر سنوياً بحلول 2030، موظفاً القدرات الشمسية الهائلة بالصحراء، لضمان استقرار إمدادات أوروبا الصناعية وتحقيق عوائد نقدية مستدامة تعزز التنمية الاقتصادية الشاملة للجمهورية الجزائرية.',
+    summaryEn: 'Algeria\'s SoutH2 corridor represents a strategic milestone for regional energy integration and continental connectivity; partnerships with Italian and German pipeline networks enable exporting 4 million tons of green hydrogen annually by 2030, leveraging Saharan solar capacities to stabilize European industrial supplies and secure sustainable sovereign revenues.',
     imageUrl: 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=1200&q=80',
     date: '2026-09-23',
     time: '16:45',
@@ -235,14 +202,14 @@ export const EDITORIAL_LEAD_STORIES: EditorialStory[] = [
       'يتزامن المشروع مع توسيع إنتاج الغاز الطبيعي المسال لتعزيز الصادرات الفورية.'
     ]
   },
-  // 7. تحالف الكاكاو الإيفواري الغاني
+  // 6. تحالف الكاكاو الإيفواري الغاني
   {
-    id: 'edit-lead-007',
+    id: 'edit-lead-006',
     slug: 'ivory-coast-ghana-cocoa-industrial-cartel',
     title: 'كوت ديفوار وغانا: ثورة التصنيع المحلي للكاكاو تنهي قرناً كاملاً من تصدير الحبوب الخام',
     titleEn: 'Ivory Coast & Ghana: Domestic Processing Revolution Overturns Raw Bean Export Models',
-    summary: 'مع رفع نسبة التصنيع المحلي لحبوب الكاكاو إلى 65% وتدشين 4 مصانع كبرى لزبدة الشوكولاتة في أبيدجان وتيما، تحتفظ دول غرب إفريقيا بمليارات الدولارات داخل اقتصاداتها وتدافع بصلابة عن علاوة الدخل المعيشي لملايين المزارعين الأفارقة.',
-    summaryEn: 'West Africa solidifies downstream grinding capacity, processing 65% locally while anchoring sustainable farmer floor prices.',
+    summary: 'يجسد تحالف كوت ديفوار وغانا لإنتاج الكاكاو تحولاً صناعياً استراتيجياً لإنهاء قرن من تصدير المحاصيل الخام؛ إذ ترتفع نسبة الطحن المحلي إلى 65% وتدشين مجمعات كبرى لزبدة الشوكولاتة، ما يوفر مليارات الدولارات سنوياً للاقتصاد الإقليمي، ويضمن حماية علاوة الدخل المعيشي للمزارعين وتثبيت أسعار عادلة تضمن العدالة الاجتماعية والتنمية الريفية المنشودة.',
+    summaryEn: 'The Ivory Coast and Ghana cocoa alliance represents a strategic industrial shift terminating a century of raw bean exports; domestic processing rises to 65% with major chocolate liquor facilities, retaining billions within regional economies while defending farmer living income differentials and anchoring fair, sustainable rural prosperity.',
     imageUrl: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=1200&q=80',
     date: '2026-09-23',
     time: '13:10',
@@ -265,14 +232,14 @@ export const EDITORIAL_LEAD_STORIES: EditorialStory[] = [
       'تستعد كوت ديفوار وغانا لإطلاق بورصة سلع رقمية مشتركة لتحديد أسعار العقود الآجلة.'
     ]
   },
-  // 8. ابتكار كيجالي المالي وصناديق التكنولوجيا
+  // 7. ابتكار كيجالي المالي وصناديق التكنولوجيا
   {
-    id: 'edit-lead-008',
+    id: 'edit-lead-007',
     slug: 'kigali-international-financial-centre-venture-debt',
     title: 'مركز كيجالي المالي الدولي (KIFC) يطلق صندوق ديون مخاطرة بـ 250 مليون دولار للشركات الناشئة',
     titleEn: 'Kigali International Financial Centre Unveils $250M Pan-African Venture Debt Facility',
-    summary: 'مبادرة استثمارية مشتركة بالشراكة مع مؤسسة التمويل الدولية IFC توفر رأس مال تنموي سريع للشركات التكنولوجية دون التنازل عن حصص المؤسسين الأفارقة، معززة مكانة كيجالي كمركز مالي قاري شفاف ومنافس للمراكز العالمية.',
-    summaryEn: 'KIFC launches Africa’s premier non-dilutive growth debt facility, bridging critical late-stage financing gaps across 14 nations.',
+    summary: 'يجسد إطلاق صندوق ديون المخاطرة بمركز كيجالي المالي الدولي تحولاً استثمارياً استراتيجياً لبيئة ريادة الأعمال التكنولوجية الأفريقية؛ إذ يوفر الصندوق 250 مليون دولار كتمويلات نمو غير مخففة لحصص المؤسسين بالشراكة مع مؤسسة التمويل الدولية، ما يسد فجوات السيولة لشركات الابتكار في 14 دولة، ويرسخ رواندا كمنصة مالية رائدة ومحور تنافسي.',
+    summaryEn: 'The launch of Kigali International Financial Centre\'s venture debt facility represents a strategic investment leap for African tech entrepreneurship; providing $250 million in non-dilutive founder growth capital with the IFC, the fund bridges late-stage liquidity gaps across 14 nations, establishing Rwanda as a competitive continental hub.',
     imageUrl: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1200&q=80',
     date: '2026-09-22',
     time: '11:30',
@@ -293,6 +260,39 @@ export const EDITORIAL_LEAD_STORIES: EditorialStory[] = [
       'يستهدف الصندوق الشركات التكنولوجية سريعة النمو في مجالات الخدمات اللوجستية والزراعة الرقمية.',
       'تعتمد كيجالي على بيئة قضائية مستقلة متوافقة مع القانون العام ومزايا ضريبية تنافسية.',
       'يواصل المركز المالي لرواندا تقدمه السريع في مؤشر المراكز المالية العالمية GFCI.'
+    ]
+  },
+  // 8. الشريحة الثامنة: مقال رأي (رأي خبير - Dr. Thando Nkosi)
+  {
+    id: 'edit-lead-008',
+    slug: 'column-jse-nairobi-integrated-capital-markets',
+    title: 'رأي خبير: تكامل بورصات جوهانسبرغ ونيروبي والقاهرة.. بناء سوق أسهم إفريقية موحدة بتريليون دولار',
+    titleEn: 'Expert Opinion: Integrating JSE, Nairobi & EGX.. Building a Unified $1T Pan-African Equity Market',
+    summary: 'يجسد تكامل البورصات الأفريقية الكبرى ضرورة استراتيجية ملحة لإنهاء تشتت رؤوس الأموال وضعف السيولة بالأسواق؛ إذ يوفر الربط التداولي المشترك بين أسواق جوهانسبرغ ونيروبي والقاهرة سوقاً مالية موحدة تفوق قيمتها تريليون دولار، ما يتيح تمويلاً عميقاً للشركات الناشئة والمشاريع الصناعية، ويجذب الاستثمارات المؤسسية العالمية لدعم السيادة المالية والنمو القاري المستدام.',
+    summaryEn: 'Integrating major African stock exchanges represents an urgent strategic necessity to terminate capital fragmentation and illiquidity; unified cross-trading among Johannesburg, Nairobi, and Cairo creates a single $1 trillion capital market, unlocking deep financing for startups and major industrial projects to advance continental financial sovereignty and sustainable growth.',
+    imageUrl: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1200&q=80',
+    isColumn: true,
+    columnistName: 'د. ثاندو نكوسي',
+    columnistNameEn: 'Dr. Thando Nkosi',
+    columnistRole: 'كبير خبراء استراتيجيات أسواق المال ورأس المال القاري - جوهانسبرغ',
+    columnistRoleEn: 'Chief Capital Markets Strategist & Continental Financial Fellow - JSE',
+    columnistAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
+    date: '2026-09-24',
+    time: '14:20',
+    genre: 'رأي خبير',
+    genreEn: 'Expert Opinion',
+    sector: 'الأسواق المالية وبورصات الأوراق',
+    sectorEn: 'Capital Markets & Exchanges',
+    countryName: 'جنوب أفريقيا',
+    countryNameEn: 'South Africa',
+    countryCode: 'ZA',
+    viewsCount: 19630,
+    factScore: 98,
+    readTimeMinutes: 4,
+    content: [
+      'سجلت بورصة جوهانسبرغ طلباً غير مسبوق من شركات الدفع الرقمي الإفريقية الراغبة في جمع التمويل.',
+      'تتيح النافذة المزدوجة بالراند والدولار مرونة تشغيلية واستثمارية لم تشهدها القارة من قبل.',
+      'الربط التداولي مع كينيا ونيجيريا سيبني أعمق بركة سيولة قارية للشركات الناشئة.'
     ]
   }
 ];
@@ -486,7 +486,7 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
                   {story.isColumn && (
                     <div className="absolute top-3 right-3 rtl:right-3 ltr:left-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500 text-slate-950 text-xs font-black shadow-lg">
                       <Award className="w-3.5 h-3.5" />
-                      <span>{isAr ? 'افتتاحية العدد | عمود رأي' : 'Lead Editorial Column'}</span>
+                      <span>{isAr ? (story.genre === 'افتتاحية اليوم' ? 'افتتاحية اليوم' : 'رأي خبير | عمود تحليلي') : story.genreEn}</span>
                     </div>
                   )}
 
@@ -536,7 +536,9 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-black text-amber-400">
-                            {isAr ? 'كاتب العمود والافتتاحية:' : 'Columnist:'}
+                            {story.genre === 'افتتاحية اليوم'
+                              ? (isAr ? 'صاحب الافتتاحية:' : 'Editorial Columnist:')
+                              : (isAr ? 'الخبير الاقتصادي:' : 'Expert Columnist:')}
                           </span>
                           <span className="text-xs font-bold text-white">
                             {isAr ? story.columnistName : story.columnistNameEn}

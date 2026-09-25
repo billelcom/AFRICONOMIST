@@ -94,6 +94,7 @@ export const CurrencyExchangeWidget: React.FC<CurrencyExchangeWidgetProps> = ({ 
     <DraggableFloatingContainer
       defaultAlign={isAr ? 'left' : 'right'}
       defaultBottomOffset={175}
+      isOpen={stage > 0}
       zIndex={38}
     >
       {({ isDragging }) => (

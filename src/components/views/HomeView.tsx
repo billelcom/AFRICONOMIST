@@ -545,6 +545,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <DraggableFloatingContainer
           defaultAlign={isAr ? 'right' : 'left'}
           defaultBottomOffset={100}
+          isOpen={mobileAccordionStage > 0}
           zIndex={36}
         >
           {({ isDragging }) => (

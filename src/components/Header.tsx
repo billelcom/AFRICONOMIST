@@ -42,7 +42,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-[#070A12]/95 backdrop-blur-md border-b border-slate-800/80 shadow-lg">
+      <header className="w-full bg-[#070A12]/95 backdrop-blur-md border-b border-slate-800/80">
         {/* =========================================================================
             1. MOBILE HEADER BAR (شريط الهاتف المخصص: مسافة متوازنة وجميلة بين اللوغو والشعار)
            ========================================================================= */}

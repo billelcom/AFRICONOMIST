@@ -141,13 +141,10 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
   const [editableMarketImpact, setEditableMarketImpact] = useState<'positive' | 'negative' | 'neutral'>(article.marketImpact || 'positive');
   const [humanReviewerNote, setHumanReviewerNote] = useState<string>(article.reviewNotes || '');
 
-  // Interactive Dropdowns state for Triple Classification
+  // Interactive Dropdowns state for Triple Classification (Direct selection without typing)
   const [openDropdown, setOpenDropdown] = useState<'country' | 'sector' | 'genre' | null>(null);
-  const [countrySearch, setCountrySearch] = useState<string>('');
   const [countryRegionFilter, setCountryRegionFilter] = useState<string>('all');
-  const [sectorSearch, setSectorSearch] = useState<string>('');
   const [sectorGroupFilter, setSectorGroupFilter] = useState<string>('all');
-  const [genreSearch, setGenreSearch] = useState<string>('');
   const [genreCategoryFilter, setGenreCategoryFilter] = useState<string>('all');
 
   const classificationBoxRef = useRef<HTMLDivElement>(null);
@@ -184,56 +181,23 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
 
   // Filtered lists for dropdown menus
   const filteredCountries = useMemo(() => {
-    let list = ALL_54_AFRICAN_COUNTRIES;
-    if (countryRegionFilter !== 'all') {
-      const reg = AFRICAN_REGIONS.find(r => r.id === countryRegionFilter);
-      if (reg && reg.codes) {
-        list = list.filter(c => reg.codes.includes(c.code));
-      }
+    if (countryRegionFilter === 'all') return ALL_54_AFRICAN_COUNTRIES;
+    const reg = AFRICAN_REGIONS.find(r => r.id === countryRegionFilter);
+    if (reg && reg.codes) {
+      return ALL_54_AFRICAN_COUNTRIES.filter(c => reg.codes.includes(c.code));
     }
-    if (countrySearch.trim()) {
-      const q = countrySearch.toLowerCase().trim();
-      list = list.filter(c => 
-        c.nameAr.toLowerCase().includes(q) || 
-        c.nameEn.toLowerCase().includes(q) || 
-        c.code.toLowerCase().includes(q) || 
-        c.capital.toLowerCase().includes(q)
-      );
-    }
-    return list;
-  }, [countrySearch, countryRegionFilter]);
+    return ALL_54_AFRICAN_COUNTRIES;
+  }, [countryRegionFilter]);
 
   const filteredSectors = useMemo(() => {
-    let list = ECONOMIC_SECTORS;
-    if (sectorGroupFilter !== 'all') {
-      list = list.filter(s => s.group === sectorGroupFilter);
-    }
-    if (sectorSearch.trim()) {
-      const q = sectorSearch.toLowerCase().trim();
-      list = list.filter(s => 
-        s.nameAr.toLowerCase().includes(q) || 
-        s.nameEn.toLowerCase().includes(q) || 
-        s.groupNameAr.toLowerCase().includes(q)
-      );
-    }
-    return list;
-  }, [sectorSearch, sectorGroupFilter]);
+    if (sectorGroupFilter === 'all') return ECONOMIC_SECTORS;
+    return ECONOMIC_SECTORS.filter(s => s.group === sectorGroupFilter);
+  }, [sectorGroupFilter]);
 
   const filteredGenres = useMemo(() => {
-    let list = JOURNALISTIC_GENRES;
-    if (genreCategoryFilter !== 'all') {
-      list = list.filter(g => g.category === genreCategoryFilter);
-    }
-    if (genreSearch.trim()) {
-      const q = genreSearch.toLowerCase().trim();
-      list = list.filter(g => 
-        g.nameAr.toLowerCase().includes(q) || 
-        g.nameEn.toLowerCase().includes(q) || 
-        g.descriptionAr.toLowerCase().includes(q)
-      );
-    }
-    return list;
-  }, [genreSearch, genreCategoryFilter]);
+    if (genreCategoryFilter === 'all') return JOURNALISTIC_GENRES;
+    return JOURNALISTIC_GENRES.filter(g => g.category === genreCategoryFilter);
+  }, [genreCategoryFilter]);
 
   // File input ref for device photo upload
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -514,20 +478,21 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
   return (
     <div className="w-full max-w-full mx-auto space-y-6">
       {/* =========================================================================
-          TOP COMMAND & NAVIGATION BAR (شريط التحكم العلوي العريض)
+          TOP COMMAND & NAVIGATION BAR (شريط التحكم العلوي المنظم)
          ========================================================================= */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-[#0A0F1D] to-slate-900 border border-slate-800 shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4 w-full max-w-full">
-        {/* Left: Back & Article Sequence */}
-        <div className="flex flex-wrap items-center gap-3">
+      <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-[#0A0F1D] to-slate-900 border border-slate-800 shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full max-w-full">
+        {/* Left: Navigation Group (غرفة الأخبار + السابق والتالي + معتمد ومنشور + فتح صفحة المقال) */}
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+          {/* 1. زر غرفة الأخبار والأقسام */}
           <button
             onClick={onBackToOverview}
-            className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors flex items-center gap-2 text-xs font-bold cursor-pointer border border-slate-700"
+            className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors flex items-center gap-2 text-xs font-bold cursor-pointer border border-slate-700 hover:border-slate-600 shadow-sm"
           >
-            <ChevronRight className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
+            <ChevronRight className="w-4 h-4 rtl:rotate-0 ltr:rotate-180 text-amber-400" />
             <span>{isAr ? 'غرفة الأخبار والأقسام' : 'Newsroom Desks'}</span>
           </button>
 
-          {/* Sequential Prev / Next Navigator */}
+          {/* 2. Sequential Prev / Next Navigator (السابق والتالي في الأعلى جنب غرفة الأخبار) */}
           <div className="flex items-center gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800 shadow-inner">
             <button
               type="button"
@@ -543,7 +508,7 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
               <span>{isAr ? 'السابق' : 'Prev'}</span>
             </button>
 
-            <span className="font-mono text-xs font-bold text-amber-400 px-3">
+            <span className="font-mono text-xs font-bold text-amber-400 px-2.5">
               {articleIndex + 1} / {totalArticlesCount}
             </span>
 
@@ -562,8 +527,10 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
             </button>
           </div>
 
-          {/* Status Badge */}
-          <span className={`text-xs px-3 py-1.5 rounded-xl font-bold font-mono border ${
+          <div className="h-5 w-px bg-slate-800 hidden sm:block mx-1" />
+
+          {/* 3. Status Badge (معتمد ومنشور) */}
+          <span className={`text-xs px-3 py-1.5 rounded-xl font-bold font-mono border flex items-center gap-1.5 ${
             article.status === 'published'
               ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
               : article.status === 'rejected'
@@ -574,15 +541,27 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
              article.status === 'rejected' ? (isAr ? '📦 في الأرشيف' : 'Archived') :
              (isAr ? '⏳ قيد المراجعة البشرية' : 'Pending Review')}
           </span>
+
+          {/* 4. فتح صفحة المقالات المستقلة - أمام يعني جنب معتمد ومنشور مباشرة */}
+          {onPreviewArticle && (
+            <button
+              type="button"
+              onClick={() => onPreviewArticle(buildCurrentUpdatedArticle())}
+              className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/15 to-amber-600/20 hover:from-amber-500/25 hover:to-amber-600/30 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-2 shadow-sm transition-all cursor-pointer hover:text-white"
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
+              <span>{isAr ? 'فتح صفحة المقال المستقلة' : 'Open in Article View'}</span>
+            </button>
+          )}
         </div>
 
-        {/* Right: View Mode Toggle & Direct Reader Preview Button */}
-        <div className="flex flex-wrap items-center gap-2.5">
-          <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+        {/* Right: View Mode Toggle */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 shadow-inner">
             <button
               type="button"
               onClick={() => setViewMode('edit')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                 viewMode === 'edit'
                   ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 shadow-sm'
                   : 'text-slate-400 hover:text-white'
@@ -595,7 +574,7 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
             <button
               type="button"
               onClick={() => setViewMode('paper_preview')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                 viewMode === 'paper_preview'
                   ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 shadow-sm'
                   : 'text-slate-400 hover:text-white'
@@ -605,18 +584,6 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
               <span>{isAr ? 'المعاينة الورقية الحية' : 'Live Paper Preview'}</span>
             </button>
           </div>
-
-          {/* Direct Open in Full Reader Page */}
-          {onPreviewArticle && (
-            <button
-              type="button"
-              onClick={() => onPreviewArticle(buildCurrentUpdatedArticle())}
-              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-2 shadow-sm transition-all cursor-pointer"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span>{isAr ? 'فتح في صفحة المقالات المستقلة' : 'Open in Article View'}</span>
-            </button>
-          )}
         </div>
       </div>
 
@@ -649,11 +616,11 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
                 }}
                 rows={1}
                 placeholder={isAr ? "اكتب عنوان التقرير هنا..." : "Enter headline..."}
-                className="w-full bg-slate-950/90 border border-slate-800 rounded-xl px-4 py-3 text-white text-base sm:text-lg font-black focus:outline-none focus:border-amber-500/80 leading-relaxed overflow-hidden resize-none no-scrollbar shadow-inner"
+                className="w-full bg-slate-950/90 border border-slate-800 rounded-xl px-4 py-3 text-white text-lg sm:text-xl md:text-2xl font-black focus:outline-none focus:border-amber-500/80 leading-relaxed overflow-hidden resize-none no-scrollbar shadow-inner"
               />
             </div>
 
-            {/* Box 2: Featured Lead Image for Homepage Card (خاصية إضافة صورة التي تظهر في الصفحة الرئيسية مع العنوان والملخص) */}
+            {/* Box 2: Featured Lead Image */}
             <div className="p-5 sm:p-6 rounded-2xl bg-[#080C17] border border-slate-800 shadow-xl space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
                 <div className="flex items-center gap-2">
@@ -662,12 +629,12 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
                   </div>
                   <div>
                     <h3 className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
-                      <span>{isAr ? 'صورة المقال الرئيسية (المعروضة بالصفحة الرئيسية مع العنوان والملخص)' : 'Lead Article Image (Featured on Homepage with Headline & Summary)'}</span>
+                      <span>{isAr ? 'صورة المقال الرئيسية' : 'Lead Article Image'}</span>
                     </h3>
                     <p className="text-[10.5px] text-slate-400 mt-0.5">
                       {isAr 
-                        ? 'تظهر هذه الصورة في الصفحة الرئيسية مباشرة بجانب العنوان وموجز التقرير، وفي صدارة بطاقة العرض.' 
-                        : 'This image appears on the homepage directly alongside the article headline and summary.'}
+                        ? 'تظهر هذه الصورة في صدارة التقرير وبطاقات العرض المعتمدة.' 
+                        : 'This image appears at the forefront of the verified editorial report.'}
                     </p>
                   </div>
                 </div>
@@ -707,7 +674,7 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
                     {/* Headline + Small Square Image Box Side-by-Side */}
                     <div className="flex items-start justify-between gap-2.5 mb-2">
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-xs sm:text-[13px] font-bold text-white line-clamp-2 leading-snug">
+                        <h4 className="text-sm sm:text-base font-bold text-white line-clamp-2 leading-snug">
                           {editableTitle || (isAr ? 'عنوان التقرير الصحفي...' : 'Article Headline...')}
                         </h4>
                         <div className="flex items-center gap-1 text-[9px] font-mono text-slate-400 mt-1">
@@ -1139,23 +1106,22 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
                       <Globe className="w-3.5 h-3.5 text-amber-400" />
                       <span>{isAr ? 'قائمة الدول الإفريقية (54 دولة معتمدة):' : 'African Countries List (54 Sovereign States):'}</span>
                     </label>
-                    <span className="text-[10px] text-slate-500 font-mono">
+                    <span className="text-[10px] text-slate-400 font-mono">
                       {selectedCountryObj?.code || 'DZ'} · {selectedCountryObj?.capital || ''}
                     </span>
                   </div>
 
-                  {/* Trigger Button */}
+                  {/* Trigger Button - خلفية بيضاء وكتابة بالأسود */}
                   <button
                     type="button"
                     onClick={() => {
                       setOpenDropdown(openDropdown === 'country' ? null : 'country');
-                      setCountrySearch('');
                       setCountryRegionFilter('all');
                     }}
-                    className={`w-full px-3 py-2.5 rounded-xl border text-right transition-all flex items-center justify-between cursor-pointer shadow-sm ${
+                    className={`w-full px-3.5 py-2.5 rounded-xl border text-right transition-all flex items-center justify-between cursor-pointer shadow-sm ${
                       openDropdown === 'country'
-                        ? 'bg-slate-900 border-amber-500 ring-2 ring-amber-500/20'
-                        : 'bg-slate-950 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60'
+                        ? 'bg-white border-amber-500 ring-2 ring-amber-500/20 text-slate-900'
+                        : 'bg-white border-slate-300 hover:border-slate-400 text-slate-900 hover:bg-slate-50'
                     }`}
                   >
                     <div className="flex items-center gap-2 min-w-0">
@@ -1163,11 +1129,11 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
                         {selectedCountryObj ? getCountryFlagEmoji(selectedCountryObj.code) : '🌍'}
                       </span>
                       <div className="truncate">
-                        <span className="text-white font-bold text-xs">
+                        <span className="text-slate-900 font-bold text-xs">
                           {editableCountry}
                         </span>
                         {selectedCountryObj && (
-                          <span className="text-slate-400 text-[11px] font-mono mx-1.5">
+                          <span className="text-slate-500 text-[11px] font-mono mx-1.5">
                             ({selectedCountryObj.nameEn})
                           </span>
                         )}
@@ -1176,43 +1142,21 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
 
                     <div className="flex items-center gap-2 shrink-0">
                       {selectedCountryObj && (
-                        <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-mono font-bold">
+                        <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-mono font-bold">
                           {selectedCountryObj.code}
                         </span>
                       )}
                       <ChevronDown
-                        className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
-                          openDropdown === 'country' ? 'rotate-180 text-amber-400' : ''
+                        className={`w-4 h-4 text-slate-600 transition-transform duration-200 ${
+                          openDropdown === 'country' ? 'rotate-180 text-amber-600' : ''
                         }`}
                       />
                     </div>
                   </button>
 
-                  {/* Dropdown Menu */}
+                  {/* Dropdown Menu - خلفية بيضاء وكتابة بالأسود بدون بحث كتابي */}
                   {openDropdown === 'country' && (
-                    <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-[#0C111D] border border-slate-700 rounded-2xl shadow-2xl p-3 space-y-2.5 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-xl">
-                      {/* Search box */}
-                      <div className="relative">
-                        <Search className="w-3.5 h-3.5 absolute top-2.5 ltr:left-3 rtl:right-3 text-slate-500" />
-                        <input
-                          type="text"
-                          autoFocus
-                          value={countrySearch}
-                          onChange={(e) => setCountrySearch(e.target.value)}
-                          placeholder={isAr ? "ابحث بالاسم العربي، الإنجليزي، العاصمة أو الرمز..." : "Search by Arabic, English, capital, or code..."}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-xl py-1.5 ltr:pl-8 ltr:pr-7 rtl:pr-8 rtl:pl-7 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
-                        />
-                        {countrySearch && (
-                          <button
-                            type="button"
-                            onClick={() => setCountrySearch('')}
-                            className="absolute top-2 ltr:right-2 rtl:left-2 text-slate-500 hover:text-white"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-
+                    <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white border border-slate-300 rounded-2xl shadow-2xl p-3 space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
                       {/* Regional Quick Filter Pills */}
                       <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar text-[10px]">
                         {AFRICAN_REGIONS.map((reg) => (
@@ -1220,10 +1164,10 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
                             key={reg.id}
                             type="button"
                             onClick={() => setCountryRegionFilter(reg.id)}
-                            className={`px-2 py-0.5 rounded-lg whitespace-nowrap border transition-colors cursor-pointer ${
+                            className={`px-2.5 py-1 rounded-lg whitespace-nowrap border transition-colors cursor-pointer text-[10px] font-medium ${
                               countryRegionFilter === reg.id
-                                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 font-bold'
-                                : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                                ? 'bg-amber-600 text-white border-amber-700 font-bold shadow-sm'
+                                : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
                             }`}
                           >
                             {isAr ? reg.labelAr : reg.labelEn}
@@ -1232,10 +1176,10 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
                       </div>
 
                       {/* Countries List */}
-                      <div className="max-h-56 overflow-y-auto space-y-1 pr-0.5 no-scrollbar">
+                      <div className="max-h-60 overflow-y-auto space-y-1 pr-0.5 no-scrollbar divide-y divide-slate-100">
                         {filteredCountries.length === 0 ? (
                           <div className="p-4 text-center text-slate-500 text-xs">
-                            {isAr ? 'لم يتم العثور على دولة مطابقة' : 'No country matched search'}
+                            {isAr ? 'لم يتم العثور على دولة' : 'No country available'}
                           </div>
                         ) : (
                           filteredCountries.map((c) => {
@@ -1250,16 +1194,16 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
                                 }}
                                 className={`w-full p-2 rounded-xl text-right transition-all flex items-center justify-between cursor-pointer ${
                                   isSelected
-                                    ? 'bg-amber-500/15 border border-amber-500/40 text-amber-200'
-                                    : 'hover:bg-slate-900 text-slate-200 border border-transparent'
+                                    ? 'bg-amber-50 border border-amber-400 text-slate-900 font-bold shadow-sm'
+                                    : 'hover:bg-slate-100 text-slate-800 border border-transparent'
                                 }`}
                               >
                                 <div className="flex items-center gap-2 min-w-0">
                                   <span className="text-lg leading-none">{getCountryFlagEmoji(c.code)}</span>
                                   <div className="truncate">
-                                    <div className="font-bold text-xs text-white flex items-center gap-1.5">
+                                    <div className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
                                       <span>{c.nameAr}</span>
-                                      <span className="text-[10px] text-slate-400 font-mono font-normal">({c.nameEn})</span>
+                                      <span className="text-[10px] text-slate-500 font-mono font-normal">({c.nameEn})</span>
                                     </div>
                                     <div className="text-[10px] text-slate-500 font-mono">
                                       {isAr ? 'العاصمة:' : 'Capital:'} {c.capital} · {c.gdp}
@@ -1268,10 +1212,10 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
                                 </div>
 
                                 <div className="flex items-center gap-2 shrink-0">
-                                  <span className="font-mono text-[10px] text-slate-400 px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800">
+                                  <span className="font-mono text-[10px] text-slate-700 px-1.5 py-0.5 rounded bg-slate-100 border border-slate-300">
                                     {c.code}
                                   </span>
-                                  {isSelected && <Check className="w-3.5 h-3.5 text-amber-400" />}
+                                  {isSelected && <Check className="w-3.5 h-3.5 text-amber-600" />}
                                 </div>
                               </button>
                             );
@@ -1289,33 +1233,32 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
                       <TrendingUp className="w-3.5 h-3.5 text-blue-400" />
                       <span>{isAr ? 'قائمة القطاعات الاقتصادية (28 قطاعاً معتمداً):' : 'Economic Sectors List (28 Approved Domains):'}</span>
                     </label>
-                    <span className="text-[10px] text-slate-500 font-mono">
+                    <span className="text-[10px] text-slate-400 font-mono">
                       {selectedSectorObj?.groupNameAr || ''}
                     </span>
                   </div>
 
-                  {/* Trigger Button */}
+                  {/* Trigger Button - خلفية بيضاء وكتابة بالأسود */}
                   <button
                     type="button"
                     onClick={() => {
                       setOpenDropdown(openDropdown === 'sector' ? null : 'sector');
-                      setSectorSearch('');
                       setSectorGroupFilter('all');
                     }}
-                    className={`w-full px-3 py-2.5 rounded-xl border text-right transition-all flex items-center justify-between cursor-pointer shadow-sm ${
+                    className={`w-full px-3.5 py-2.5 rounded-xl border text-right transition-all flex items-center justify-between cursor-pointer shadow-sm ${
                       openDropdown === 'sector'
-                        ? 'bg-slate-900 border-blue-500 ring-2 ring-blue-500/20'
-                        : 'bg-slate-950 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60'
+                        ? 'bg-white border-blue-500 ring-2 ring-blue-500/20 text-slate-900'
+                        : 'bg-white border-slate-300 hover:border-slate-400 text-slate-900 hover:bg-slate-50'
                     }`}
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-2 h-2 rounded-full bg-blue-400 shrink-0"></div>
+                      <div className="w-2.5 h-2.5 rounded-full bg-blue-600 shrink-0"></div>
                       <div className="truncate">
-                        <span className="text-white font-bold text-xs">
+                        <span className="text-slate-900 font-bold text-xs">
                           {editableSector}
                         </span>
                         {selectedSectorObj && (
-                          <span className="text-slate-400 text-[11px] font-mono mx-1.5">
+                          <span className="text-slate-500 text-[11px] font-mono mx-1.5">
                             ({selectedSectorObj.nameEn})
                           </span>
                         )}
@@ -1324,43 +1267,21 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
 
                     <div className="flex items-center gap-2 shrink-0">
                       {selectedSectorObj && (
-                        <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/30 text-[10px] font-bold">
+                        <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-300 text-[10px] font-bold">
                           {selectedSectorObj.groupNameAr}
                         </span>
                       )}
                       <ChevronDown
-                        className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
-                          openDropdown === 'sector' ? 'rotate-180 text-blue-400' : ''
+                        className={`w-4 h-4 text-slate-600 transition-transform duration-200 ${
+                          openDropdown === 'sector' ? 'rotate-180 text-blue-600' : ''
                         }`}
                       />
                     </div>
                   </button>
 
-                  {/* Dropdown Menu */}
+                  {/* Dropdown Menu - خلفية بيضاء وكتابة بالأسود بدون بحث كتابي */}
                   {openDropdown === 'sector' && (
-                    <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-[#0C111D] border border-slate-700 rounded-2xl shadow-2xl p-3 space-y-2.5 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-xl">
-                      {/* Search box */}
-                      <div className="relative">
-                        <Search className="w-3.5 h-3.5 absolute top-2.5 ltr:left-3 rtl:right-3 text-slate-500" />
-                        <input
-                          type="text"
-                          autoFocus
-                          value={sectorSearch}
-                          onChange={(e) => setSectorSearch(e.target.value)}
-                          placeholder={isAr ? "ابحث عن قطاع اقتصادي أو مجال مالي..." : "Search by sector or domain..."}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-xl py-1.5 ltr:pl-8 ltr:pr-7 rtl:pr-8 rtl:pl-7 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
-                        />
-                        {sectorSearch && (
-                          <button
-                            type="button"
-                            onClick={() => setSectorSearch('')}
-                            className="absolute top-2 ltr:right-2 rtl:left-2 text-slate-500 hover:text-white"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-
+                    <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white border border-slate-300 rounded-2xl shadow-2xl p-3 space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
                       {/* Group Quick Filter Pills */}
                       <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar text-[10px]">
                         {SECTOR_GROUPS.map((grp) => (
@@ -1368,10 +1289,10 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
                             key={grp.id}
                             type="button"
                             onClick={() => setSectorGroupFilter(grp.id)}
-                            className={`px-2 py-0.5 rounded-lg whitespace-nowrap border transition-colors cursor-pointer ${
+                            className={`px-2.5 py-1 rounded-lg whitespace-nowrap border transition-colors cursor-pointer text-[10px] font-medium ${
                               sectorGroupFilter === grp.id
-                                ? 'bg-blue-500/20 text-blue-300 border-blue-500/40 font-bold'
-                                : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                                ? 'bg-blue-600 text-white border-blue-700 font-bold shadow-sm'
+                                : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
                             }`}
                           >
                             {isAr ? grp.labelAr : grp.labelEn}
@@ -1380,10 +1301,10 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
                       </div>
 
                       {/* Sectors List */}
-                      <div className="max-h-56 overflow-y-auto space-y-1 pr-0.5 no-scrollbar">
+                      <div className="max-h-60 overflow-y-auto space-y-1 pr-0.5 no-scrollbar divide-y divide-slate-100">
                         {filteredSectors.length === 0 ? (
                           <div className="p-4 text-center text-slate-500 text-xs">
-                            {isAr ? 'لم يتم العثور على قطاع مطابق' : 'No sector matched search'}
+                            {isAr ? 'لم يتم العثور على قطاع' : 'No sector available'}
                           </div>
                         ) : (
                           filteredSectors.map((s) => {
@@ -1398,14 +1319,14 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
                                 }}
                                 className={`w-full p-2 rounded-xl text-right transition-all flex items-center justify-between cursor-pointer ${
                                   isSelected
-                                    ? 'bg-blue-500/15 border border-blue-500/40 text-blue-200'
-                                    : 'hover:bg-slate-900 text-slate-200 border border-transparent'
+                                    ? 'bg-blue-50 border border-blue-400 text-slate-900 font-bold shadow-sm'
+                                    : 'hover:bg-slate-100 text-slate-800 border border-transparent'
                                 }`}
                               >
                                 <div className="truncate">
-                                  <div className="font-bold text-xs text-white flex items-center gap-1.5">
+                                  <div className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
                                     <span>{s.nameAr}</span>
-                                    <span className="text-[10px] text-slate-400 font-mono font-normal">({s.nameEn})</span>
+                                    <span className="text-[10px] text-slate-500 font-mono font-normal">({s.nameEn})</span>
                                   </div>
                                   <div className="text-[10px] text-slate-500">
                                     {s.groupNameAr}
@@ -1413,10 +1334,10 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
                                 </div>
 
                                 <div className="flex items-center gap-2 shrink-0">
-                                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 border border-slate-800">
+                                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-300 font-medium">
                                     {s.group}
                                   </span>
-                                  {isSelected && <Check className="w-3.5 h-3.5 text-blue-400" />}
+                                  {isSelected && <Check className="w-3.5 h-3.5 text-blue-600" />}
                                 </div>
                               </button>
                             );
@@ -1434,33 +1355,32 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
                       <FileText className="w-3.5 h-3.5 text-purple-400" />
                       <span>{isAr ? 'قائمة الأنواع الصحفية (18 نوعاً وقالب صحفي):' : 'Journalistic Genres List (18 Formats):'}</span>
                     </label>
-                    <span className="text-[10px] text-slate-500 font-mono">
+                    <span className="text-[10px] text-slate-400 font-mono">
                       {selectedGenreObj?.category || ''}
                     </span>
                   </div>
 
-                  {/* Trigger Button */}
+                  {/* Trigger Button - خلفية بيضاء وكتابة بالأسود */}
                   <button
                     type="button"
                     onClick={() => {
                       setOpenDropdown(openDropdown === 'genre' ? null : 'genre');
-                      setGenreSearch('');
                       setGenreCategoryFilter('all');
                     }}
-                    className={`w-full px-3 py-2.5 rounded-xl border text-right transition-all flex items-center justify-between cursor-pointer shadow-sm ${
+                    className={`w-full px-3.5 py-2.5 rounded-xl border text-right transition-all flex items-center justify-between cursor-pointer shadow-sm ${
                       openDropdown === 'genre'
-                        ? 'bg-slate-900 border-purple-500 ring-2 ring-purple-500/20'
-                        : 'bg-slate-950 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60'
+                        ? 'bg-white border-purple-500 ring-2 ring-purple-500/20 text-slate-900'
+                        : 'bg-white border-slate-300 hover:border-slate-400 text-slate-900 hover:bg-slate-50'
                     }`}
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-2 h-2 rounded-full bg-purple-400 shrink-0"></div>
+                      <div className="w-2.5 h-2.5 rounded-full bg-purple-600 shrink-0"></div>
                       <div className="truncate">
-                        <span className="text-white font-bold text-xs">
+                        <span className="text-slate-900 font-bold text-xs">
                           {editableGenre}
                         </span>
                         {selectedGenreObj && (
-                          <span className="text-slate-400 text-[11px] font-mono mx-1.5">
+                          <span className="text-slate-500 text-[11px] font-mono mx-1.5">
                             ({selectedGenreObj.nameEn})
                           </span>
                         )}
@@ -1469,43 +1389,21 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
 
                     <div className="flex items-center gap-2 shrink-0">
                       {selectedGenreObj && (
-                        <span className="px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/30 text-[10px] font-bold">
+                        <span className="px-1.5 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-300 text-[10px] font-bold">
                           {selectedGenreObj.category}
                         </span>
                       )}
                       <ChevronDown
-                        className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
-                          openDropdown === 'genre' ? 'rotate-180 text-purple-400' : ''
+                        className={`w-4 h-4 text-slate-600 transition-transform duration-200 ${
+                          openDropdown === 'genre' ? 'rotate-180 text-purple-600' : ''
                         }`}
                       />
                     </div>
                   </button>
 
-                  {/* Dropdown Menu */}
+                  {/* Dropdown Menu - خلفية بيضاء وكتابة بالأسود بدون بحث كتابي */}
                   {openDropdown === 'genre' && (
-                    <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-[#0C111D] border border-slate-700 rounded-2xl shadow-2xl p-3 space-y-2.5 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-xl">
-                      {/* Search box */}
-                      <div className="relative">
-                        <Search className="w-3.5 h-3.5 absolute top-2.5 ltr:left-3 rtl:right-3 text-slate-500" />
-                        <input
-                          type="text"
-                          autoFocus
-                          value={genreSearch}
-                          onChange={(e) => setGenreSearch(e.target.value)}
-                          placeholder={isAr ? "ابحث عن قالب (تحقيق، خبر، تحليل، تقرير، حوار...)..." : "Search by format (brief, report, op-ed, interview...)..."}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-xl py-1.5 ltr:pl-8 ltr:pr-7 rtl:pr-8 rtl:pl-7 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500"
-                        />
-                        {genreSearch && (
-                          <button
-                            type="button"
-                            onClick={() => setGenreSearch('')}
-                            className="absolute top-2 ltr:right-2 rtl:left-2 text-slate-500 hover:text-white"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-
+                    <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white border border-slate-300 rounded-2xl shadow-2xl p-3 space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
                       {/* Category Quick Filter Pills */}
                       <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar text-[10px]">
                         {GENRE_CATEGORIES.map((cat) => (
@@ -1513,10 +1411,10 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
                             key={cat.id}
                             type="button"
                             onClick={() => setGenreCategoryFilter(cat.id)}
-                            className={`px-2 py-0.5 rounded-lg whitespace-nowrap border transition-colors cursor-pointer ${
+                            className={`px-2.5 py-1 rounded-lg whitespace-nowrap border transition-colors cursor-pointer text-[10px] font-medium ${
                               genreCategoryFilter === cat.id
-                                ? 'bg-purple-500/20 text-purple-300 border-purple-500/40 font-bold'
-                                : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                                ? 'bg-purple-600 text-white border-purple-700 font-bold shadow-sm'
+                                : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
                             }`}
                           >
                             {isAr ? cat.labelAr : cat.labelEn}
@@ -1525,10 +1423,10 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
                       </div>
 
                       {/* Genres List with Editorial Descriptions */}
-                      <div className="max-h-60 overflow-y-auto space-y-1.5 pr-0.5 no-scrollbar">
+                      <div className="max-h-64 overflow-y-auto space-y-1.5 pr-0.5 no-scrollbar divide-y divide-slate-100">
                         {filteredGenres.length === 0 ? (
                           <div className="p-4 text-center text-slate-500 text-xs">
-                            {isAr ? 'لم يتم العثور على نوع صحفي مطابق' : 'No genre matched search'}
+                            {isAr ? 'لم يتم العثور على نوع صحفي' : 'No genre available'}
                           </div>
                         ) : (
                           filteredGenres.map((g) => {
@@ -1543,23 +1441,23 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
                                 }}
                                 className={`w-full p-2.5 rounded-xl text-right transition-all flex flex-col gap-1 cursor-pointer border ${
                                   isSelected
-                                    ? 'bg-purple-500/15 border-purple-500/40 text-purple-200 shadow-sm'
-                                    : 'hover:bg-slate-900 text-slate-200 border-slate-900 bg-slate-950/40'
+                                    ? 'bg-purple-50 border-purple-400 text-purple-950 font-bold shadow-sm'
+                                    : 'hover:bg-slate-100 text-slate-800 border-transparent bg-white'
                                 }`}
                               >
                                 <div className="flex items-center justify-between w-full">
                                   <div className="flex items-center gap-2">
-                                    <span className="font-bold text-xs text-white">{g.nameAr}</span>
-                                    <span className="text-[10px] text-slate-400 font-mono">({g.nameEn})</span>
+                                    <span className="font-bold text-xs text-slate-900">{g.nameAr}</span>
+                                    <span className="text-[10px] text-slate-500 font-mono">({g.nameEn})</span>
                                   </div>
                                   <div className="flex items-center gap-2">
-                                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 font-bold border border-purple-500/20">
+                                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-800 font-bold border border-purple-300">
                                       {g.category}
                                     </span>
-                                    {isSelected && <Check className="w-3.5 h-3.5 text-purple-400" />}
+                                    {isSelected && <Check className="w-3.5 h-3.5 text-purple-600" />}
                                   </div>
                                 </div>
-                                <p className="text-[10.5px] text-slate-400/90 leading-relaxed text-right">
+                                <p className="text-[10.5px] text-slate-600 leading-relaxed text-right">
                                   {g.descriptionAr}
                                 </p>
                               </button>
@@ -1670,7 +1568,7 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
             </div>
 
             {/* Big Headline */}
-            <h1 className="text-xl sm:text-3xl lg:text-4xl font-black text-stone-900 leading-tight font-serif">
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-stone-900 leading-tight font-serif">
               {editableTitle}
             </h1>
 

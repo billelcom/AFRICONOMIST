@@ -931,7 +931,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                       {isAr ? 'أقسام القطاعات الإفريقية الحية' : 'Live Sector Desks'}
                     </span>
                   </div>
-                  <h1 className="text-lg sm:text-2xl font-black text-white">
+                  <h1 className="text-xl sm:text-3xl font-black text-white">
                     {isAr ? 'تدفقات الرصد الميداني والتقارير الصحفية' : 'Continental Ingestion & Sector Streams'}
                   </h1>
                   <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
@@ -975,7 +975,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                             <SectorIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                           </div>
                           <div>
-                            <h3 className="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
+                            <h3 className="text-base sm:text-lg md:text-xl font-black text-slate-900 flex items-center gap-2">
                               <span>{isAr ? sector.nameAr : sector.nameEn}</span>
                               <span className="text-[10px] sm:text-[11px] font-mono px-2 py-0.2 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
                                 {sectorArticles.length} {isAr ? 'تقارير' : 'reports'}
@@ -1060,7 +1060,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                                 </div>
 
                                 {/* Title */}
-                                <h4 className="text-xs sm:text-sm font-bold text-white group-hover:text-amber-400 transition-colors line-clamp-2 leading-snug">
+                                <h4 className="text-sm sm:text-base md:text-lg font-bold text-white group-hover:text-amber-400 transition-colors line-clamp-2 leading-snug">
                                   {art.title}
                                 </h4>
 
@@ -1212,7 +1212,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                           {isAr ? 'بانتظار المشرف' : 'Review Needed'}
                         </span>
                       </div>
-                      <h4 className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors line-clamp-2">
+                      <h4 className="text-base sm:text-lg font-bold text-white group-hover:text-amber-400 transition-colors line-clamp-2">
                         {art.title}
                       </h4>
                       <p className="text-xs text-slate-400 line-clamp-2">
@@ -1369,7 +1369,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                         {isAr ? 'منشور للجمهور' : 'Live'}
                       </span>
                     </div>
-                    <h4 className="text-sm font-bold text-white group-hover:text-teal-400 transition-colors line-clamp-2">
+                    <h4 className="text-base sm:text-lg font-bold text-white group-hover:text-teal-400 transition-colors line-clamp-2">
                       {art.title}
                     </h4>
                     <p className="text-xs text-slate-400 line-clamp-2">
@@ -1430,7 +1430,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                           {isAr ? 'مؤرشف' : 'Archived'}
                         </span>
                       </div>
-                      <h4 className="text-sm font-bold text-slate-300 group-hover:text-white transition-colors line-clamp-2">
+                      <h4 className="text-base sm:text-lg font-bold text-slate-300 group-hover:text-white transition-colors line-clamp-2">
                         {art.title}
                       </h4>
                       <p className="text-xs text-slate-500 line-clamp-2">

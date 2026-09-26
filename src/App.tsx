@@ -681,13 +681,13 @@ export default function App() {
 
       {/* Professional Financial Media Footer (تصميم احترافي متوازن مع أزرار المشاركة وتوسيط شريط الحقوق) */}
       <footer className="border-t border-slate-800/90 bg-[#050811] text-slate-400 text-xs mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-6 sm:pb-8 border-b border-slate-800/80">
-            {/* Column 1: Brand Info & Mission + Social Icons in one row without frames */}
-            <div className="lg:col-span-5 space-y-3.5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 pb-4 sm:pb-5 border-b border-slate-800/80 items-center">
+            {/* Column 1: Brand Info & Mission + Social Icons (توسيط اللوغو والنص التعريفي والأيقونات دون إطارات) */}
+            <div className="lg:col-span-5 flex flex-col items-center justify-center text-center space-y-3 mx-auto">
               <div 
                 onClick={() => navigateToTab('home')}
-                className="flex items-center gap-2 cursor-pointer select-none group inline-flex"
+                className="flex items-center justify-center gap-2 cursor-pointer select-none group inline-flex"
               >
                 <span className={`font-black text-white font-mono tracking-tight group-hover:text-amber-400 transition-colors ${
                   isAr ? 'text-lg sm:text-xl' : 'text-base tracking-wider'
@@ -699,29 +699,15 @@ export default function App() {
                   {isAr ? 'صحيفة الاقتصاد الإفريقي' : 'African Economic Journal'}
                 </span>
               </div>
-              <p className="text-slate-400 text-xs leading-relaxed max-w-md">
+              <p className="text-slate-400 text-xs leading-relaxed max-w-md text-center">
                 {isAr
                   ? 'مؤسسة صحفية مالية واستقصائية مستقلة ترصد تطورات أسواق المال، استثمارات الطاقة، ومؤشرات الاقتصاد الكلي عبر كافة الدول الأفريقية الـ 54.'
                   : 'Independent financial publication tracking capital markets, sovereign debt, and macroeconomic indicators across all 54 African nations.'}
               </p>
 
-              {/* شارة واتساب مع الرقم */}
-              <div className="pt-0.5">
-                <a
-                  href="https://wa.me/213656180056"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300 text-xs font-mono font-bold transition-colors"
-                  title={isAr ? 'تواصل عبر واتساب' : 'Chat on WhatsApp'}
-                >
-                  <MessageCircle className="w-4 h-4 text-emerald-400" />
-                  <span dir="ltr">+213656180056</span>
-                </a>
-              </div>
-
               {/* روابط التواصل الاجتماعي: أيقونات فقط دون إطارات في صف واحد */}
-              <div className="pt-2">
-                <div className="flex items-center gap-4 text-slate-400">
+              <div className="pt-1">
+                <div className="flex items-center justify-center gap-4 text-slate-400">
                   <a
                     href="https://facebook.com"
                     target="_blank"
@@ -781,7 +767,7 @@ export default function App() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-slate-400 hover:text-[#25D366] hover:scale-115 transition-all p-0.5"
-                    title="WhatsApp"
+                    title={isAr ? 'واتساب' : 'WhatsApp'}
                   >
                     <MessageCircle className="w-4 h-4" />
                   </a>
@@ -895,14 +881,14 @@ export default function App() {
             </div>
           </div>
 
-          {/* Centered Copyright & Governance Bar (يتوسط الشاشة بدون هوامش كبيرة ودون التصاق بين الأجزاء) */}
-          <div className="flex flex-col items-center justify-center text-center space-y-2.5 pt-1">
+          {/* Centered Copyright & Governance Bar (هوامش علوية وسفلية مقلصة ومتناسقة) */}
+          <div className="flex flex-col items-center justify-center text-center space-y-1.5 pt-0.5 pb-0.5">
             <p className="text-xs text-slate-400 font-medium">
               {isAr
                 ? '© 2026 لافريكونوميست (L’Africonomist) - صحيفة الاقتصاد الإفريقي · جميع الحقوق محفوظة للناشر GOODATA'
                 : '© 2026 L’Africonomist - African Economic Journal. All rights reserved by GOODATA.'}
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5 text-xs text-slate-400">
+            <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-4 text-xs text-slate-400">
               <button 
                 onClick={() => navigateToTab('privacy')}
                 className="hover:text-amber-400 transition-colors cursor-pointer"

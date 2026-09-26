@@ -390,6 +390,17 @@ export default function App() {
     }
   };
 
+  const handleSaveArticle = (updatedArticle: Article) => {
+    setArticles(prev => {
+      const updated = prev.map(art => art.id === updatedArticle.id ? updatedArticle : art);
+      saveArticlesToLocal(updated);
+      return updated;
+    });
+    if (selectedArticle && selectedArticle.id === updatedArticle.id) {
+      setSelectedArticle(updatedArticle);
+    }
+  };
+
   // معالجة تحديث معطيات أي دولة وإعادة الترتيب التلقائي الفوري
   const handleUpdateCountry = (updatedCountry: AfricanCountryProfile) => {
     setCountries(prev => {
@@ -620,6 +631,8 @@ export default function App() {
             articles={articles}
             onUpdateArticleStatus={handleUpdateArticleStatus}
             onAddNewDraft={handleAddNewDraft}
+            onSaveArticle={handleSaveArticle}
+            onPreviewArticle={handleSelectArticle}
             lang={lang}
             secondsUntilNextCycle={secondsUntilNextCycle}
             isAutomatedIngesting={isAutomatedIngesting}

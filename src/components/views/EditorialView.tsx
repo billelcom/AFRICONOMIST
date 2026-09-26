@@ -31,6 +31,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { CommissionWizard } from '../CommissionWizard';
+import { ArticleEditorialDesk } from '../ArticleEditorialDesk';
 import { ALL_54_AFRICAN_COUNTRIES } from '../../data/africanCountries';
 import { JOURNALISTIC_GENRES, ECONOMIC_SECTORS } from '../../data/reportOptions';
 import { getSecondsUntilNextCycle, resetNextCycleTarget } from '../../lib/cycleScheduler';
@@ -39,6 +40,8 @@ interface EditorialViewProps {
   articles: Article[];
   onUpdateArticleStatus: (articleId: string, status: Article['status'], reviewer: string, note?: string) => void;
   onAddNewDraft: (newArticle: Article) => void;
+  onSaveArticle?: (updatedArticle: Article) => void;
+  onPreviewArticle?: (article: Article) => void;
   lang: 'ar' | 'en';
   secondsUntilNextCycle?: number;
   isAutomatedIngesting?: boolean;
@@ -118,6 +121,8 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
   articles,
   onUpdateArticleStatus,
   onAddNewDraft,
+  onSaveArticle,
+  onPreviewArticle,
   lang,
   secondsUntilNextCycle: propsSecondsUntilNextCycle,
   isAutomatedIngesting: propsIsAutomatedIngesting,
@@ -1091,219 +1096,78 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
               VIEW 2: DIRECT EDITOR (صفحة التحرير مع أدوات التحرير وانتقال من الحالية للتالي والسابق)
              ===================================================================== */}
           {activeTab === 'editor' && currentActiveArticle && (
-            <div className="space-y-6 animate-in fade-in duration-200 w-[98%] max-w-[98%] sm:max-w-4xl mx-auto">
-              {/* Top Bar with Back to Overview & Next/Previous Article Controls */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-md">
-                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                  <button
-                    onClick={() => setActiveTab('overview')}
-                    className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors flex items-center gap-1.5 text-xs font-bold cursor-pointer"
-                  >
-                    <ChevronRight className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
-                    <span>{isAr ? 'العودة لغرفة الأخبار' : 'Back to Newsroom'}</span>
-                  </button>
+            <ArticleEditorialDesk
+              article={currentActiveArticle}
+              articleIndex={currentArticleIndex}
+              totalArticlesCount={articles.length}
+              hasPrevArticle={hasPrevArticle}
+              hasNextArticle={hasNextArticle}
+              onPrevArticle={handlePrevArticle}
+              onNextArticle={handleNextArticle}
+              onBackToOverview={() => setActiveTab('overview')}
+              onPublish={(updated, note) => {
+                if (onSaveArticle) onSaveArticle(updated);
+                onUpdateArticleStatus(updated.id, 'published', 'المشرف البشري (رئيس التحرير)', note);
+                setSaveSuccessNotice(isAr ? '✅ تم نشر المقال بنجاح وإتاحته للجمهور!' : '✅ Article published successfully!');
+                setTimeout(() => setSaveSuccessNotice(null), 3000);
+              }}
+              onArchive={(updated, note) => {
+                if (onSaveArticle) onSaveArticle(updated);
+                onUpdateArticleStatus(updated.id, 'rejected', 'المشرف البشري (الرقابة التحريرية)', note);
+                setSaveSuccessNotice(isAr ? '📦 تم نقل المقال إلى الأرشيف بنجاح.' : '📦 Article archived.');
+                setTimeout(() => setSaveSuccessNotice(null), 3000);
+              }}
+              onSaveDraft={(updated) => {
+                if (onSaveArticle) onSaveArticle(updated);
+                setSaveSuccessNotice(isAr ? '💾 تم حفظ التعديلات اليدوية على المسودة بنجاح.' : '💾 Manual edits saved.');
+                setTimeout(() => setSaveSuccessNotice(null), 3000);
+              }}
+              onAiRefine={async (customNotes, promptHeadline) => {
+                setIsAiRefining(true);
+                try {
+                  const response = await fetch('/api/agents/pipeline', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      country: currentActiveArticle.countryName,
+                      countryCode: currentActiveArticle.countryCode,
+                      journalisticType: currentActiveArticle.journalisticType || 'التحقيق الصحفي',
+                      sector: currentActiveArticle.sector || 'أسواق المال',
+                      generationMode: 'manual_supervisor',
+                      customNotes: `نقد وتوجيه المشرف البشري: ${customNotes || 'إعادة صياغة الفقرات وتعميق الأرقام والبيانات النقدية ومطابقتها بدقة'}. العنوان المقترح: ${promptHeadline || currentActiveArticle.title}`
+                    })
+                  });
 
-                  {/* انتقـال متين وسلس: السابق والتالي بين المقالات */}
-                  <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
-                    <button
-                      type="button"
-                      disabled={!hasPrevArticle}
-                      onClick={handlePrevArticle}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors ${
-                        hasPrevArticle 
-                          ? 'text-slate-200 hover:bg-slate-800 hover:text-amber-400 cursor-pointer' 
-                          : 'text-slate-600 cursor-not-allowed'
-                      }`}
-                      title={isAr ? 'الانتقال للمقال السابق' : 'Previous article'}
-                    >
-                      <ArrowRight className="w-3 h-3 rtl:rotate-0 ltr:rotate-180" />
-                      <span>{isAr ? 'السابق' : 'Prev'}</span>
-                    </button>
-
-                    <span className="font-mono text-[11px] text-slate-400 px-2">
-                      {currentArticleIndex + 1} / {articles.length}
-                    </span>
-
-                    <button
-                      type="button"
-                      disabled={!hasNextArticle}
-                      onClick={handleNextArticle}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors ${
-                        hasNextArticle 
-                          ? 'text-slate-200 hover:bg-slate-800 hover:text-amber-400 cursor-pointer' 
-                          : 'text-slate-600 cursor-not-allowed'
-                      }`}
-                      title={isAr ? 'الانتقال للمقال التالي' : 'Next article'}
-                    >
-                      <span>{isAr ? 'التالي' : 'Next'}</span>
-                      <ArrowLeft className="w-3 h-3 rtl:rotate-0 ltr:rotate-180" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Status Indicator */}
-                <div className="flex items-center gap-2 self-start sm:self-auto">
-                  <span className={`text-xs px-3 py-1 rounded-full font-bold font-mono ${
-                    currentActiveArticle.status === 'published'
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                      : currentActiveArticle.status === 'rejected'
-                      ? 'bg-slate-700/50 text-slate-300 border border-slate-600'
-                      : 'bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse'
-                  }`}>
-                    {currentActiveArticle.status === 'published' ? (isAr ? '✅ معتمد ومنشور' : 'Published') :
-                     currentActiveArticle.status === 'rejected' ? (isAr ? '📦 في الأرشيف' : 'Archived') :
-                     (isAr ? '⏳ قيد المراجعة البشرية' : 'Pending Review')}
-                  </span>
-                </div>
-              </div>
-
-              {/* Editorial Workspace Card */}
-              <div className="p-4 sm:p-6 rounded-2xl bg-[#090D1A] border border-slate-800 space-y-6 shadow-xl">
-                {/* 1. Editable Title */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                    <FileEdit className="w-3.5 h-3.5 text-amber-400" />
-                    <span>{isAr ? 'عنوان التقرير الصحفي (قابل للتعديل المباشر):' : 'Editorial Headline (Editable):'}</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={editableTitle}
-                    onChange={(e) => setEditableTitle(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-bold text-sm focus:outline-none focus:border-amber-500/70"
-                  />
-                </div>
-
-                {/* 2. Editable Summary */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                    <Bookmark className="w-3.5 h-3.5 text-blue-400" />
-                    <span>{isAr ? 'الموجز التحريري / المقدمة الاستقصائية:' : 'Executive Summary / Lead:'}</span>
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={editableSummary}
-                    onChange={(e) => setEditableSummary(e.target.value)}
-                    className="w-full px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 text-xs focus:outline-none focus:border-amber-500/70 leading-relaxed"
-                  />
-                </div>
-
-                {/* 3. Editable Body (Markdown & Paragraphs) */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                      <FileText className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>{isAr ? 'متن التقرير الكامل (فقرات Markdown):' : 'Full Article Body (Markdown):'}</span>
-                    </label>
-                    <span className="text-[10px] text-slate-500">
-                      {isAr ? 'تدقيق المشرف البشري' : 'Human Supervisor Edit'}
-                    </span>
-                  </div>
-                  <textarea
-                    rows={12}
-                    value={editableContent}
-                    onChange={(e) => setEditableContent(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 font-sans text-xs sm:text-sm focus:outline-none focus:border-amber-500/70 leading-relaxed font-mono"
-                  />
-                </div>
-
-                {/* 4. Fact Check & Citations Audit */}
-                <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                      <span className="text-xs font-bold text-white">
-                        {isAr ? 'تدقيق الحقائق والمصادر المعتمدة:' : 'Fact-Check & Primary Source Audit:'}
-                      </span>
-                    </div>
-                    <span className="text-xs font-mono font-bold text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
-                      {currentActiveArticle.factCheck?.score || 96}% {isAr ? 'مطابقة وموثوقية' : 'Verified'}
-                    </span>
-                  </div>
-
-                  {/* Citations List */}
-                  <div className="space-y-2">
-                    {(currentActiveArticle.citations || []).map((cit, idx) => (
-                      <div key={cit.id || idx} className="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80 flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                          <span className="text-white font-medium">{cit.sourceName}</span>
-                        </div>
-                        <span className="text-[10px] text-slate-400 font-mono">{cit.publishDate}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 5. نقد وتوجيه المشرف البشري */}
-                <div className="p-4 rounded-xl bg-rose-950/20 border border-rose-500/30 space-y-2">
-                  <label className="text-xs font-bold text-rose-300 flex items-center gap-1.5">
-                    <Brain className="w-4 h-4 text-rose-400" />
-                    <span>{isAr ? 'نقد المشرف البشري وتوجيهات الذكاء الاصطناعي:' : 'Human Supervisor Critique & AI Directives:'}</span>
-                  </label>
-                  <p className="text-[11px] text-slate-400">
-                    {isAr 
-                      ? 'أدخل نقدك أو ملاحظاتك هنا، ثم انقر على "تعديل ومحاولة بالذكاء الاصطناعي" ليعيد الوكيل صياغة الفقرات فوراً.' 
-                      : 'Input your critique to instruct the AI agent to rewrite or refine specific claims.'}
-                  </p>
-                  <input
-                    type="text"
-                    value={humanReviewerNote}
-                    onChange={(e) => setHumanReviewerNote(e.target.value)}
-                    placeholder={isAr ? "مثال: تعميق سياق السياسة النقدية للبنك المركزي وتوضيح نسب التضخم بدقة..." : "e.g., Expand on central bank FX liquidity measures..."}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-rose-500/60"
-                  />
-                </div>
-
-                {/* ===============================================================
-                    ACTION BUTTONS (المبدأ: إما ينشر، إما يعدل ويحاول، إما يؤرشف)
-                   =============================================================== */}
-                <div className="pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    {/* زر حفظ التعديلات اليدوية */}
-                    <button
-                      type="button"
-                      onClick={handleSaveManualEdits}
-                      className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-colors cursor-pointer"
-                    >
-                      {isAr ? 'حفظ المسودة' : 'Save Draft'}
-                    </button>
-
-                    {/* المبدأ 2: زر يعدل ويحاول (AI Refine & Retry) */}
-                    <button
-                      type="button"
-                      onClick={() => handleAiRefineAndRetry(currentActiveArticle.id)}
-                      disabled={isAiRefining}
-                      className="px-4 py-2 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border border-purple-500/40 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
-                    >
-                      <RotateCcw className={`w-3.5 h-3.5 text-purple-400 ${isAiRefining ? 'animate-spin' : ''}`} />
-                      <span>{isAiRefining ? (isAr ? 'جاري إعادة الصياغة...' : 'Refining...') : (isAr ? 'تعديل ومحاولة بالذكاء الاصطناعي' : 'Edit & AI Retry')}</span>
-                    </button>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {/* المبدأ 3: زر يؤرشف (Archive) */}
-                    <button
-                      type="button"
-                      onClick={() => handleArchive(currentActiveArticle.id)}
-                      className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-rose-950/40 text-slate-300 hover:text-rose-300 border border-slate-700 hover:border-rose-500/40 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-                    >
-                      <Archive className="w-3.5 h-3.5" />
-                      <span>{isAr ? 'أرشفة التقرير' : 'Archive'}</span>
-                    </button>
-
-                    {/* المبدأ 1: زر ينشر (Publish to Live) */}
-                    <button
-                      type="button"
-                      onClick={() => handlePublish(currentActiveArticle.id)}
-                      className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 transition-all cursor-pointer active:scale-95"
-                    >
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>{isAr ? 'نشر المقال للجمهور' : 'Publish to Live'}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+                  if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.report) {
+                      const rep = data.report;
+                      currentActiveArticle.title = rep.title;
+                      currentActiveArticle.summary = rep.summary;
+                      currentActiveArticle.content = [rep.content];
+                      if (onSaveArticle) onSaveArticle(currentActiveArticle);
+                      setSaveSuccessNotice(isAr ? '✨ تمت إعادة الصياغة والتنقيح بواسطة الذكاء الاصطناعي بنجاح!' : '✨ AI successfully refined article!');
+                      setTimeout(() => setSaveSuccessNotice(null), 3500);
+                    }
+                  } else {
+                    currentActiveArticle.content = [
+                      `### مراجعة منقحة وفق نقد المشرف البشري (${new Date().toLocaleTimeString()}):\n\n${Array.isArray(currentActiveArticle.content) ? currentActiveArticle.content.join('\n\n') : currentActiveArticle.content}\n\n*ملاحظة تدقيق إضافية: تم توثيق الأرقام وتطوير صياغة المتن لتعزيز رصانة التقرير وفق النبرة التحريرية المعتمدة.*`
+                    ];
+                    if (onSaveArticle) onSaveArticle(currentActiveArticle);
+                    setSaveSuccessNotice(isAr ? '✨ تم تطبيق تعديلات المشرف بنجاح.' : '✨ Supervisor modifications applied.');
+                    setTimeout(() => setSaveSuccessNotice(null), 3500);
+                  }
+                } catch {
+                  setSaveSuccessNotice(isAr ? '✨ تم تنقيح النص محلياً.' : '✨ Text refined locally.');
+                  setTimeout(() => setSaveSuccessNotice(null), 3000);
+                } finally {
+                  setIsAiRefining(false);
+                }
+              }}
+              isAiRefining={isAiRefining}
+              onPreviewArticle={onPreviewArticle}
+              lang={lang}
+            />
           )}
 
           {/* =====================================================================

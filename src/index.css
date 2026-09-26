@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Aref+Ruqaa:wght@400;700&family=Playfair+Display:ital,wght@0,600;0,800;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Aref+Ruqaa:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,800;1,600&display=swap');
 @import "tailwindcss";
 
 @layer base {
@@ -48,6 +48,57 @@ button, [role="button"], nav {
 
 .font-brand-artistic {
   font-family: 'Amiri', 'Traditional Arabic', 'Scheherazade New', serif;
+}
+
+.font-newspaper-headline {
+  font-family: 'Amiri', 'Aref Ruqaa', 'Traditional Arabic', serif;
+}
+
+.font-newspaper-body {
+  font-family: 'Noto Naskh Arabic', 'Amiri', 'Traditional Arabic', serif;
+}
+
+.font-editorial-modern {
+  font-family: 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Authentic physical newspaper drop cap (حرف استهلالي) */
+.newspaper-lead::first-letter {
+  font-size: 3.25em;
+  float: right;
+  line-height: 0.85;
+  margin-left: 0.2em;
+  margin-top: 0.1em;
+  font-family: 'Amiri', serif;
+  font-weight: 700;
+  color: #854D0E;
+}
+
+/* Print Stylesheet for Newspaper Broadsheet */
+@media print {
+  body {
+    background-color: #FFFFFF !important;
+    color: #111111 !important;
+  }
+
+  header, nav, footer, .no-print, button:not(.print-include) {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .article-print-canvas {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    border: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
 }
 
 /* Hide scrollbar universally for Chrome, Safari, Edge, Firefox, and mobile devices */

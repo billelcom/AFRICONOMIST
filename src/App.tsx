@@ -552,8 +552,8 @@ export default function App() {
             : 'max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8'
         }`}
       >
-        {/* ظهور بطاقة الساعة والطقس والمشاركة في جميع الصفحات */}
-        {currentTab !== 'home' && (
+        {/* ظهور بطاقة الساعة والطقس والمشاركة في جميع الصفحات العامة (ماعدا صفحة قراءة المقال التي تكون مخصصة حصراً للقراءة دون أي مشتتات) */}
+        {currentTab !== 'home' && currentTab !== 'article' && (
           <div className="mb-6">
             <InteractiveTopCard lang={lang} />
           </div>

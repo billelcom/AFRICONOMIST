@@ -28,6 +28,7 @@ import { ECONOMIC_SECTORS, JOURNALISTIC_GENRES } from '../../data/reportOptions'
 import { getCountryFlag } from '../../lib/africanGeoProximity';
 import { DraggableFloatingContainer } from '../DraggableFloatingContainer';
 import { EditorialLeadCarousel } from '../EditorialLeadCarousel';
+import { InteractiveTopCard } from '../InteractiveTopCard';
 
 interface HomeViewProps {
   articles: Article[];
@@ -290,6 +291,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
     return (
       <div className="space-y-6 pb-16">
+        {/* بطاقة الساعة والطقس والمشاركة */}
+        <InteractiveTopCard lang={lang} className="mb-2" />
+
         {/* شريط معلومات الدولة المختارة والملف الاقتصادي */}
         <div className="p-5 sm:p-7 rounded-2xl bg-gradient-to-br from-[#11192e] to-[#0c1322] border border-slate-800 shadow-xl">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

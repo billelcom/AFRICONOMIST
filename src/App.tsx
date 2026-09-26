@@ -31,6 +31,12 @@ import { ECONOMIC_SECTORS, JOURNALISTIC_GENRES } from './data/reportOptions';
 import { EconomicDataUpdaterModal } from './components/EconomicDataUpdaterModal';
 import { CompactNavigationRibbons } from './components/CompactNavigationRibbons';
 import { CurrencyExchangeWidget } from './components/CurrencyExchangeWidget';
+import { AboutView } from './components/views/AboutView';
+import { PodcastView } from './components/views/PodcastView';
+import { VideoReportsView } from './components/views/VideoReportsView';
+import { PrivacyTermsView } from './components/views/PrivacyTermsView';
+import { InteractiveTopCard } from './components/InteractiveTopCard';
+import { Facebook, Twitter, Youtube, Instagram, Music2, MessageCircle, Linkedin, ShieldCheck, Building2, FileText } from 'lucide-react';
 
 const STORAGE_KEY = 'africonomist_custom_articles_v1';
 
@@ -272,15 +278,57 @@ export default function App() {
 
   const pendingDraftsCount = articles.filter(a => a.status === 'pending_review').length;
 
+  // إدارة التنقل ومزامنة سجل التصفح لدعم زر الرجوع في الهاتف (Mobile Back Button)
+  const navigateToTab = (tab: HeaderTab, pushHistory = true) => {
+    setCurrentTab(tab);
+    if (pushHistory && typeof window !== 'undefined') {
+      window.history.pushState({ tab }, '', '#' + tab);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // الاستماع لحدث popstate عند ضغط زر الرجوع في الهاتف أو المتصفح
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    if (!window.history.state) {
+      window.history.replaceState({ tab: 'home' }, '', window.location.hash || '#home');
+    }
+
+    const handlePopState = (event: PopStateEvent) => {
+      if (event.state && event.state.tab) {
+        setCurrentTab(event.state.tab as HeaderTab);
+        if (event.state.articleId) {
+          const found = articles.find(a => a.id === event.state.articleId);
+          if (found) setSelectedArticle(found);
+        }
+        if (event.state.countrySlug) {
+          setSelectedCountrySlug(event.state.countrySlug);
+        }
+      } else {
+        setCurrentTab('home');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [articles]);
+
   const handleSelectArticle = (article: Article) => {
     setSelectedArticle(article);
     setCurrentTab('article');
+    if (typeof window !== 'undefined') {
+      window.history.pushState({ tab: 'article', articleId: article.id }, '', '#article-' + article.id);
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSelectCountry = (countrySlug: string) => {
     setSelectedCountrySlug(countrySlug);
     setCurrentTab('country');
+    if (typeof window !== 'undefined') {
+      window.history.pushState({ tab: 'country', countrySlug }, '', '#country-' + countrySlug);
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -461,10 +509,7 @@ export default function App() {
       <div className="sticky top-0 z-40 bg-[#070A12]/98 backdrop-blur-md shadow-lg border-b border-slate-800/80">
         <Header
           currentTab={currentTab}
-          onSelectTab={(tab) => {
-            setCurrentTab(tab);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
+          onSelectTab={(tab) => navigateToTab(tab)}
           lang={lang}
           onToggleLang={() => setLang(prev => prev === 'ar' ? 'en' : 'ar')}
           pendingDraftsCount={pendingDraftsCount}
@@ -507,6 +552,12 @@ export default function App() {
             : 'max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8'
         }`}
       >
+        {/* ظهور بطاقة الساعة والطقس والمشاركة في جميع الصفحات */}
+        {currentTab !== 'home' && (
+          <div className="mb-6">
+            <InteractiveTopCard lang={lang} />
+          </div>
+        )}
         {currentTab === 'home' && (
           <HomeView
             articles={articles}
@@ -584,6 +635,35 @@ export default function App() {
             onOpenUpdater={() => setIsUpdaterModalOpen(true)}
           />
         )}
+
+        {currentTab === 'about' && (
+          <AboutView
+            lang={lang}
+            onNavigateHome={() => navigateToTab('home')}
+            onNavigateToNewsroom={() => navigateToTab('editorial')}
+          />
+        )}
+
+        {currentTab === 'privacy' && (
+          <PrivacyTermsView
+            lang={lang}
+            onNavigateHome={() => navigateToTab('home')}
+          />
+        )}
+
+        {currentTab === 'podcast' && (
+          <PodcastView
+            lang={lang}
+            onNavigateHome={() => navigateToTab('home')}
+          />
+        )}
+
+        {currentTab === 'video' && (
+          <VideoReportsView
+            lang={lang}
+            onNavigateHome={() => navigateToTab('home')}
+          />
+        )}
       </main>
 
       {/* Dynamic Macroeconomic Data Simulator & Auto Re-ranking Modal */}
@@ -599,103 +679,262 @@ export default function App() {
       {/* Draggable Currency Exchange & Conversion Widget (Available Everywhere) */}
       <CurrencyExchangeWidget lang={lang} />
 
-      {/* Professional Financial Media Footer */}
-      <footer className="border-t border-slate-800 bg-[#050811] text-slate-400 text-xs py-12 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 border-b border-slate-800/80">
-            {/* Column 1: Brand Info */}
-            <div className="md:col-span-2 space-y-3">
-              <div className="flex items-center gap-2">
-                <span className={`font-black text-white font-mono tracking-tight ${
-                  isAr ? 'text-xl' : 'text-base tracking-wider'
+      {/* Professional Financial Media Footer (تصميم احترافي متوازن مع أزرار المشاركة وتوسيط شريط الحقوق) */}
+      <footer className="border-t border-slate-800/90 bg-[#050811] text-slate-400 text-xs mt-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-6 sm:pb-8 border-b border-slate-800/80">
+            {/* Column 1: Brand Info & Mission + Social Icons in one row without frames */}
+            <div className="lg:col-span-5 space-y-3.5">
+              <div 
+                onClick={() => navigateToTab('home')}
+                className="flex items-center gap-2 cursor-pointer select-none group inline-flex"
+              >
+                <span className={`font-black text-white font-mono tracking-tight group-hover:text-amber-400 transition-colors ${
+                  isAr ? 'text-lg sm:text-xl' : 'text-base tracking-wider'
                 }`}>
                   {isAr ? 'لافريكونوميست' : 'L’AFRICONOMIST'}
                 </span>
-                <span className={`inline-block rounded-full bg-amber-500 ${
-                  isAr ? 'w-2 h-2' : 'w-1.5 h-1.5'
-                }`}></span>
-                <span className={`text-amber-400 font-serif font-semibold ${
-                  isAr ? 'text-xs' : 'text-[11px] tracking-tight'
-                }`}>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                <span className="text-amber-400 font-serif font-semibold text-xs">
                   {isAr ? 'صحيفة الاقتصاد الإفريقي' : 'African Economic Journal'}
                 </span>
               </div>
               <p className="text-slate-400 text-xs leading-relaxed max-w-md">
                 {isAr
-                  ? 'صحيفة مالية واستقصائية مستقلة ترصد تطورات أسواق المال، استثمارات الطاقة، ومؤشرات الاقتصاد الكلي عبر كافة الدول الأفريقية الـ 54.'
-                  : 'Independent financial and investigative publication tracking capital markets, energy transition, and macroeconomic indicators across all 54 African nations.'}
+                  ? 'مؤسسة صحفية مالية واستقصائية مستقلة ترصد تطورات أسواق المال، استثمارات الطاقة، ومؤشرات الاقتصاد الكلي عبر كافة الدول الأفريقية الـ 54.'
+                  : 'Independent financial publication tracking capital markets, sovereign debt, and macroeconomic indicators across all 54 African nations.'}
               </p>
+
+              {/* شارة واتساب مع الرقم */}
+              <div className="pt-0.5">
+                <a
+                  href="https://wa.me/213656180056"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300 text-xs font-mono font-bold transition-colors"
+                  title={isAr ? 'تواصل عبر واتساب' : 'Chat on WhatsApp'}
+                >
+                  <MessageCircle className="w-4 h-4 text-emerald-400" />
+                  <span dir="ltr">+213656180056</span>
+                </a>
+              </div>
+
+              {/* روابط التواصل الاجتماعي: أيقونات فقط دون إطارات في صف واحد */}
+              <div className="pt-2">
+                <div className="flex items-center gap-4 text-slate-400">
+                  <a
+                    href="https://facebook.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-slate-400 hover:text-[#1877F2] hover:scale-115 transition-all p-0.5"
+                    title="Facebook"
+                  >
+                    <Facebook className="w-4 h-4" />
+                  </a>
+                  <a
+                    href="https://x.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-slate-400 hover:text-white hover:scale-115 transition-all p-0.5"
+                    title="Twitter / X"
+                  >
+                    <Twitter className="w-4 h-4" />
+                  </a>
+                  <a
+                    href="https://youtube.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-slate-400 hover:text-[#FF0000] hover:scale-115 transition-all p-0.5"
+                    title="YouTube"
+                  >
+                    <Youtube className="w-4 h-4" />
+                  </a>
+                  <a
+                    href="https://instagram.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-slate-400 hover:text-[#E4405F] hover:scale-115 transition-all p-0.5"
+                    title="Instagram"
+                  >
+                    <Instagram className="w-4 h-4" />
+                  </a>
+                  <a
+                    href="https://tiktok.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-slate-400 hover:text-[#25F4EE] hover:scale-115 transition-all p-0.5"
+                    title="TikTok"
+                  >
+                    <Music2 className="w-4 h-4" />
+                  </a>
+                  <a
+                    href="https://linkedin.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-slate-400 hover:text-[#0A66C2] hover:scale-115 transition-all p-0.5"
+                    title="LinkedIn"
+                  >
+                    <Linkedin className="w-4 h-4" />
+                  </a>
+                  <a
+                    href="https://wa.me/213656180056"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-slate-400 hover:text-[#25D366] hover:scale-115 transition-all p-0.5"
+                    title="WhatsApp"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                  </a>
+                </div>
+              </div>
             </div>
 
-            {/* Column 2: Navigation Links */}
-            <div className="space-y-3">
-              <h4 className="text-white font-semibold text-xs uppercase tracking-wider">
-                {isAr ? 'أقسام الصحيفة' : 'Sections'}
-              </h4>
-              <ul className="space-y-2 text-xs">
-                <li>
-                  <button 
-                    onClick={() => { setCurrentTab('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                    className="hover:text-amber-400 transition-colors"
-                  >
-                    {isAr ? 'الرئيسية والأسواق الحية' : 'Markets & Live Feed'}
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    onClick={() => { setCurrentTab('country'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                    className="hover:text-amber-400 transition-colors"
-                  >
-                    {isAr ? 'الملفات الاقتصادية للدول' : 'Country Economic Dossiers'}
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    onClick={() => { setCurrentTab('editorial'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                    className="hover:text-amber-400 transition-colors"
-                  >
-                    {isAr ? 'غرفة الأخبار' : 'Newsroom Desk'}
-                  </button>
-                </li>
-              </ul>
-            </div>
+            {/* قسمي أقسام المنصة والمؤسسة والشفافية جنب بعضهما في عمودين */}
+            <div className="lg:col-span-7 grid grid-cols-2 gap-4 sm:gap-8">
+              {/* عمود اليمين: أقسام المنصة */}
+              <div className="space-y-3">
+                <h4 className="text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 text-amber-400">
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>{isAr ? 'أقسام المنصة' : 'Platform Sections'}</span>
+                </h4>
+                <ul className="space-y-2 text-xs">
+                  <li>
+                    <button 
+                      onClick={() => navigateToTab('home')}
+                      className="hover:text-amber-400 transition-colors text-slate-300 cursor-pointer text-right rtl:text-right ltr:text-left flex items-center gap-1.5"
+                    >
+                      <span>·</span>
+                      <span>{isAr ? 'الرئيسية والأسواق الحية' : 'Markets & Live Feed'}</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button 
+                      onClick={() => navigateToTab('country')}
+                      className="hover:text-amber-400 transition-colors text-slate-300 cursor-pointer text-right rtl:text-right ltr:text-left flex items-center gap-1.5"
+                    >
+                      <span>·</span>
+                      <span>{isAr ? 'الملفات الاقتصادية للدول' : 'Country Economic Dossiers'}</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button 
+                      onClick={() => navigateToTab('data-journalism')}
+                      className="hover:text-amber-400 transition-colors text-slate-300 cursor-pointer text-right rtl:text-right ltr:text-left flex items-center gap-1.5"
+                    >
+                      <span>·</span>
+                      <span>{isAr ? 'صحافة البيانات والمؤشرات' : 'Data Journalism & Visuals'}</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button 
+                      onClick={() => navigateToTab('editorial')}
+                      className="hover:text-amber-400 transition-colors text-slate-300 cursor-pointer text-right rtl:text-right ltr:text-left flex items-center gap-1.5"
+                    >
+                      <span>·</span>
+                      <span>{isAr ? 'غرفة الأخبار والتحرير' : 'Newsroom Desk'}</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button 
+                      onClick={() => navigateToTab('podcast')}
+                      className="hover:text-amber-400 transition-colors text-slate-300 cursor-pointer text-right rtl:text-right ltr:text-left flex items-center gap-1.5"
+                    >
+                      <span>·</span>
+                      <span>{isAr ? 'البودكاست الأسبوعي' : 'L’Africonomist Podcast'}</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button 
+                      onClick={() => navigateToTab('video')}
+                      className="hover:text-amber-400 transition-colors text-slate-300 cursor-pointer text-right rtl:text-right ltr:text-left flex items-center gap-1.5"
+                    >
+                      <span>·</span>
+                      <span>{isAr ? 'التقارير المصورة والوثائقيات' : 'Video Reports & Documentaries'}</span>
+                    </button>
+                  </li>
+                </ul>
+              </div>
 
-            {/* Column 3: Coverage & Transparency */}
-            <div className="space-y-3">
-              <h4 className="text-white font-semibold text-xs uppercase tracking-wider">
-                {isAr ? 'معايير النشر' : 'Editorial Standards'}
-              </h4>
-              <p className="text-slate-400 text-xs leading-relaxed">
-                {isAr
-                  ? 'تلتزم الصحيفة بأعلى معايير التدقيق الاقتصادي والنزاهة الصحفية ومطابقة كافة البيانات بالمصادر الرسمية.'
-                  : 'Committed to rigorous economic fact-checking, financial integrity, and verified official institutional sources.'}
-              </p>
+              {/* عمود اليسار: المؤسسة والشفافية + المدير العام مسؤول النشر + الجهة الناشرة */}
+              <div className="space-y-3">
+                <h4 className="text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 text-blue-400">
+                  <Building2 className="w-3.5 h-3.5" />
+                  <span>{isAr ? 'المؤسسة والشفافية' : 'Governance & Standards'}</span>
+                </h4>
+                <ul className="space-y-2 text-xs">
+                  <li>
+                    <button 
+                      onClick={() => navigateToTab('about')}
+                      className="hover:text-amber-400 transition-colors text-slate-300 cursor-pointer text-right rtl:text-right ltr:text-left flex items-center gap-1.5"
+                    >
+                      <span>·</span>
+                      <span>{isAr ? 'من نحن وهيئة التحرير' : 'About Us & Editorial Board'}</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button 
+                      onClick={() => navigateToTab('privacy')}
+                      className="hover:text-amber-400 transition-colors text-slate-300 cursor-pointer text-right rtl:text-right ltr:text-left flex items-center gap-1.5"
+                    >
+                      <span>·</span>
+                      <span>{isAr ? 'الشروط وحماية المصادر' : 'Charter & Whistleblower Protection'}</span>
+                    </button>
+                  </li>
+                  <li className="pt-2 border-t border-slate-800/60 text-xs leading-relaxed text-slate-300 space-y-1">
+                    <div>
+                      <span className="text-amber-400 font-semibold block text-[11px]">{isAr ? 'المدير العام مسؤول النشر:' : 'Publishing Director:'}</span>
+                      <span className="text-white font-bold">{isAr ? 'بلال عويش' : 'Billel Aouiche'}</span>
+                    </div>
+                    <div className="pt-1">
+                      <span className="text-amber-400 font-semibold block text-[11px]">{isAr ? 'الجهة الناشرة:' : 'Publisher:'}</span>
+                      <span className="text-white font-bold">GOODATA</span>
+                    </div>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
 
-          {/* Copyright bar */}
-          <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-3">
-            <p>
+          {/* Centered Copyright & Governance Bar (يتوسط الشاشة بدون هوامش كبيرة ودون التصاق بين الأجزاء) */}
+          <div className="flex flex-col items-center justify-center text-center space-y-2.5 pt-1">
+            <p className="text-xs text-slate-400 font-medium">
               {isAr
-                ? '© 2026 لافريكونوميست (L’Africonomist) - صحيفة الاقتصاد الإفريقي. كافة الحقوق محفوظة.'
-                : '© 2026 L’Africonomist - African Economic Journal. All rights reserved.'}
+                ? '© 2026 لافريكونوميست (L’Africonomist) - صحيفة الاقتصاد الإفريقي · جميع الحقوق محفوظة للناشر GOODATA'
+                : '© 2026 L’Africonomist - African Economic Journal. All rights reserved by GOODATA.'}
             </p>
-            <div className="flex items-center gap-4 text-xs text-slate-400">
-              <span className="hover:text-slate-300 transition-colors cursor-pointer">
-                {isAr ? 'سياسة الخصوصية' : 'Privacy Policy'}
-              </span>
-              <span>·</span>
-              <span className="hover:text-slate-300 transition-colors cursor-pointer">
-                {isAr ? 'شروط الخدمة' : 'Terms of Service'}
-              </span>
-              <span>·</span>
-              <span className="hover:text-slate-300 transition-colors cursor-pointer">
-                {isAr ? 'المصادر والشفافية' : 'Methodology'}
-              </span>
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5 text-xs text-slate-400">
+              <button 
+                onClick={() => navigateToTab('privacy')}
+                className="hover:text-amber-400 transition-colors cursor-pointer"
+              >
+                {isAr ? 'سياسة الخصوصية وسرية المصادر' : 'Privacy Policy'}
+              </button>
+              <span className="text-slate-600">·</span>
+              <button 
+                onClick={() => navigateToTab('privacy')}
+                className="hover:text-amber-400 transition-colors cursor-pointer"
+              >
+                {isAr ? 'شروط الخدمة والاستخدام' : 'Terms of Service'}
+              </button>
+              <span className="text-slate-600">·</span>
+              <button 
+                onClick={() => navigateToTab('about')}
+                className="hover:text-amber-400 transition-colors cursor-pointer"
+              >
+                {isAr ? 'من نحن وهيئة التحرير' : 'About Us'}
+              </button>
+              <span className="text-slate-600">·</span>
+              <button 
+                onClick={() => navigateToTab('editorial')}
+                className="hover:text-amber-400 transition-colors cursor-pointer"
+              >
+                {isAr ? 'غرفة الأخبار والرقابة' : 'Newsroom'}
+              </button>
             </div>
           </div>
         </div>
       </footer>
+
     </div>
   );
 }

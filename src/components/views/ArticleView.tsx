@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Article } from '../../types';
+import { Article, ArticleGraphicItem } from '../../types';
 import { shareContent } from '../../lib/pwa/webShare';
 import { 
   ArrowRight, 
@@ -81,8 +81,70 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
   const [isInfographicModalOpen, setIsInfographicModalOpen] = useState<boolean>(false);
+  const [selectedGraphicForModal, setSelectedGraphicForModal] = useState<ArticleGraphicItem | null>(null);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [activeCitationId, setActiveCitationId] = useState<string | null>(null);
+
+  // --- Dynamic Graphics List for Article ---
+  const articleGraphics = useMemo<ArticleGraphicItem[]>(() => {
+    if (article.graphics && article.graphics.length > 0) {
+      return article.graphics;
+    }
+    return [
+      {
+        id: 'g-default-1',
+        title: isAr ? `مؤشرات نمو وتدفقات: ${article.countryName}` : `Growth & Flows: ${article.countryNameEn}`,
+        titleEn: `Growth & Flows: ${article.countryNameEn}`,
+        type: 'chart',
+        position: 'mid',
+        align: 'right',
+        caption: isAr ? `توزيع التدفقات الفصلية لقطاع ${article.sector || article.category}` : `Quarterly flow distribution`,
+        dataPoints: [
+          { label: isAr ? 'الربع 1' : 'Q1', value: 68, desc: '68%' },
+          { label: isAr ? 'الربع 2' : 'Q2', value: 82, desc: '82%' },
+          { label: isAr ? 'الربع 3' : 'Q3', value: 94, desc: '94%' },
+          { label: isAr ? 'المستهدف' : 'Target', value: 100, desc: '100%' }
+        ],
+        details: isAr ? `بيانات موثقة من وحدة الرصد والبيانات بلافريكونوميست` : `Verified by L'Africonomist Economic Desk`
+      },
+      {
+        id: 'g-default-end',
+        title: isAr ? `التمثيل البياني الختامي الشامل: ${article.countryName}` : `Comprehensive Macro Overview: ${article.countryNameEn}`,
+        titleEn: `Comprehensive Macro Overview: ${article.countryNameEn}`,
+        type: 'infographic',
+        position: 'end',
+        caption: isAr ? `مؤشر التوازن الكلي ومعدلات النمو السنوية المتوقعة` : `Macroeconomic balance & annual projection`,
+        dataPoints: [
+          { label: '2023', value: 60, desc: '60%' },
+          { label: '2024', value: 75, desc: '75%' },
+          { label: '2025', value: 90, desc: '90%' },
+          { label: '2026', value: 100, desc: '100%' }
+        ],
+        details: isAr ? `تحليل استراتيجي لمسار القيمة المضافة الإقليمية` : `Strategic regional value chain analysis`
+      }
+    ];
+  }, [article, isAr]);
+
+  const midGraphics = useMemo(() => articleGraphics.filter(g => g.position === 'mid'), [articleGraphics]);
+  const endGraphics = useMemo(() => articleGraphics.filter(g => g.position === 'end'), [articleGraphics]);
+
+  const handleOpenGraphicModal = (graphic: ArticleGraphicItem) => {
+    setSelectedGraphicForModal(graphic);
+    setIsInfographicModalOpen(true);
+  };
+
+  // Close popup modal on ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsInfographicModalOpen(false);
+      }
+    };
+    if (isInfographicModalOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isInfographicModalOpen]);
 
   // --- Table of Contents State ---
   const [isTocOpen, setIsTocOpen] = useState<boolean>(true);
@@ -893,7 +955,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                   className="text-right flex items-center gap-2 p-2 rounded-lg hover:bg-stone-500/10 transition-colors text-stone-800 dark:text-stone-300 cursor-pointer"
                 >
                   <span className="font-mono text-amber-700 font-bold">٢.</span>
-                  <span>{isAr ? 'الإنفوجرافيك والتمثيل البياني الميداني' : 'Economic Infographic & Data Chart'}</span>
+                  <span>{isAr ? 'الرسوم البيانية والممرات وسط المقال (عرض 50%)' : 'Mid-Article Data & Corridors (50% Width)'}</span>
                 </button>
 
                 <button
@@ -904,11 +966,21 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                   <span>{isAr ? 'الرؤية والشهادات التحريرية المقتبسة' : 'Editorial Pull-Quote & Highlights'}</span>
                 </button>
 
+                {endGraphics.length > 0 && (
+                  <button
+                    onClick={() => scrollToAnchor('sec-graphic-end')}
+                    className="text-right flex items-center gap-2 p-2 rounded-lg hover:bg-stone-500/10 transition-colors text-stone-800 dark:text-stone-300 cursor-pointer"
+                  >
+                    <span className="font-mono text-amber-700 font-bold">٤.</span>
+                    <span>{isAr ? 'التمثيل البياني الشامل (عرض 100%)' : 'Comprehensive Macro Chart'}</span>
+                  </button>
+                )}
+
                 <button
                   onClick={() => scrollToAnchor('sec-citations')}
                   className="text-right flex items-center gap-2 p-2 rounded-lg hover:bg-stone-500/10 transition-colors text-stone-800 dark:text-stone-300 cursor-pointer"
                 >
-                  <span className="font-mono text-amber-700 font-bold">٤.</span>
+                  <span className="font-mono text-amber-700 font-bold">{endGraphics.length > 0 ? '٥.' : '٤.'}</span>
                   <span>{isAr ? 'المراجع والمصادر الرسمية الموثقة' : 'Verified Citations & References'}</span>
                 </button>
 
@@ -916,7 +988,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                   onClick={() => scrollToAnchor('discussion-section')}
                   className="text-right flex items-center gap-2 p-2 rounded-lg hover:bg-stone-500/10 transition-colors text-stone-800 dark:text-stone-300 cursor-pointer"
                 >
-                  <span className="font-mono text-amber-700 font-bold">٥.</span>
+                  <span className="font-mono text-amber-700 font-bold">{endGraphics.length > 0 ? '٦.' : '٥.'}</span>
                   <span>{isAr ? 'مناقشات القراء وملاحظات الخبراء' : 'Reader Discussions & Notes'}</span>
                 </button>
               </div>
@@ -928,7 +1000,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
             id="sec-analysis"
             className={`w-[98%] mx-auto font-newspaper-body text-justify ${fontSizeClass} ${lineSpacingClass}`}
           >
-            {/* الفقرة الأولى قبل أو بجانب التمثيل البياني */}
+            {/* الفقرة الأولى */}
             {articleParagraphs[0] && (
               <div className="mb-4 sm:mb-5">
                 <p className={`text-stone-900 dark:text-stone-100 ${
@@ -951,54 +1023,57 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
               </div>
             )}
 
-            {/* صورة التمثيل البياني (الإنفوجرافيك) المدمجة جانب المقال وتلتف حولها الكتابة وقابلة للتكبير */}
-            <div 
-              id="sec-infographic-inline"
-              onClick={() => setIsInfographicModalOpen(true)}
-              className="float-none sm:float-right sm:ml-6 sm:mb-4 sm:mt-1 w-full sm:w-[320px] md:w-[340px] rounded-2xl bg-stone-950 text-stone-200 border border-stone-800 p-3 sm:p-3.5 shadow-md hover:border-amber-500/60 hover:shadow-xl transition-all cursor-pointer group select-none my-4 sm:my-0"
-              title={isAr ? 'اضغط لعرض التمثيل البياني بشكل كبير ومكبر' : 'Click to enlarge graphic'}
-            >
-              <div className="flex items-center justify-between text-stone-400 text-[10px] pb-2 border-b border-stone-800">
-                <span className="flex items-center gap-1.5 text-amber-400 font-bold">
-                  <BarChart3 className="w-3.5 h-3.5" />
-                  <span>{isAr ? 'إنفوجرافيك المؤشرات والتدفقات' : 'Data & Capital Flow Infographic'}</span>
-                </span>
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono flex items-center gap-1 group-hover:bg-amber-500/30">
-                  <Maximize2 className="w-2.5 h-2.5" />
-                  <span>{isAr ? 'تكبير' : 'Enlarge'}</span>
-                </span>
-              </div>
+            {/* الصورة الأولى وسط المقال: تأخذ 50% من العرض وتطفو إلى اليمين، والـ 50% المتبقية تبقى للكتابة */}
+            {midGraphics[0] && (
+              <div 
+                id="sec-infographic-inline"
+                onClick={() => handleOpenGraphicModal(midGraphics[0])}
+                className="w-[50%] max-w-[50%] float-right ml-3 sm:ml-5 mb-4 mt-1 rounded-2xl bg-stone-950 text-stone-200 border border-stone-800 p-2.5 sm:p-3.5 shadow-md hover:border-amber-500/60 hover:shadow-xl transition-all cursor-pointer group select-none"
+                title={isAr ? 'اضغط لعرض التمثيل البياني كاملاً بصيغة مكبّرة (Popup)' : 'Click to enlarge graphic popup'}
+              >
+                <div className="flex items-center justify-between text-stone-400 text-[10px] pb-1.5 border-b border-stone-800">
+                  <span className="flex items-center gap-1.5 text-amber-400 font-bold truncate">
+                    <BarChart3 className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">{isAr ? midGraphics[0].title : (midGraphics[0].titleEn || midGraphics[0].title)}</span>
+                  </span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono flex items-center gap-1 group-hover:bg-amber-500/30 shrink-0">
+                    <Maximize2 className="w-2.5 h-2.5" />
+                    <span>{isAr ? 'تكبير' : 'Zoom'}</span>
+                  </span>
+                </div>
 
-              {/* الرسم والتمثيل البياني البصري */}
-              <div className="h-28 w-full flex items-end justify-between gap-2 pt-3 px-1">
-                {[
-                  { label: isAr ? 'الربع الأول' : 'Q1', value: 68, color: 'bg-amber-600' },
-                  { label: isAr ? 'الربع الثاني' : 'Q2', value: 82, color: 'bg-amber-500' },
-                  { label: isAr ? 'الربع الثالث' : 'Q3', value: 94, color: 'bg-emerald-500' },
-                  { label: isAr ? 'المستهدف' : 'Target', value: 100, color: 'bg-sky-500' },
-                ].map((bar, idx) => (
-                  <div key={idx} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
-                    <span className="text-[9px] text-stone-400 font-mono">{bar.value}%</span>
-                    <div 
-                      className={`w-full max-w-[36px] rounded-t ${bar.color} transition-all duration-500`}
-                      style={{ height: `${bar.value * 0.7}%` }}
-                    />
-                    <span className="text-[9px] text-stone-400 text-center truncate w-full">{bar.label}</span>
-                  </div>
-                ))}
-              </div>
+                {/* الرسم والتمثيل البياني البصري */}
+                <div className="h-28 w-full flex items-end justify-between gap-1 sm:gap-2 pt-2.5 px-1">
+                  {(midGraphics[0].dataPoints || [
+                    { label: 'Q1', value: 68, color: 'bg-amber-600' },
+                    { label: 'Q2', value: 82, color: 'bg-amber-500' },
+                    { label: 'Q3', value: 94, color: 'bg-emerald-500' },
+                    { label: 'Target', value: 100, color: 'bg-sky-500' },
+                  ]).map((bar, idx) => (
+                    <div key={idx} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                      <span className="text-[9px] text-stone-300 font-mono">{bar.value}%</span>
+                      <div 
+                        className={`w-full max-w-[32px] rounded-t ${bar.color || 'bg-amber-500'} transition-all duration-500`}
+                        style={{ height: `${Math.min(100, bar.value) * 0.7}%` }}
+                      />
+                      <span className="text-[8px] sm:text-[9px] text-stone-400 text-center truncate w-full">{bar.label}</span>
+                    </div>
+                  ))}
+                </div>
 
-              <div className="text-[10px] text-stone-400 text-center pt-2 mt-2 border-t border-stone-800 flex items-center justify-between">
-                <span className="truncate">{isAr ? `رصد: ${article.countryName}` : `Tracked: ${article.countryNameEn}`}</span>
-                <span className="text-amber-400/90 font-sans text-[10px] group-hover:underline flex items-center gap-0.5">
-                  <span>{isAr ? 'انقر لتكبير العرض' : 'Click to zoom'}</span>
-                  <Maximize2 className="w-3 h-3" />
-                </span>
+                <div className="text-[10px] text-stone-400 pt-2 mt-1.5 border-t border-stone-800/80 flex items-center justify-between">
+                  <span className="truncate text-[9px] sm:text-[10px] text-stone-400">
+                    {isAr ? midGraphics[0].caption : (midGraphics[0].captionEn || midGraphics[0].caption)}
+                  </span>
+                  <span className="text-amber-400 font-sans text-[10px] group-hover:underline flex items-center gap-0.5 shrink-0">
+                    <Maximize2 className="w-2.5 h-2.5" />
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* باقي الفقرات التي تلتف بسلاسة حول التمثيل البياني المستمر على اليمين */}
-            {articleParagraphs.slice(1).map((paragraph, idx) => {
+            {/* الفقرتان 1 و 2 تلتفان حول الصورة الأولى في الـ 50% المتبقية للكتابة */}
+            {articleParagraphs.slice(1, 3).map((paragraph, idx) => {
               const actualIdx = idx + 1;
               const hasCitation = article.citations[actualIdx];
 
@@ -1008,8 +1083,158 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                     activeSpeechParagraph === actualIdx ? 'bg-amber-500/15 p-2 rounded-lg' : ''
                   }`}>
                     {paragraph}
+                    {hasCitation && (
+                      <button
+                        onClick={() => {
+                          setActiveCitationId(hasCitation.id);
+                          scrollToAnchor(`cit-${hasCitation.id}`);
+                        }}
+                        className="inline-flex items-center justify-center mx-1 px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-800 dark:text-amber-300 text-xs font-mono font-bold hover:bg-amber-500/40 border border-amber-600/30 transition-colors cursor-pointer"
+                        title={isAr ? `عرض مصدر التوثيق المعتمد #${actualIdx + 1}` : `View citation #${actualIdx + 1}`}
+                      >
+                        [{actualIdx + 1}]
+                      </button>
+                    )}
+                  </p>
+                </div>
+              );
+            })}
 
-                    {/* Interactive Citation mark */}
+            {/* الصورة الثانية وسط المقال: تأخذ 50% من العرض وتطفو إلى اليسار، والـ 50% المتبقية تبقى للكتابة */}
+            {midGraphics[1] && (
+              <div 
+                onClick={() => handleOpenGraphicModal(midGraphics[1])}
+                className="w-[50%] max-w-[50%] float-left mr-3 sm:mr-5 mb-4 mt-1 rounded-2xl bg-stone-950 text-stone-200 border border-stone-800 p-2.5 sm:p-3.5 shadow-md hover:border-amber-500/60 hover:shadow-xl transition-all cursor-pointer group select-none"
+                title={isAr ? 'اضغط لعرض التمثيل البياني كاملاً بصيغة مكبّرة (Popup)' : 'Click to enlarge graphic popup'}
+              >
+                <div className="flex items-center justify-between text-stone-400 text-[10px] pb-1.5 border-b border-stone-800">
+                  <span className="flex items-center gap-1.5 text-amber-400 font-bold truncate">
+                    <Globe2 className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">{isAr ? midGraphics[1].title : (midGraphics[1].titleEn || midGraphics[1].title)}</span>
+                  </span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono flex items-center gap-1 group-hover:bg-amber-500/30 shrink-0">
+                    <Maximize2 className="w-2.5 h-2.5" />
+                    <span>{isAr ? 'تكبير' : 'Zoom'}</span>
+                  </span>
+                </div>
+
+                {/* التمثيل البياني الخرائطي واللوجستي البصري */}
+                <div className="h-28 w-full flex items-end justify-between gap-1 sm:gap-2 pt-2.5 px-1">
+                  {(midGraphics[1].dataPoints || [
+                    { label: 'L1', value: 40, color: 'bg-emerald-600' },
+                    { label: 'L2', value: 65, color: 'bg-emerald-500' },
+                    { label: 'L3', value: 85, color: 'bg-amber-500' },
+                    { label: 'L4', value: 100, color: 'bg-sky-500' }
+                  ]).map((bar, idx) => (
+                    <div key={idx} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                      <span className="text-[9px] text-stone-300 font-mono">{bar.value}%</span>
+                      <div 
+                        className={`w-full max-w-[32px] rounded-t ${bar.color || 'bg-emerald-500'} transition-all duration-500`}
+                        style={{ height: `${Math.min(100, bar.value) * 0.7}%` }}
+                      />
+                      <span className="text-[8px] sm:text-[9px] text-stone-400 text-center truncate w-full">{bar.label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="text-[10px] text-stone-400 pt-2 mt-1.5 border-t border-stone-800/80 flex items-center justify-between">
+                  <span className="truncate text-[9px] sm:text-[10px] text-stone-400">
+                    {isAr ? midGraphics[1].caption : (midGraphics[1].captionEn || midGraphics[1].caption)}
+                  </span>
+                  <span className="text-amber-400 font-sans text-[10px] group-hover:underline flex items-center gap-0.5 shrink-0">
+                    <Maximize2 className="w-2.5 h-2.5" />
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* الفقرتان 3 و 4 تلتفان حول الصورة الثانية في الـ 50% المتبقية للكتابة */}
+            {articleParagraphs.slice(3, 5).map((paragraph, idx) => {
+              const actualIdx = idx + 3;
+              const hasCitation = article.citations[actualIdx];
+
+              return (
+                <div key={actualIdx} className="mb-4 sm:mb-5">
+                  <p className={`text-stone-900 dark:text-stone-100 ${
+                    activeSpeechParagraph === actualIdx ? 'bg-amber-500/15 p-2 rounded-lg' : ''
+                  }`}>
+                    {paragraph}
+                    {hasCitation && (
+                      <button
+                        onClick={() => {
+                          setActiveCitationId(hasCitation.id);
+                          scrollToAnchor(`cit-${hasCitation.id}`);
+                        }}
+                        className="inline-flex items-center justify-center mx-1 px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-800 dark:text-amber-300 text-xs font-mono font-bold hover:bg-amber-500/40 border border-amber-600/30 transition-colors cursor-pointer"
+                        title={isAr ? `عرض مصدر التوثيق المعتمد #${actualIdx + 1}` : `View citation #${actualIdx + 1}`}
+                      >
+                        [{actualIdx + 1}]
+                      </button>
+                    )}
+                  </p>
+                </div>
+              );
+            })}
+
+            {/* الصورة الثالثة وسط المقال (إن وجدت): تأخذ 50% من العرض وتطفو إلى اليمين، والـ 50% المتبقية للكتابة */}
+            {midGraphics[2] && (
+              <div 
+                onClick={() => handleOpenGraphicModal(midGraphics[2])}
+                className="w-[50%] max-w-[50%] float-right ml-3 sm:ml-5 mb-4 mt-1 rounded-2xl bg-stone-950 text-stone-200 border border-stone-800 p-2.5 sm:p-3.5 shadow-md hover:border-amber-500/60 hover:shadow-xl transition-all cursor-pointer group select-none"
+                title={isAr ? 'اضغط لعرض التمثيل البياني كاملاً بصيغة مكبّرة (Popup)' : 'Click to enlarge graphic popup'}
+              >
+                <div className="flex items-center justify-between text-stone-400 text-[10px] pb-1.5 border-b border-stone-800">
+                  <span className="flex items-center gap-1.5 text-amber-400 font-bold truncate">
+                    <TrendingUp className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">{isAr ? midGraphics[2].title : (midGraphics[2].titleEn || midGraphics[2].title)}</span>
+                  </span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono flex items-center gap-1 group-hover:bg-amber-500/30 shrink-0">
+                    <Maximize2 className="w-2.5 h-2.5" />
+                    <span>{isAr ? 'تكبير' : 'Zoom'}</span>
+                  </span>
+                </div>
+
+                {/* التمثيل البياني البصري */}
+                <div className="h-28 w-full flex items-end justify-between gap-1 sm:gap-2 pt-2.5 px-1">
+                  {(midGraphics[2].dataPoints || [
+                    { label: 'وفر شحن', value: 18, color: 'bg-amber-500' },
+                    { label: 'تأمين', value: 24, color: 'bg-amber-500' },
+                    { label: 'تفريغ', value: 35, color: 'bg-emerald-500' },
+                    { label: 'اختصار زمن', value: 92, color: 'bg-sky-500' }
+                  ]).map((bar, idx) => (
+                    <div key={idx} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                      <span className="text-[9px] text-stone-300 font-mono">{bar.value}%</span>
+                      <div 
+                        className={`w-full max-w-[32px] rounded-t ${bar.color || 'bg-amber-500'} transition-all duration-500`}
+                        style={{ height: `${Math.min(100, bar.value) * 0.7}%` }}
+                      />
+                      <span className="text-[8px] sm:text-[9px] text-stone-400 text-center truncate w-full">{bar.label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="text-[10px] text-stone-400 pt-2 mt-1.5 border-t border-stone-800/80 flex items-center justify-between">
+                  <span className="truncate text-[9px] sm:text-[10px] text-stone-400">
+                    {isAr ? midGraphics[2].caption : (midGraphics[2].captionEn || midGraphics[2].caption)}
+                  </span>
+                  <span className="text-amber-400 font-sans text-[10px] group-hover:underline flex items-center gap-0.5 shrink-0">
+                    <Maximize2 className="w-2.5 h-2.5" />
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* باقي الفقرات (من الفقرة 5 فما بعد) تلتف بسلاسة في الـ 50% المتبقية للكتابة */}
+            {articleParagraphs.slice(5).map((paragraph, idx) => {
+              const actualIdx = idx + 5;
+              const hasCitation = article.citations[actualIdx];
+
+              return (
+                <div key={actualIdx} className="mb-4 sm:mb-5">
+                  <p className={`text-stone-900 dark:text-stone-100 ${
+                    activeSpeechParagraph === actualIdx ? 'bg-amber-500/15 p-2 rounded-lg' : ''
+                  }`}>
+                    {paragraph}
                     {hasCitation && (
                       <button
                         onClick={() => {
@@ -1055,7 +1280,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
 
             {/* Additional analytical paragraph if present */}
             {article.reviewNotes && (
-              <div className="w-[98%] mx-auto p-3.5 sm:p-4 rounded-xl bg-stone-200/60 dark:bg-stone-900/70 border border-stone-300 dark:border-stone-800 text-xs font-newspaper-body">
+              <div className="w-[98%] mx-auto p-3.5 sm:p-4 rounded-xl bg-stone-200/60 dark:bg-stone-900/70 border border-stone-300 dark:border-stone-800 text-xs font-newspaper-body mb-6">
                 <span className="font-bold text-amber-800 dark:text-amber-400 block mb-1">
                   {isAr ? 'ملاحظة التدقيق الاقتصادي المسجلة في السجل التحريري:' : 'Editorial Verification Note:'}
                 </span>
@@ -1064,6 +1289,67 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                 </p>
               </div>
             )}
+
+            {/* --- END-OF-ARTICLE GRAPHIC (تأخذ عرض الشاشة كاملاً 100% لأنها آخر شيء في المقال) --- */}
+            {endGraphics.map((endGraphic) => (
+              <section 
+                key={endGraphic.id}
+                id="sec-graphic-end"
+                onClick={() => handleOpenGraphicModal(endGraphic)}
+                className="w-full clear-both block my-6 sm:my-8 rounded-2xl bg-stone-950 text-stone-200 border border-stone-800 p-4 sm:p-6 shadow-xl hover:border-amber-500/60 transition-all cursor-pointer group select-none"
+                title={isAr ? 'اضغط لعرض التمثيل البياني كاملاً بصيغة مكبّرة' : 'Click to enlarge graphic'}
+              >
+                <div className="flex items-center justify-between text-stone-400 text-xs pb-3 border-b border-stone-800">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                      <BarChart3 className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="font-bold text-stone-100 text-xs sm:text-sm block">
+                        {endGraphic.title}
+                      </span>
+                      <span className="text-[11px] text-stone-400 block">
+                        {endGraphic.caption}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-xs px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 font-medium flex items-center gap-1.5 group-hover:bg-amber-500/30 shrink-0">
+                    <Maximize2 className="w-3.5 h-3.5" />
+                    <span>{isAr ? 'عرض مكبّر (100% عرض)' : 'Full View'}</span>
+                  </span>
+                </div>
+
+                {/* 100% Full-Width Chart Bars */}
+                <div className="h-44 sm:h-52 w-full flex items-end justify-between gap-3 sm:gap-6 pt-6 px-2 sm:px-6">
+                  {(endGraphic.dataPoints || [
+                    { label: '2023', value: 65, color: 'bg-amber-600' },
+                    { label: '2024', value: 80, color: 'bg-amber-500' },
+                    { label: '2025', value: 92, color: 'bg-emerald-500' },
+                    { label: '2026', value: 100, color: 'bg-sky-500' }
+                  ]).map((dp, idx) => (
+                    <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                      <span className="text-xs sm:text-sm text-stone-200 font-mono font-bold">{dp.value}%</span>
+                      <div 
+                        className={`w-full max-w-[56px] rounded-t-lg ${dp.color || 'bg-amber-500'} transition-all duration-500 shadow-md`}
+                        style={{ height: `${Math.min(100, dp.value) * 0.75}%` }}
+                      />
+                      <div className="text-center">
+                        <span className="text-xs font-bold text-stone-200 block truncate">{dp.label}</span>
+                        {dp.desc && <span className="text-[10px] text-stone-500 hidden sm:block truncate">{dp.desc}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="text-[11px] text-stone-400 pt-3 mt-3 border-t border-stone-800 flex items-center justify-between">
+                  <span>{endGraphic.details || (isAr ? 'المصدر: وحدة البيانات والأبحاث الاقتصادية بلافريكونوميست' : 'Source: L\'Africonomist Research Desk')}</span>
+                  <span className="text-amber-400 font-medium flex items-center gap-1">
+                    <span>{isAr ? 'اضغط لعرض كامل التفاصيل' : 'Click to inspect'}</span>
+                    <Maximize2 className="w-3 h-3" />
+                  </span>
+                </div>
+              </section>
+            ))}
           </main>
 
           {/* --- CITATIONS SECTION --- */}
@@ -1283,115 +1569,174 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
         </div>
       )}
 
-      {/* --- ENLARGED INFOGRAPHIC LIGHTBOX MODAL (عرض التمثيل البياني بشكل كبير) --- */}
+      {/* --- ENLARGED INFOGRAPHIC LIGHTBOX MODAL (عرض التمثيل البياني والصور بشكل مكبّر عند الضغط popup) --- */}
       {isInfographicModalOpen && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in"
           onClick={() => setIsInfographicModalOpen(false)}
         >
-          <div 
-            className="relative w-full max-w-4xl rounded-2xl bg-stone-950 text-stone-100 p-5 sm:p-8 border border-stone-800 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-stone-800">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
-                  <BarChart3 className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-newspaper-headline text-base sm:text-xl font-bold text-stone-100">
-                    {isAr ? 'التمثيل البياني والإنفوجرافيك الاقتصادي الموسّع' : 'Expanded Economic Data Infographic'}
-                  </h3>
-                  <p className="text-xs text-stone-400">
-                    {isAr 
-                      ? `رصد المؤشرات الميدانية والتدفقات الإقليمية: ${article.countryName} · ${article.sector || article.category}`
-                      : `Macroeconomic flow & tracking: ${article.countryNameEn} · ${article.sector || article.category}`}
-                  </p>
-                </div>
-              </div>
+          {(() => {
+            const activeGraphic = selectedGraphicForModal || articleGraphics[0];
+            const modalTitle = isAr ? activeGraphic.title : (activeGraphic.titleEn || activeGraphic.title);
+            const modalCaption = isAr ? activeGraphic.caption : (activeGraphic.captionEn || activeGraphic.caption);
+            const isMap = activeGraphic.type === 'map';
+            const isInfographic = activeGraphic.type === 'infographic';
+            const GraphicIcon = isMap ? Globe2 : isInfographic ? TrendingUp : BarChart3;
 
-              <button
-                onClick={() => setIsInfographicModalOpen(false)}
-                className="w-8 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white flex items-center justify-center cursor-pointer transition-colors"
-                title={isAr ? 'إغلاق' : 'Close'}
+            return (
+              <div 
+                className="relative w-full max-w-4xl rounded-2xl bg-stone-950 text-stone-100 p-5 sm:p-8 border border-stone-800 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
               >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* High-Resolution Expanded Chart */}
-            <div className="p-4 sm:p-6 rounded-xl bg-[#0b0f19] border border-stone-800 space-y-6">
-              <div className="flex items-center justify-between text-xs text-stone-400 pb-2 border-b border-stone-800">
-                <span className="flex items-center gap-2 font-mono">
-                  <Globe2 className="w-4 h-4 text-amber-400" />
-                  <span>{isAr ? 'مؤشر نمو وتدفقات الطاقة والاستثمار الإقليمي عبر القارة' : 'Pan-African Investment & Trade Velocity Index'}</span>
-                </span>
-                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono text-[11px] font-bold">
-                  {isAr ? 'بيانات معتمدة' : 'VERIFIED DATA'}
-                </span>
-              </div>
-
-              {/* Large Visual SVG/Bar Chart */}
-              <div className="h-56 sm:h-64 w-full flex items-end justify-between gap-3 sm:gap-6 pt-6 px-3 sm:px-6">
-                {[
-                  { label: isAr ? 'الربع الأول' : 'Q1', value: 68, color: 'bg-amber-600', desc: isAr ? 'بدء تدفقات التوريد' : 'Supply initialization' },
-                  { label: isAr ? 'الربع الثاني' : 'Q2', value: 82, color: 'bg-amber-500', desc: isAr ? 'توسع التوزيع الإقليمي' : 'Regional expansion' },
-                  { label: isAr ? 'الربع الثالث' : 'Q3', value: 94, color: 'bg-emerald-500', desc: isAr ? 'تحقيق الاستقرار الذاتي' : 'Self-sufficiency point' },
-                  { label: isAr ? 'المستهدف السنوي' : 'Annual Target', value: 100, color: 'bg-sky-500', desc: isAr ? 'ذروة الطاقة التصديرية' : 'Peak export capacity' },
-                ].map((bar, idx) => (
-                  <div key={idx} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                    <span className="text-xs sm:text-sm text-stone-200 font-mono font-bold">{bar.value}%</span>
-                    <div 
-                      className={`w-full max-w-[64px] rounded-t-lg ${bar.color} transition-all duration-700 shadow-lg`}
-                      style={{ height: `${bar.value * 0.75}%` }}
-                    />
-                    <div className="text-center">
-                      <span className="text-xs font-bold text-stone-200 block truncate">{bar.label}</span>
-                      <span className="text-[10px] text-stone-500 hidden sm:block truncate">{bar.desc}</span>
+                {/* Modal Header */}
+                <div className="flex items-center justify-between pb-4 border-b border-stone-800">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                      <GraphicIcon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-newspaper-headline text-base sm:text-xl font-bold text-stone-100">
+                          {modalTitle}
+                        </h3>
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono">
+                          {isMap ? (isAr ? 'خريطة ممرات' : 'Route Map') : isInfographic ? (isAr ? 'إنفوجرافيك كلي' : 'Macro Infographic') : (isAr ? 'رسم بياني' : 'Data Chart')}
+                        </span>
+                      </div>
+                      <p className="text-xs text-stone-400 mt-0.5">
+                        {modalCaption}
+                      </p>
                     </div>
                   </div>
-                ))}
-              </div>
 
-              {/* Detailed Metrics Table */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-stone-800 text-xs">
-                <div className="p-3 rounded-lg bg-stone-900/90 border border-stone-800">
-                  <div className="text-[10px] text-stone-400">{isAr ? 'الدولة / الإقليم' : 'Country'}</div>
-                  <div className="font-bold text-amber-400 mt-0.5">{isAr ? article.countryName : article.countryNameEn}</div>
+                  <button
+                    onClick={() => setIsInfographicModalOpen(false)}
+                    className="w-9 h-9 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-800 text-stone-300 hover:text-white flex items-center justify-center cursor-pointer transition-colors shrink-0"
+                    title={isAr ? 'إغلاق النافذة المنبثقة' : 'Close Popup'}
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
-                <div className="p-3 rounded-lg bg-stone-900/90 border border-stone-800">
-                  <div className="text-[10px] text-stone-400">{isAr ? 'القطاع الاقتصادي' : 'Sector'}</div>
-                  <div className="font-bold text-stone-200 mt-0.5">{article.sector || article.category}</div>
-                </div>
-                <div className="p-3 rounded-lg bg-stone-900/90 border border-stone-800">
-                  <div className="text-[10px] text-stone-400">{isAr ? 'المصداقية الميدانية' : 'Credibility'}</div>
-                  <div className="font-bold text-emerald-400 mt-0.5 font-mono">{article.factCheck.score}%</div>
-                </div>
-                <div className="p-3 rounded-lg bg-stone-900/90 border border-stone-800">
-                  <div className="text-[10px] text-stone-400">{isAr ? 'الأثر التراكمي' : 'Market Impact'}</div>
-                  <div className="font-bold text-stone-200 mt-0.5">
-                    {article.marketImpact === 'positive' ? (isAr ? 'نمو وتوسع' : 'Growth') : (isAr ? 'استقرار' : 'Stable')}
+
+                {/* High-Resolution Expanded Chart / Map / Infographic */}
+                <div className="p-4 sm:p-6 rounded-xl bg-[#0b0f19] border border-stone-800 space-y-6">
+                  <div className="flex items-center justify-between text-xs text-stone-400 pb-2 border-b border-stone-800">
+                    <span className="flex items-center gap-2 font-mono">
+                      <GraphicIcon className="w-4 h-4 text-amber-400" />
+                      <span>{isAr ? 'التمثيل البياني الميداني الموسّع بدقة عالية' : 'High-Resolution Empirical Representation'}</span>
+                    </span>
+                    <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono text-[11px] font-bold">
+                      {isAr ? 'بيانات معتمدة وموثقة' : 'OFFICIALLY VERIFIED'}
+                    </span>
+                  </div>
+
+                  {/* MAP VIEW SPECIFIC RENDERING */}
+                  {isMap ? (
+                    <div className="space-y-4 pt-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        {(activeGraphic.dataPoints || []).map((dp, idx) => (
+                          <div key={idx} className="p-3.5 rounded-xl bg-stone-900/90 border border-stone-800 flex flex-col justify-between">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs font-bold text-amber-400">{dp.label}</span>
+                              <span className="text-xs font-mono font-bold text-emerald-400">{dp.value}%</span>
+                            </div>
+                            <div className="w-full bg-stone-800 rounded-full h-2 overflow-hidden mb-2">
+                              <div 
+                                className="bg-emerald-500 h-full transition-all duration-700"
+                                style={{ width: `${dp.value}%` }}
+                              />
+                            </div>
+                            <span className="text-[10px] text-stone-400">{dp.desc}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Map Route Visual Corridor */}
+                      <div className="p-4 rounded-xl bg-stone-900/50 border border-stone-800 text-xs space-y-2">
+                        <div className="font-bold text-stone-200 flex items-center gap-2">
+                          <Globe2 className="w-4 h-4 text-sky-400" />
+                          <span>{isAr ? 'مسارات الملاحة الساحلية الإفريقية المباشرة (خليج غينيا):' : 'Direct African Coastal Corridors (Gulf of Guinea):'}</span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 text-stone-300 font-mono text-[11px]">
+                          <span className="px-2 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">ميناء ليكي (نيجيريا - المركز الرئيسي)</span>
+                          <span>➔</span>
+                          <span className="px-2 py-1 rounded bg-stone-800 text-stone-300">ميناء تيما (غانا)</span>
+                          <span>➔</span>
+                          <span className="px-2 py-1 rounded bg-stone-800 text-stone-300">ميناء أبيدجان (كوت ديفوار)</span>
+                          <span>➔</span>
+                          <span className="px-2 py-1 rounded bg-stone-800 text-stone-300">ميناء داكار (السنغال)</span>
+                        </div>
+                        <div className="text-[11px] text-emerald-400 pt-1">
+                          ⚡ {isAr ? 'تقليص زمن الشحن البحري من 25 يوماً (أوروبا) إلى أقل من 48 ساعة فقط عبر ممرات التجارة البينية الإفريقية.' : 'Transit time reduced from 25 days down to under 48 hours.'}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    /* CHART & INFOGRAPHIC BARS */
+                    <div className="h-56 sm:h-64 w-full flex items-end justify-between gap-3 sm:gap-6 pt-6 px-3 sm:px-6">
+                      {(activeGraphic.dataPoints || [
+                        { label: 'P1', value: 68, color: 'bg-amber-600', desc: 'Stage 1' },
+                        { label: 'P2', value: 82, color: 'bg-amber-500', desc: 'Stage 2' },
+                        { label: 'P3', value: 94, color: 'bg-emerald-500', desc: 'Stage 3' },
+                        { label: 'Target', value: 100, color: 'bg-sky-500', desc: 'Full Capacity' }
+                      ]).map((bar, idx) => (
+                        <div key={idx} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                          <span className="text-xs sm:text-sm text-stone-200 font-mono font-bold">
+                            {bar.value}{typeof bar.value === 'number' && bar.value <= 100 ? '%' : ''}
+                          </span>
+                          <div 
+                            className={`w-full max-w-[64px] rounded-t-lg ${bar.color || 'bg-amber-500'} transition-all duration-700 shadow-lg`}
+                            style={{ height: `${Math.min(100, Math.max(15, bar.value <= 100 ? bar.value * 0.75 : 75))}%` }}
+                          />
+                          <div className="text-center w-full">
+                            <span className="text-xs font-bold text-stone-200 block truncate">{bar.label}</span>
+                            {bar.desc && <span className="text-[10px] text-stone-400 hidden sm:block truncate">{bar.desc}</span>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Detailed Metrics Table */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-stone-800 text-xs">
+                    <div className="p-3 rounded-lg bg-stone-900/90 border border-stone-800">
+                      <div className="text-[10px] text-stone-400">{isAr ? 'الدولة / الإقليم' : 'Country'}</div>
+                      <div className="font-bold text-amber-400 mt-0.5">{isAr ? article.countryName : article.countryNameEn}</div>
+                    </div>
+                    <div className="p-3 rounded-lg bg-stone-900/90 border border-stone-800">
+                      <div className="text-[10px] text-stone-400">{isAr ? 'القطاع الاقتصادي' : 'Sector'}</div>
+                      <div className="font-bold text-stone-200 mt-0.5">{article.sector || article.category}</div>
+                    </div>
+                    <div className="p-3 rounded-lg bg-stone-900/90 border border-stone-800">
+                      <div className="text-[10px] text-stone-400">{isAr ? 'المصداقية الميدانية' : 'Credibility'}</div>
+                      <div className="font-bold text-emerald-400 mt-0.5 font-mono">{article.factCheck.score}%</div>
+                    </div>
+                    <div className="p-3 rounded-lg bg-stone-900/90 border border-stone-800">
+                      <div className="text-[10px] text-stone-400">{isAr ? 'الأثر التراكمي' : 'Market Impact'}</div>
+                      <div className="font-bold text-stone-200 mt-0.5">
+                        {article.marketImpact === 'positive' ? (isAr ? 'نمو وتوسع' : 'Growth') : (isAr ? 'استقرار' : 'Stable')}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Methodology & Source Footer */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-stone-400 pt-3 border-t border-stone-800/80 font-newspaper-body">
+                    <div>
+                      {activeGraphic.details || (isAr 
+                        ? `المصدر: قاعدة بيانات لافريكونوميست للأبحاث والمسوح الميدانية · جميع الحقوق محفوظة`
+                        : `Source: L'Africonomist Empirical Research & Macro Desk · All rights reserved`)}
+                    </div>
+                    <button
+                      onClick={() => setIsInfographicModalOpen(false)}
+                      className="px-4 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs transition-colors cursor-pointer"
+                    >
+                      {isAr ? 'إغلاق العرض المكبّر' : 'Close Zoom'}
+                    </button>
                   </div>
                 </div>
               </div>
-
-              {/* Methodology & Source Footer */}
-              <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-stone-400 pt-3 border-t border-stone-800/80 font-newspaper-body">
-                <div>
-                  {isAr 
-                    ? `المصدر: قاعدة بيانات لافريكونوميست للأبحاث والمسوح الميدانية · جميع الحقوق محفوظة`
-                    : `Source: L'Africonomist Empirical Research & Macro Desk · All rights reserved`}
-                </div>
-                <button
-                  onClick={() => setIsInfographicModalOpen(false)}
-                  className="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs transition-colors cursor-pointer"
-                >
-                  {isAr ? 'إغلاق العرض المكبّر' : 'Close Zoom'}
-                </button>
-              </div>
-            </div>
-          </div>
+            );
+          })()}
         </div>
       )}
     </div>

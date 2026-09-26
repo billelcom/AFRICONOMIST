@@ -23,6 +23,19 @@ export interface FactCheckReport {
   checkedAt: string;
 }
 
+export interface ArticleGraphicItem {
+  id: string;
+  title: string;
+  titleEn?: string;
+  type: 'chart' | 'map' | 'infographic';
+  caption: string;
+  captionEn?: string;
+  position: 'mid' | 'end'; // 'mid' takes 50% width with text wrapping, 'end' takes 100% width!
+  align?: 'right' | 'left';
+  dataPoints?: { label: string; value: number; color?: string; desc?: string }[];
+  details?: string;
+}
+
 export interface Article {
   id: string;
   slug: string;
@@ -47,6 +60,7 @@ export interface Article {
   authorRoleEn?: string;
   readersCount?: number;
   imageUrl?: string;
+  graphics?: ArticleGraphicItem[];
   aiModel?: string;
   reviewedBy?: string;
   reviewNotes?: string;

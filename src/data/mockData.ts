@@ -26,14 +26,87 @@ export const INITIAL_ARTICLES: Article[] = [
     summary: 'مع بلوغ الطاقة التكريرية 650 ألف برميل يومياً، تبدأ نيجيريا تصدير المشتقات إلى غانا والسنغال وكوت ديفوار، موفرة أكثر من 12 مليار دولار سنوياً من فاتورة الاستيراد.',
     summaryEn: 'With refining capacity reaching 650,000 bpd, Nigeria begins major shipments across ECOWAS, reversing decades of import dependency.',
     content: [
-      'بدأت مصفاة دانغوتي النيجيرية مرحلة التوزيع الإقليمي للديزل والبنزين عالي النقاوة عبر غرب أفريقيا، في تحول هيكلي هو الأكبر في قطاع الطاقة بالقارة منذ عقود.',
-      'تشير بيانات بنك التصدير والاستيراد الأفريقي (Afreximbank) إلى أن تقليص شحن المشتقات المكررة من مصافي روتردام وسنغافورة إلى غرب أفريقيا سيوفر للدول الإفريقية ما يصل إلى 15% في تكاليف الشحن والتأمين، مما يخفف الضغوط التضخمية المباشرة على العملات المحلية.',
-      'وفي تصريح لمحافظ البنك المركزي النيجيري، أوضح أن الاكتفاء الذاتي من الوقود يمثل نقطة انعطاف حاسمة لحماية احتياطيات النقد الأجنبي، والتي استعادت عافيتها لتتجاوز 39 مليار دولار في الربع الثالث.'
+      'بدأت مصفاة دانغوتي النيجيرية العملاقة، الواقعة في المنطقة الحرة لشبه جزيرة ليكي شرق لاغوس، مرحلة التدفقات التصديرية المنتظمة للمشتقات النفطية عالية الجودة نحو أسواق دول غرب أفريقيا، في تحول جيواقتصادي وهيكلي يعد الأضخم في جغرافيا الطاقة بالقارة السمراء منذ قرابة نصف قرن. ويأتي هذا الإنجاز الصناعي بعد نجاح المجمع البتروكيماوي في تشغيل وحدات التقطير الجوي بطاقتها التكريرية القياسية البالغة 650 ألف برميل يومياً، ما يضع نيجيريا رسمياً على رأس قائمة منتجي الوقود المكرر في القارة الإفريقية، متجاوزة القدرات التكريرية التراكمية لكبرى المجمعات النفطية الواقعة في حوض البحر الأبيض المتوسط وأوروبا الغربية.',
+      'وتكشف البيانات الرسمية الموثقة الصادرة عن وزارة الموارد البترولية النيجيرية عن إبرام حزمة من عقود التوريد الإقليمية طويلة الأجل مع أربع دول محورية في المجموعة الاقتصادية لدول غرب أفريقيا (إيكواس)، شملت غانا، والسنغال، وكوت ديفوار، وتوغو، بهدف تغطية أكثر من 40% من الطلب الاستهلاكي اليومي لتلك الدول من وقود الديزل ووقود الطائرات والبنزين النقي الخالي من الرصاص، ما يرسي ركائز تكامل طاقوي قاري متين ينهي عقوداً طويلة من التبعية المزمنة للمستودعات الأوروبية وموانئ أمستردام وروتردام وأنتويرب، ويمنح دول المنطقة درعاً حمائياً ضد اضطرابات الشحن العالمية.',
+      'وفي سياق الجدوى المالية واللوجستية، أظهرت دراسة رصد معمقة أعدها بنك التصدير والاستيراد الأفريقي (Afreximbank) أن نقل مراكز الإمداد والتوزيع من الموانئ الأوروبية إلى خليج غينيا يسهم في تقليص التكاليف اللوجستية المباشرة بنسبة تتراوح بين 18% و24%، تشمل نفقات الشحن البحري، وبوالص التأمين ضد المخاطر، ورسوم التفريغ والرسو بالموانئ. كما قلصت خطوط الملاحة الساحلية الإفريقية المباشرة المدة الزمنية لوصول شحنات المحروقات من 25 يوماً إلى أقل من 48 ساعة فقط، الأمر الذي يتيح لشركات التوزيع الوطنية امتصاص الصدمات السعرية المفاجئة في الأسواق العالمية وتأمين مخزونات استراتيجية تكفي لعدة أشهر متواصلة دون انقطاع.',
+      'وعلى الصعيد النقدي والمؤشرات المالية الكلية، شدد محافظ البنك المركزي النيجيري في إحاطة رسمية موجهة لكبار المستثمرين والمصرفيين على أن الاكتفاء الذاتي ووقف نزيف العملة الصعبة الموجه لاستيراد المشتقات وفر ما يتجاوز 12.5 مليار دولار سنوياً من الاحتياطيات النقدية الأجنبية للبلاد. وقد انعكس هذا التدفق المالي الإيجابي بصورة مباشرة على ميزان المدفوعات السيادي، حيث قفزت الاحتياطيات الرسمية من النقد الأجنبي إلى 39.4 مليار دولار بنهاية الربع الثالث، مما منح البنك المركزي هوامش مناورة قوية لتثبيت سعر صرف النايرا والحد من موجات التضخم المستورد التي ألقت بظلالها على أسعار السلع الأساسية.',
+      'من الناحية التقنية والتجهيزات الصناعية، تضم منشأة دانغوتي منظومة متطورة ترتبط بشبكة أنابيب بحرية تمتد لأكثر من 1100 كيلومتر تحت سطح مياه المحيط الأطلسي، إلى جانب ست منصات تحميل بحري عائمة قادرة على استقبال ومناولة ناقلات النفط العملاقة من فئة (VLCC) بسلاسة وأمان تامين. هذه المنظومة تضمن استدامة عمليات الشحن والتفريغ حتى في ظل التقلبات المناخية الحادة أو العواصف المدارية، وتوفر تدفقاً يومياً لا يقل عن 80 مليون لتر من المشتقات البترولية لتلبية الاحتياجات التنموية لقطاعات النقل، والتعدين، وتوليد الطاقة الكهربائية في دول الجوار الإفريقي.',
+      'ويجمع خبراء الاقتصاد وممثلو اتحاد غرف التجارة الإفريقية على أن مصفاة دانغوتي تشكل الحجر الأساس للنموذج التنموي الذي تسعى اتفاقية منطقة التجارة الحرة القارية الإفريقية (AfCFTA) لترسيخه، حيث تثبت التجربة أن الاستثمار في البنية التحتية التصنيعية السيادية قادر على كسر المعادلة الاستعمارية التاريخية القائمة على تصدير الموارد الخام واستيرادها بأسعار مضاعفة، مما يفتح آفاقاً واسعة لخلق أكثر من مائة ألف فرصة عمل صناعية مباشرة وغير مباشرة في سلاسل القيمة المضافة لقطاع المحروقات في عموم غرب القارة الإفريقية.',
+      'وتتجه أنظار المراقبين والمؤسسات التمويلية الدولية خلال المرحلة المقبلة إلى خطط توسيع الخطوط الرابطة ومشاريع خطوط الأنابيب الإقليمية العابرة للحدود لتزويد مالي وبوركينا فاسو والنيجر بالوقود براً، مما يكرس سيادة القارة الطاقوية ويدشن حقبة تاريخية عنوانها التصنيع المحلي، وتكامل سلاسل التوريد، وتحقيق الأمن الطاقوي المشترك بحلول عام 2030.'
     ],
     contentEn: [
-      'The Dangote Refinery in Lagos has initiated cross-border bulk fuel distribution across West Africa, marking the most significant energy restructuring in decades.',
-      'Data from Afreximbank confirms regional logistics optimization will reduce shipping premiums by up to 15%, dampening currency depreciation spirals.',
-      'The Central Bank of Nigeria highlighted that domestic refined fuel independence eliminates the largest foreign exchange drain on sovereign reserves.'
+      'The Dangote mega refinery in the Lekki Free Trade Zone of Lagos has commenced historic commercial fuel shipments across West African markets, representing the most transformative geoeconomic shift in continental energy dynamics in over half a century. Reaching its rated nameplate refining capacity of 650,000 barrels per day firmly establishes Nigeria as the premier refined petroleum powerhouse in Africa, eclipsing conventional refining complexes across the Mediterranean basin and Western Europe.',
+      'Official documentation from Nigerias Ministry of Petroleum Resources confirms extensive multi-year bilateral supply agreements with key ECOWAS counterparts—namely Ghana, Senegal, Côte dIvoire, and Togo. These pacts cover over 40% of their aggregate national fuel demand for premium diesel, jet fuel, and unleaded gasoline, decisively ending decades of structural reliance on European depots in Amsterdam, Rotterdam, and Antwerp while providing insulation against maritime geopolitical shocks.',
+      'Analytical assessments published by Afreximbank indicate that re-anchoring regional energy distribution corridors within the Gulf of Guinea cuts direct logistical expenditures by 18% to 24%, including maritime freight tariffs, marine risk insurance underwriting, and port demurrage surcharges. Furthermore, coastal transit durations have been slashed from 25 days down to under 48 hours, empowering domestic distributors to absorb global price volatility and maintain robust strategic petroleum reserves.',
+      'Macroeconomic indicators reflect significant monetary stabilization. In a high-level briefing to institutional investors, Central Bank leadership stated that achieving refined petroleum self-sufficiency halted the foreign exchange outflow previously squandered on fuel imports, safeguarding over $12.5 billion annually. Consequently, gross sovereign foreign exchange reserves surged to $39.4 billion by the close of the third quarter, providing monetary authorities with critical leeway to anchor the Nigerian Naira and tame imported inflation.',
+      'From an infrastructure and engineering standpoint, the Lekki petrochemical complex is integrated with more than 1,100 kilometers of deepwater subsea pipelines alongside six Single-Point Mooring (SPM) buoys engineered to dock and offload Very Large Crude Carriers (VLCCs) in severe maritime weather conditions. This setup guarantees unbroken daily discharge exceeding 80 million liters of clean fuels, powering industrial transport, mineral extraction, and thermal power plants throughout the region.',
+      'Continental economists and African Chambers of Commerce leadership regard this milestone as an operational blueprint for the African Continental Free Trade Area (AfCFTA). The initiative proves that sovereign investments in heavy downstream industrialization can overturn historical resource-extraction paradigms, generating over 100,000 direct and ancillary industrial careers across regional value chains.',
+      'Looking ahead, international development finance institutions are actively monitoring pipeline extension initiatives to landlocked ECOWAS partners including Mali, Burkina Faso, and Niger, solidifying West Africas collective energy security and establishing a self-sustaining sovereign industrial corridor by 2030.'
+    ],
+    graphics: [
+      {
+        id: 'g-1',
+        title: 'تطور الطاقة التكريرية اليومية لمصفاة دانغوتي (برميل/يوم)',
+        titleEn: 'Dangote Refinery Daily Throughput Trajectory (BPD)',
+        type: 'chart',
+        position: 'mid',
+        align: 'right',
+        caption: 'صعود تدريجي من التشغيل الأولي وصولاً للقدرة القصوى 650 ألف برميل يومياً',
+        dataPoints: [
+          { label: 'المرحلة 1 (تجريبي)', value: 350, desc: '350k ب/ي' },
+          { label: 'المرحلة 2 (توسع)', value: 480, desc: '480k ب/ي' },
+          { label: 'المرحلة 3 (إقليمي)', value: 580, desc: '580k ب/ي' },
+          { label: 'الطاقة القصوى', value: 650, desc: '650k ب/ي' }
+        ],
+        details: 'المصدر: النشرة الفنية لشركة دانغوتي للصناعات النفطية ومصادقة هيئة التنظيم النيجيرية NMDPRA'
+      },
+      {
+        id: 'g-2',
+        title: 'خريطة تدفقات خطوط الشحن البحري الإقليمية (ممرات ECOWAS)',
+        titleEn: 'Maritime Trade Corridors in West Africa',
+        type: 'map',
+        position: 'mid',
+        align: 'left',
+        caption: 'محاور التوزيع الساحلي المباشر من خليج غينيا إلى غانا وكوت ديفوار والسنغال وتوغو',
+        dataPoints: [
+          { label: 'غانا (تيما)', value: 40, desc: '40% من الواردات' },
+          { label: 'السنغال (داكار)', value: 25, desc: '25% من الواردات' },
+          { label: 'كوت ديفوار (أبيدجان)', value: 20, desc: '20% من الواردات' },
+          { label: 'توغو وبنين (لومي)', value: 15, desc: '15% من الواردات' }
+        ],
+        details: 'تقليص زمن الإبحار من 25 يوماً (من موانئ روتردام الأوروبية) إلى أقل من 48 ساعة عبر الملاحة الساحلية الإفريقية'
+      },
+      {
+        id: 'g-3',
+        title: 'مؤشر خفض تكاليف سلاسل الإمداد والشحن البحري الإقليمي (%)',
+        titleEn: 'Regional Maritime Supply Chain Cost Reductions (%)',
+        type: 'chart',
+        position: 'mid',
+        align: 'right',
+        caption: 'وفر التكاليف اللوجستية ورسوم التأمين وغرامات التأخير مقارنة بالتوريد الأوروبي',
+        dataPoints: [
+          { label: 'وفر الشحن المباشر', value: 18, desc: 'انخفاض 18%' },
+          { label: 'بوالص التأمين البحري', value: 24, desc: 'انخفاض 24%' },
+          { label: 'رسوم التفريغ والرسو', value: 35, desc: 'انخفاض 35%' },
+          { label: 'تقليص زمن التوريد', value: 92, desc: 'تقليص 92%' }
+        ],
+        details: 'دراسة استقصائية ميدانية منشورة في النشرة الفصلية لبنك التصدير والاستيراد الإفريقي (Afreximbank)'
+      },
+      {
+        id: 'g-4',
+        title: 'التمثيل البياني الختامي الشامل: أثر وفر النقد الأجنبي على الاحتياطيات السيادية (مليار دولار)',
+        titleEn: 'Forex Drainage Reversal & Sovereign Reserves Growth ($B)',
+        type: 'infographic',
+        position: 'end',
+        caption: 'مسار تعافي الاحتياطيات النقدية بعد وقف استيراد المحروقات والتحول نحو التصدير الإقليمي',
+        dataPoints: [
+          { label: '2023 (سابق)', value: 32, desc: '$32.1B استنزاف' },
+          { label: '2024 (بدء)', value: 36, desc: '$36.8B تعافي' },
+          { label: '2025 (إقليمي)', value: 42, desc: '$42.5B وفر' },
+          { label: '2026 (مستهدف)', value: 49, desc: '$49.2B طفرة' }
+        ],
+        details: 'بيانات موثقة من النشرة الفصلية للبنك المركزي النيجيري وتقارير صندوق النقد الدولي لميزان المدفوعات'
+      }
     ],
     category: 'Energy',
     countryCode: 'NG',
@@ -64,7 +137,25 @@ export const INITIAL_ARTICLES: Article[] = [
         publishDate: '2026-09-02',
         verified: true,
         credibilityScore: 99,
-        snippet: 'Gross external reserves consolidated above $39.2B post fuel subsidy elimination.'
+        snippet: 'Gross external reserves consolidated above $39.4B post fuel subsidy elimination.'
+      },
+      {
+        id: 'cit-3',
+        sourceName: 'Nigerian Midstream and Downstream Petroleum Regulatory Authority (NMDPRA)',
+        url: 'https://nmdpra.gov.ng/reports/refinery-capacity',
+        publishDate: '2026-09-10',
+        verified: true,
+        credibilityScore: 97,
+        snippet: 'Dangote petrochemical operations certified at 650,000 bpd throughput capacity with offshore subsea connectivity.'
+      },
+      {
+        id: 'cit-4',
+        sourceName: 'AfCFTA Secretariat Industrial Integration Review',
+        url: 'https://au-afcfta.org/publications/energy-corridors',
+        publishDate: '2026-09-18',
+        verified: true,
+        credibilityScore: 96,
+        snippet: 'Regional energy value addition benchmarked to generate over 100,000 skilled manufacturing jobs across West Africa.'
       }
     ],
     factCheck: {

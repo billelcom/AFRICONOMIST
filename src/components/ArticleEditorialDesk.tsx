@@ -35,8 +35,17 @@ import {
   Upload,
   ImagePlus,
   Link as LinkIcon,
-  RefreshCw
+  RefreshCw,
+  ChevronDown,
+  Search,
+  Globe,
+  Building2,
+  Flame,
+  Coins,
+  Briefcase
 } from 'lucide-react';
+import { ALL_54_AFRICAN_COUNTRIES } from '../data/africanCountries';
+import { JOURNALISTIC_GENRES, ECONOMIC_SECTORS } from '../data/reportOptions';
 
 interface ArticleEditorialDeskProps {
   article: Article;
@@ -55,6 +64,48 @@ interface ArticleEditorialDeskProps {
   onPreviewArticle?: (article: Article) => void;
   lang: 'ar' | 'en';
 }
+
+// Helper for ISO country flag emoji
+const getCountryFlagEmoji = (code: string) => {
+  if (!code || code.length !== 2) return '🌍';
+  const codePoints = code
+    .toUpperCase()
+    .split('')
+    .map(char => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+};
+
+// Regions configuration for 54 African countries
+const AFRICAN_REGIONS = [
+  { id: 'all', labelAr: 'الكل (54 دولة)', labelEn: 'All (54)' },
+  { id: 'north', labelAr: 'شمال أفريقيا', labelEn: 'North', codes: ['EG', 'DZ', 'MA', 'TN', 'LY', 'SD', 'MR'] },
+  { id: 'west', labelAr: 'غرب أفريقيا', labelEn: 'West', codes: ['NG', 'GH', 'CI', 'SN', 'ML', 'BF', 'NE', 'GN', 'BJ', 'TG', 'SL', 'LR', 'GM', 'GW', 'CV'] },
+  { id: 'east', labelAr: 'شرق أفريقيا', labelEn: 'East', codes: ['KE', 'ET', 'TZ', 'UG', 'RW', 'BI', 'SS', 'SO', 'DJ', 'ER', 'SC', 'MU', 'KM', 'MG'] },
+  { id: 'central', labelAr: 'وسط أفريقيا', labelEn: 'Central', codes: ['CD', 'CM', 'AO', 'CG', 'GA', 'TD', 'CF', 'GQ', 'ST'] },
+  { id: 'southern', labelAr: 'الجنوب الإفريقي', labelEn: 'Southern', codes: ['ZA', 'ZM', 'ZW', 'BW', 'NA', 'MZ', 'MW', 'SZ', 'LS'] }
+];
+
+// Sector groups configuration
+const SECTOR_GROUPS = [
+  { id: 'all', labelAr: 'كافة القطاعات (28)', labelEn: 'All (28)' },
+  { id: 'energy', labelAr: 'طاقة وموارد', labelEn: 'Energy' },
+  { id: 'markets', labelAr: 'أسواق وعملات', labelEn: 'Markets' },
+  { id: 'finance', labelAr: 'مصارف واستثمار', labelEn: 'Finance' },
+  { id: 'tech_digital', labelAr: 'تكنولوجيا ورقمي', labelEn: 'Digital' },
+  { id: 'trade_industry', labelAr: 'تجارة وصناعة', labelEn: 'Trade' },
+  { id: 'sustainable', labelAr: 'استدامة وزراعة', labelEn: 'Agri & Green' },
+  { id: 'macro', labelAr: 'اقتصاد كلي', labelEn: 'Macro' }
+];
+
+// Journalistic genre categories configuration
+const GENRE_CATEGORIES = [
+  { id: 'all', labelAr: 'كافة القوالب (18)', labelEn: 'All (18)' },
+  { id: 'اخبار', labelAr: 'أخبار وتغطية', labelEn: 'News' },
+  { id: 'استقصاء وتحليل', labelAr: 'استقصاء وتحليل', labelEn: 'In-Depth' },
+  { id: 'رأي ومقالات', labelAr: 'رأي ومقالات', labelEn: 'Opinion' },
+  { id: 'حوارات ورصد', labelAr: 'حوارات ورصد', labelEn: 'Interviews' },
+  { id: 'بصري وبيانات', labelAr: 'بيانات ورسوم', labelEn: 'Data' }
+];
 
 export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
   article,
@@ -89,6 +140,100 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
   const [editableAuthorRole, setEditableAuthorRole] = useState<string>(article.authorRole || 'محرر الشؤون القارية');
   const [editableMarketImpact, setEditableMarketImpact] = useState<'positive' | 'negative' | 'neutral'>(article.marketImpact || 'positive');
   const [humanReviewerNote, setHumanReviewerNote] = useState<string>(article.reviewNotes || '');
+
+  // Interactive Dropdowns state for Triple Classification
+  const [openDropdown, setOpenDropdown] = useState<'country' | 'sector' | 'genre' | null>(null);
+  const [countrySearch, setCountrySearch] = useState<string>('');
+  const [countryRegionFilter, setCountryRegionFilter] = useState<string>('all');
+  const [sectorSearch, setSectorSearch] = useState<string>('');
+  const [sectorGroupFilter, setSectorGroupFilter] = useState<string>('all');
+  const [genreSearch, setGenreSearch] = useState<string>('');
+  const [genreCategoryFilter, setGenreCategoryFilter] = useState<string>('all');
+
+  const classificationBoxRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (classificationBoxRef.current && !classificationBoxRef.current.contains(e.target as Node)) {
+        setOpenDropdown(null);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
+
+  // Selected matching objects for display
+  const selectedCountryObj = useMemo(() => {
+    return ALL_54_AFRICAN_COUNTRIES.find(
+      c => c.nameAr === editableCountry || c.nameEn.toLowerCase() === editableCountry.toLowerCase() || c.code === article.countryCode
+    ) || ALL_54_AFRICAN_COUNTRIES.find(c => c.nameAr.includes(editableCountry) || editableCountry.includes(c.nameAr)) || null;
+  }, [editableCountry, article.countryCode]);
+
+  const selectedSectorObj = useMemo(() => {
+    return ECONOMIC_SECTORS.find(
+      s => s.nameAr === editableSector || s.nameEn.toLowerCase() === editableSector.toLowerCase()
+    ) || ECONOMIC_SECTORS.find(s => editableSector.includes(s.nameAr) || s.nameAr.includes(editableSector)) || null;
+  }, [editableSector]);
+
+  const selectedGenreObj = useMemo(() => {
+    return JOURNALISTIC_GENRES.find(
+      g => g.nameAr === editableGenre || g.nameEn.toLowerCase() === editableGenre.toLowerCase()
+    ) || JOURNALISTIC_GENRES.find(g => editableGenre.includes(g.nameAr) || g.nameAr.includes(editableGenre)) || null;
+  }, [editableGenre]);
+
+  // Filtered lists for dropdown menus
+  const filteredCountries = useMemo(() => {
+    let list = ALL_54_AFRICAN_COUNTRIES;
+    if (countryRegionFilter !== 'all') {
+      const reg = AFRICAN_REGIONS.find(r => r.id === countryRegionFilter);
+      if (reg && reg.codes) {
+        list = list.filter(c => reg.codes.includes(c.code));
+      }
+    }
+    if (countrySearch.trim()) {
+      const q = countrySearch.toLowerCase().trim();
+      list = list.filter(c => 
+        c.nameAr.toLowerCase().includes(q) || 
+        c.nameEn.toLowerCase().includes(q) || 
+        c.code.toLowerCase().includes(q) || 
+        c.capital.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [countrySearch, countryRegionFilter]);
+
+  const filteredSectors = useMemo(() => {
+    let list = ECONOMIC_SECTORS;
+    if (sectorGroupFilter !== 'all') {
+      list = list.filter(s => s.group === sectorGroupFilter);
+    }
+    if (sectorSearch.trim()) {
+      const q = sectorSearch.toLowerCase().trim();
+      list = list.filter(s => 
+        s.nameAr.toLowerCase().includes(q) || 
+        s.nameEn.toLowerCase().includes(q) || 
+        s.groupNameAr.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [sectorSearch, sectorGroupFilter]);
+
+  const filteredGenres = useMemo(() => {
+    let list = JOURNALISTIC_GENRES;
+    if (genreCategoryFilter !== 'all') {
+      list = list.filter(g => g.category === genreCategoryFilter);
+    }
+    if (genreSearch.trim()) {
+      const q = genreSearch.toLowerCase().trim();
+      list = list.filter(g => 
+        g.nameAr.toLowerCase().includes(q) || 
+        g.nameEn.toLowerCase().includes(q) || 
+        g.descriptionAr.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [genreSearch, genreCategoryFilter]);
 
   // File input ref for device photo upload
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -237,6 +382,10 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
       .map(p => p.trim())
       .filter(p => p.length > 0);
 
+    const matchedCountry = ALL_54_AFRICAN_COUNTRIES.find(
+      c => c.nameAr === editableCountry || c.nameEn.toLowerCase() === editableCountry.toLowerCase()
+    );
+
     return {
       ...article,
       title: editableTitle,
@@ -244,6 +393,8 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
       summary: editableSummary,
       content: paragraphs.length > 0 ? paragraphs : [editableContent],
       countryName: editableCountry,
+      countryNameEn: matchedCountry?.nameEn || article.countryNameEn || editableCountry,
+      countryCode: matchedCountry?.code || article.countryCode || 'DZ',
       sector: editableSector,
       journalisticType: editableGenre,
       authorName: editableAuthor,
@@ -932,60 +1083,492 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
             </div>
 
             {/* Box B: Editorial Classification & Metadata (التصنيف الثلاثي والكاتب) */}
-            <div className="p-5 sm:p-6 rounded-2xl bg-[#080C17] border border-slate-800 shadow-xl space-y-4">
-              <div className="border-b border-slate-800/80 pb-3">
+            <div ref={classificationBoxRef} className="p-5 sm:p-6 rounded-2xl bg-[#080C17] border border-slate-800 shadow-xl space-y-4">
+              <div className="border-b border-slate-800/80 pb-3 flex items-center justify-between">
                 <h3 className="text-xs font-black uppercase tracking-wider text-slate-300 flex items-center gap-2">
                   <Layers className="w-4 h-4 text-amber-400" />
-                  <span>{isAr ? 'بيانات التصنيف الصحفي والكاتب' : 'Journalistic Classification'}</span>
+                  <span>{isAr ? 'بيانات التصنيف الثلاثي والكاتب' : 'Journalistic Classification & Author'}</span>
                 </h3>
+                <span className="text-[10px] text-amber-400/90 font-mono bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                  {isAr ? '3 قوائم منسدلة معتمدة' : '3 Standard Dropdowns'}
+                </span>
               </div>
 
-              <div className="space-y-3 text-xs">
-                {/* 1. التصنيف الثلاثي (الدولة / القطاع / القالب) */}
-                <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase font-mono">
-                    {isAr ? 'وسم التصنيف الثلاثي للمقال:' : 'Breadcrumb Classification:'}
-                  </span>
-                  <div className="flex items-center gap-1.5 text-amber-400 font-bold font-mono">
-                    <span>{editableCountry}</span>
-                    <span className="text-slate-600">/</span>
-                    <span>{editableSector}</span>
-                    <span className="text-slate-600">/</span>
-                    <span>{editableGenre}</span>
+              <div className="space-y-4 text-xs">
+                {/* 1. وسوم التصنيف الثلاثي للمقال (المعاينة المركبة الحية) */}
+                <div className="p-3 rounded-xl bg-slate-950 border border-slate-800/90 shadow-inner space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase font-mono flex items-center gap-1.5">
+                      <Layers className="w-3 h-3 text-amber-400" />
+                      <span>{isAr ? 'وسم التصنيف الثلاثي للمقال:' : 'Breadcrumb Classification:'}</span>
+                    </span>
+                    <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/20">
+                      {isAr ? 'تحديث لحظي' : 'Live Sync'}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5 font-mono text-xs">
+                    {/* Country Badge */}
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 border border-amber-500/30 text-amber-300 font-bold shadow-sm">
+                      <span className="text-sm">{selectedCountryObj ? getCountryFlagEmoji(selectedCountryObj.code) : '🌍'}</span>
+                      <span>{editableCountry}</span>
+                      {selectedCountryObj && (
+                        <span className="text-[9px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-400">
+                          {selectedCountryObj.code}
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-slate-600 font-bold">/</span>
+                    {/* Sector Badge */}
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 border border-blue-500/30 text-blue-300 font-bold shadow-sm">
+                      <TrendingUp className="w-3 h-3 text-blue-400" />
+                      <span>{editableSector}</span>
+                    </span>
+                    <span className="text-slate-600 font-bold">/</span>
+                    {/* Genre Badge */}
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 border border-purple-500/30 text-purple-300 font-bold shadow-sm">
+                      <FileText className="w-3 h-3 text-purple-400" />
+                      <span>{editableGenre}</span>
+                    </span>
                   </div>
                 </div>
 
-                {/* Country */}
-                <div className="space-y-1">
-                  <label className="text-slate-400 text-[11px] font-medium">{isAr ? 'الدولة الإفريقية:' : 'Country:'}</label>
-                  <input
-                    type="text"
-                    value={editableCountry}
-                    onChange={(e) => setEditableCountry(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-bold text-xs focus:outline-none focus:border-amber-500"
-                  />
+                {/* 2. القائمة المنسدلة 1: قائمة الدول الإفريقية */}
+                <div className="space-y-1.5 relative z-30">
+                  <div className="flex items-center justify-between">
+                    <label className="text-slate-300 text-[11px] font-bold flex items-center gap-1.5">
+                      <Globe className="w-3.5 h-3.5 text-amber-400" />
+                      <span>{isAr ? 'قائمة الدول الإفريقية (54 دولة معتمدة):' : 'African Countries List (54 Sovereign States):'}</span>
+                    </label>
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      {selectedCountryObj?.code || 'DZ'} · {selectedCountryObj?.capital || ''}
+                    </span>
+                  </div>
+
+                  {/* Trigger Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpenDropdown(openDropdown === 'country' ? null : 'country');
+                      setCountrySearch('');
+                      setCountryRegionFilter('all');
+                    }}
+                    className={`w-full px-3 py-2.5 rounded-xl border text-right transition-all flex items-center justify-between cursor-pointer shadow-sm ${
+                      openDropdown === 'country'
+                        ? 'bg-slate-900 border-amber-500 ring-2 ring-amber-500/20'
+                        : 'bg-slate-950 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-base leading-none">
+                        {selectedCountryObj ? getCountryFlagEmoji(selectedCountryObj.code) : '🌍'}
+                      </span>
+                      <div className="truncate">
+                        <span className="text-white font-bold text-xs">
+                          {editableCountry}
+                        </span>
+                        {selectedCountryObj && (
+                          <span className="text-slate-400 text-[11px] font-mono mx-1.5">
+                            ({selectedCountryObj.nameEn})
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      {selectedCountryObj && (
+                        <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-mono font-bold">
+                          {selectedCountryObj.code}
+                        </span>
+                      )}
+                      <ChevronDown
+                        className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
+                          openDropdown === 'country' ? 'rotate-180 text-amber-400' : ''
+                        }`}
+                      />
+                    </div>
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {openDropdown === 'country' && (
+                    <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-[#0C111D] border border-slate-700 rounded-2xl shadow-2xl p-3 space-y-2.5 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-xl">
+                      {/* Search box */}
+                      <div className="relative">
+                        <Search className="w-3.5 h-3.5 absolute top-2.5 ltr:left-3 rtl:right-3 text-slate-500" />
+                        <input
+                          type="text"
+                          autoFocus
+                          value={countrySearch}
+                          onChange={(e) => setCountrySearch(e.target.value)}
+                          placeholder={isAr ? "ابحث بالاسم العربي، الإنجليزي، العاصمة أو الرمز..." : "Search by Arabic, English, capital, or code..."}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-xl py-1.5 ltr:pl-8 ltr:pr-7 rtl:pr-8 rtl:pl-7 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
+                        />
+                        {countrySearch && (
+                          <button
+                            type="button"
+                            onClick={() => setCountrySearch('')}
+                            className="absolute top-2 ltr:right-2 rtl:left-2 text-slate-500 hover:text-white"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Regional Quick Filter Pills */}
+                      <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar text-[10px]">
+                        {AFRICAN_REGIONS.map((reg) => (
+                          <button
+                            key={reg.id}
+                            type="button"
+                            onClick={() => setCountryRegionFilter(reg.id)}
+                            className={`px-2 py-0.5 rounded-lg whitespace-nowrap border transition-colors cursor-pointer ${
+                              countryRegionFilter === reg.id
+                                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 font-bold'
+                                : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                            }`}
+                          >
+                            {isAr ? reg.labelAr : reg.labelEn}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Countries List */}
+                      <div className="max-h-56 overflow-y-auto space-y-1 pr-0.5 no-scrollbar">
+                        {filteredCountries.length === 0 ? (
+                          <div className="p-4 text-center text-slate-500 text-xs">
+                            {isAr ? 'لم يتم العثور على دولة مطابقة' : 'No country matched search'}
+                          </div>
+                        ) : (
+                          filteredCountries.map((c) => {
+                            const isSelected = editableCountry === c.nameAr || editableCountry === c.nameEn;
+                            return (
+                              <button
+                                key={c.code}
+                                type="button"
+                                onClick={() => {
+                                  setEditableCountry(c.nameAr);
+                                  setOpenDropdown(null);
+                                }}
+                                className={`w-full p-2 rounded-xl text-right transition-all flex items-center justify-between cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-amber-500/15 border border-amber-500/40 text-amber-200'
+                                    : 'hover:bg-slate-900 text-slate-200 border border-transparent'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <span className="text-lg leading-none">{getCountryFlagEmoji(c.code)}</span>
+                                  <div className="truncate">
+                                    <div className="font-bold text-xs text-white flex items-center gap-1.5">
+                                      <span>{c.nameAr}</span>
+                                      <span className="text-[10px] text-slate-400 font-mono font-normal">({c.nameEn})</span>
+                                    </div>
+                                    <div className="text-[10px] text-slate-500 font-mono">
+                                      {isAr ? 'العاصمة:' : 'Capital:'} {c.capital} · {c.gdp}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <span className="font-mono text-[10px] text-slate-400 px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800">
+                                    {c.code}
+                                  </span>
+                                  {isSelected && <Check className="w-3.5 h-3.5 text-amber-400" />}
+                                </div>
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {/* Sector */}
-                <div className="space-y-1">
-                  <label className="text-slate-400 text-[11px] font-medium">{isAr ? 'القطاع الاقتصادي:' : 'Sector:'}</label>
-                  <input
-                    type="text"
-                    value={editableSector}
-                    onChange={(e) => setEditableSector(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-bold text-xs focus:outline-none focus:border-amber-500"
-                  />
+                {/* 3. القائمة المنسدلة 2: قائمة القطاعات الاقتصادية */}
+                <div className="space-y-1.5 relative z-20">
+                  <div className="flex items-center justify-between">
+                    <label className="text-slate-300 text-[11px] font-bold flex items-center gap-1.5">
+                      <TrendingUp className="w-3.5 h-3.5 text-blue-400" />
+                      <span>{isAr ? 'قائمة القطاعات الاقتصادية (28 قطاعاً معتمداً):' : 'Economic Sectors List (28 Approved Domains):'}</span>
+                    </label>
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      {selectedSectorObj?.groupNameAr || ''}
+                    </span>
+                  </div>
+
+                  {/* Trigger Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpenDropdown(openDropdown === 'sector' ? null : 'sector');
+                      setSectorSearch('');
+                      setSectorGroupFilter('all');
+                    }}
+                    className={`w-full px-3 py-2.5 rounded-xl border text-right transition-all flex items-center justify-between cursor-pointer shadow-sm ${
+                      openDropdown === 'sector'
+                        ? 'bg-slate-900 border-blue-500 ring-2 ring-blue-500/20'
+                        : 'bg-slate-950 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-2 h-2 rounded-full bg-blue-400 shrink-0"></div>
+                      <div className="truncate">
+                        <span className="text-white font-bold text-xs">
+                          {editableSector}
+                        </span>
+                        {selectedSectorObj && (
+                          <span className="text-slate-400 text-[11px] font-mono mx-1.5">
+                            ({selectedSectorObj.nameEn})
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      {selectedSectorObj && (
+                        <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/30 text-[10px] font-bold">
+                          {selectedSectorObj.groupNameAr}
+                        </span>
+                      )}
+                      <ChevronDown
+                        className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
+                          openDropdown === 'sector' ? 'rotate-180 text-blue-400' : ''
+                        }`}
+                      />
+                    </div>
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {openDropdown === 'sector' && (
+                    <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-[#0C111D] border border-slate-700 rounded-2xl shadow-2xl p-3 space-y-2.5 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-xl">
+                      {/* Search box */}
+                      <div className="relative">
+                        <Search className="w-3.5 h-3.5 absolute top-2.5 ltr:left-3 rtl:right-3 text-slate-500" />
+                        <input
+                          type="text"
+                          autoFocus
+                          value={sectorSearch}
+                          onChange={(e) => setSectorSearch(e.target.value)}
+                          placeholder={isAr ? "ابحث عن قطاع اقتصادي أو مجال مالي..." : "Search by sector or domain..."}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-xl py-1.5 ltr:pl-8 ltr:pr-7 rtl:pr-8 rtl:pl-7 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
+                        />
+                        {sectorSearch && (
+                          <button
+                            type="button"
+                            onClick={() => setSectorSearch('')}
+                            className="absolute top-2 ltr:right-2 rtl:left-2 text-slate-500 hover:text-white"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Group Quick Filter Pills */}
+                      <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar text-[10px]">
+                        {SECTOR_GROUPS.map((grp) => (
+                          <button
+                            key={grp.id}
+                            type="button"
+                            onClick={() => setSectorGroupFilter(grp.id)}
+                            className={`px-2 py-0.5 rounded-lg whitespace-nowrap border transition-colors cursor-pointer ${
+                              sectorGroupFilter === grp.id
+                                ? 'bg-blue-500/20 text-blue-300 border-blue-500/40 font-bold'
+                                : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                            }`}
+                          >
+                            {isAr ? grp.labelAr : grp.labelEn}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Sectors List */}
+                      <div className="max-h-56 overflow-y-auto space-y-1 pr-0.5 no-scrollbar">
+                        {filteredSectors.length === 0 ? (
+                          <div className="p-4 text-center text-slate-500 text-xs">
+                            {isAr ? 'لم يتم العثور على قطاع مطابق' : 'No sector matched search'}
+                          </div>
+                        ) : (
+                          filteredSectors.map((s) => {
+                            const isSelected = editableSector === s.nameAr || editableSector === s.nameEn;
+                            return (
+                              <button
+                                key={s.id}
+                                type="button"
+                                onClick={() => {
+                                  setEditableSector(s.nameAr);
+                                  setOpenDropdown(null);
+                                }}
+                                className={`w-full p-2 rounded-xl text-right transition-all flex items-center justify-between cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-blue-500/15 border border-blue-500/40 text-blue-200'
+                                    : 'hover:bg-slate-900 text-slate-200 border border-transparent'
+                                }`}
+                              >
+                                <div className="truncate">
+                                  <div className="font-bold text-xs text-white flex items-center gap-1.5">
+                                    <span>{s.nameAr}</span>
+                                    <span className="text-[10px] text-slate-400 font-mono font-normal">({s.nameEn})</span>
+                                  </div>
+                                  <div className="text-[10px] text-slate-500">
+                                    {s.groupNameAr}
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 border border-slate-800">
+                                    {s.group}
+                                  </span>
+                                  {isSelected && <Check className="w-3.5 h-3.5 text-blue-400" />}
+                                </div>
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {/* Genre */}
-                <div className="space-y-1">
-                  <label className="text-slate-400 text-[11px] font-medium">{isAr ? 'القالب الصحفي:' : 'Journalistic Genre:'}</label>
-                  <input
-                    type="text"
-                    value={editableGenre}
-                    onChange={(e) => setEditableGenre(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-bold text-xs focus:outline-none focus:border-amber-500"
-                  />
+                {/* 4. القائمة المنسدلة 3: قائمة الأنواع الصحفية */}
+                <div className="space-y-1.5 relative z-10">
+                  <div className="flex items-center justify-between">
+                    <label className="text-slate-300 text-[11px] font-bold flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-purple-400" />
+                      <span>{isAr ? 'قائمة الأنواع الصحفية (18 نوعاً وقالب صحفي):' : 'Journalistic Genres List (18 Formats):'}</span>
+                    </label>
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      {selectedGenreObj?.category || ''}
+                    </span>
+                  </div>
+
+                  {/* Trigger Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpenDropdown(openDropdown === 'genre' ? null : 'genre');
+                      setGenreSearch('');
+                      setGenreCategoryFilter('all');
+                    }}
+                    className={`w-full px-3 py-2.5 rounded-xl border text-right transition-all flex items-center justify-between cursor-pointer shadow-sm ${
+                      openDropdown === 'genre'
+                        ? 'bg-slate-900 border-purple-500 ring-2 ring-purple-500/20'
+                        : 'bg-slate-950 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-2 h-2 rounded-full bg-purple-400 shrink-0"></div>
+                      <div className="truncate">
+                        <span className="text-white font-bold text-xs">
+                          {editableGenre}
+                        </span>
+                        {selectedGenreObj && (
+                          <span className="text-slate-400 text-[11px] font-mono mx-1.5">
+                            ({selectedGenreObj.nameEn})
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      {selectedGenreObj && (
+                        <span className="px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/30 text-[10px] font-bold">
+                          {selectedGenreObj.category}
+                        </span>
+                      )}
+                      <ChevronDown
+                        className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
+                          openDropdown === 'genre' ? 'rotate-180 text-purple-400' : ''
+                        }`}
+                      />
+                    </div>
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {openDropdown === 'genre' && (
+                    <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-[#0C111D] border border-slate-700 rounded-2xl shadow-2xl p-3 space-y-2.5 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-xl">
+                      {/* Search box */}
+                      <div className="relative">
+                        <Search className="w-3.5 h-3.5 absolute top-2.5 ltr:left-3 rtl:right-3 text-slate-500" />
+                        <input
+                          type="text"
+                          autoFocus
+                          value={genreSearch}
+                          onChange={(e) => setGenreSearch(e.target.value)}
+                          placeholder={isAr ? "ابحث عن قالب (تحقيق، خبر، تحليل، تقرير، حوار...)..." : "Search by format (brief, report, op-ed, interview...)..."}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-xl py-1.5 ltr:pl-8 ltr:pr-7 rtl:pr-8 rtl:pl-7 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500"
+                        />
+                        {genreSearch && (
+                          <button
+                            type="button"
+                            onClick={() => setGenreSearch('')}
+                            className="absolute top-2 ltr:right-2 rtl:left-2 text-slate-500 hover:text-white"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Category Quick Filter Pills */}
+                      <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar text-[10px]">
+                        {GENRE_CATEGORIES.map((cat) => (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => setGenreCategoryFilter(cat.id)}
+                            className={`px-2 py-0.5 rounded-lg whitespace-nowrap border transition-colors cursor-pointer ${
+                              genreCategoryFilter === cat.id
+                                ? 'bg-purple-500/20 text-purple-300 border-purple-500/40 font-bold'
+                                : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                            }`}
+                          >
+                            {isAr ? cat.labelAr : cat.labelEn}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Genres List with Editorial Descriptions */}
+                      <div className="max-h-60 overflow-y-auto space-y-1.5 pr-0.5 no-scrollbar">
+                        {filteredGenres.length === 0 ? (
+                          <div className="p-4 text-center text-slate-500 text-xs">
+                            {isAr ? 'لم يتم العثور على نوع صحفي مطابق' : 'No genre matched search'}
+                          </div>
+                        ) : (
+                          filteredGenres.map((g) => {
+                            const isSelected = editableGenre === g.nameAr || editableGenre === g.nameEn;
+                            return (
+                              <button
+                                key={g.id}
+                                type="button"
+                                onClick={() => {
+                                  setEditableGenre(g.nameAr);
+                                  setOpenDropdown(null);
+                                }}
+                                className={`w-full p-2.5 rounded-xl text-right transition-all flex flex-col gap-1 cursor-pointer border ${
+                                  isSelected
+                                    ? 'bg-purple-500/15 border-purple-500/40 text-purple-200 shadow-sm'
+                                    : 'hover:bg-slate-900 text-slate-200 border-slate-900 bg-slate-950/40'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between w-full">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-bold text-xs text-white">{g.nameAr}</span>
+                                    <span className="text-[10px] text-slate-400 font-mono">({g.nameEn})</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 font-bold border border-purple-500/20">
+                                      {g.category}
+                                    </span>
+                                    {isSelected && <Check className="w-3.5 h-3.5 text-purple-400" />}
+                                  </div>
+                                </div>
+                                <p className="text-[10.5px] text-slate-400/90 leading-relaxed text-right">
+                                  {g.descriptionAr}
+                                </p>
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Author Name */}

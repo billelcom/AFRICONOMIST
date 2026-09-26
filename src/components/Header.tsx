@@ -17,8 +17,8 @@ import { PWABar } from './pwa/PWABar';
 import { PWAInstallButton } from './pwa/PWAInstallButton';
 
 interface HeaderProps {
-  currentTab: 'home' | 'country' | 'article' | 'editorial' | 'data-journalism';
-  onSelectTab: (tab: 'home' | 'country' | 'article' | 'editorial' | 'data-journalism') => void;
+  currentTab: 'home' | 'country' | 'article' | 'editorial' | 'data-journalism' | 'about' | 'privacy' | 'podcast' | 'video';
+  onSelectTab: (tab: 'home' | 'country' | 'article' | 'editorial' | 'data-journalism' | 'about' | 'privacy' | 'podcast' | 'video') => void;
   lang: 'ar' | 'en';
   onToggleLang: () => void;
   pendingDraftsCount: number;
@@ -148,8 +148,12 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* 2. من نحن */}
               <button
-                onClick={() => handleNavClick(() => setActiveModal('about'))}
-                className="p-2.5 rounded-xl text-right flex items-center gap-2 border bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white transition-all"
+                onClick={() => handleNavClick(() => onSelectTab('about'))}
+                className={`p-2.5 rounded-xl text-right flex items-center gap-2 border transition-all ${
+                  currentTab === 'about'
+                    ? 'bg-blue-500/15 text-blue-400 border-blue-500/30 font-bold'
+                    : 'bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white'
+                }`}
               >
                 <Building2 className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                 <span className="truncate">{isAr ? 'من نحن' : 'About Us'}</span>
@@ -157,8 +161,12 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* 3. الشروط والخصوصية */}
               <button
-                onClick={() => handleNavClick(() => setActiveModal('privacy'))}
-                className="p-2.5 rounded-xl text-right flex items-center gap-2 border bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white transition-all"
+                onClick={() => handleNavClick(() => onSelectTab('privacy'))}
+                className={`p-2.5 rounded-xl text-right flex items-center gap-2 border transition-all ${
+                  currentTab === 'privacy'
+                    ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 font-bold'
+                    : 'bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white'
+                }`}
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 <span className="truncate">{isAr ? 'الشروط والخصوصية' : 'Terms & Privacy'}</span>
@@ -175,8 +183,12 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* 5. البودكاست */}
               <button
-                onClick={() => handleNavClick(() => setActiveModal('podcast'))}
-                className="p-2.5 rounded-xl text-right flex items-center justify-between border bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white transition-all"
+                onClick={() => handleNavClick(() => onSelectTab('podcast'))}
+                className={`p-2.5 rounded-xl text-right flex items-center justify-between border transition-all ${
+                  currentTab === 'podcast'
+                    ? 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30 font-bold'
+                    : 'bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white'
+                }`}
               >
                 <div className="flex items-center gap-2 truncate">
                   <Mic className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
@@ -189,8 +201,12 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* 6. التقارير المصورة */}
               <button
-                onClick={() => handleNavClick(() => setActiveModal('video'))}
-                className="p-2.5 rounded-xl text-right flex items-center justify-between border bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white transition-all"
+                onClick={() => handleNavClick(() => onSelectTab('video'))}
+                className={`p-2.5 rounded-xl text-right flex items-center justify-between border transition-all ${
+                  currentTab === 'video'
+                    ? 'bg-rose-500/15 text-rose-400 border-rose-500/30 font-bold'
+                    : 'bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white'
+                }`}
               >
                 <div className="flex items-center gap-2 truncate">
                   <Video className="w-3.5 h-3.5 text-rose-400 shrink-0" />
@@ -384,8 +400,12 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* 5. البودكاست */}
               <button
-                onClick={() => setActiveModal('podcast')}
-                className="px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-850 transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer"
+                onClick={() => onSelectTab('podcast')}
+                className={`px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer ${
+                  currentTab === 'podcast'
+                    ? 'bg-indigo-500/15 text-indigo-400 font-bold border border-indigo-500/30'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                }`}
               >
                 <Mic className="w-3.5 h-3.5 text-indigo-400" />
                 <span>{isAr ? 'البودكاست' : 'Podcasts'}</span>
@@ -393,8 +413,12 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* 6. التقارير المصورة */}
               <button
-                onClick={() => setActiveModal('video')}
-                className="px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-850 transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer"
+                onClick={() => onSelectTab('video')}
+                className={`px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer ${
+                  currentTab === 'video'
+                    ? 'bg-rose-500/15 text-rose-400 font-bold border border-rose-500/30'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                }`}
               >
                 <Video className="w-3.5 h-3.5 text-rose-400" />
                 <span>{isAr ? 'التقارير المصورة' : 'Video Reports'}</span>
@@ -402,8 +426,12 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* 7. من نحن */}
               <button
-                onClick={() => setActiveModal('about')}
-                className="px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-850 transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer"
+                onClick={() => onSelectTab('about')}
+                className={`px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer ${
+                  currentTab === 'about'
+                    ? 'bg-blue-500/15 text-blue-400 font-bold border border-blue-500/30'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                }`}
               >
                 <Building2 className="w-3.5 h-3.5 text-blue-400" />
                 <span>{isAr ? 'من نحن' : 'About Us'}</span>
@@ -411,8 +439,12 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* 8. الشروط والخصوصية */}
               <button
-                onClick={() => setActiveModal('privacy')}
-                className="px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-850 transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer"
+                onClick={() => onSelectTab('privacy')}
+                className={`px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer ${
+                  currentTab === 'privacy'
+                    ? 'bg-emerald-500/15 text-emerald-400 font-bold border border-emerald-500/30'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                }`}
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                 <span>{isAr ? 'الشروط والخصوصية' : 'Terms & Privacy'}</span>
@@ -422,7 +454,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </header>
 
-      {/* Pop-up Modals for Navigation (من نحن، الشروط، البودكاست، الفيديو، التسجيل) */}
+      {/* Pop-up Modals for Navigation (التسجيل فقط) */}
       <NavigationModals
         activeModal={activeModal}
         onClose={() => setActiveModal(null)}

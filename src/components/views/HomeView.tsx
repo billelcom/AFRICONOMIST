@@ -310,7 +310,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </h1>
 
               <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
-                {isAr ? activeCountry.overviewAr : activeCountry.overviewEn}
+                {isAr ? activeCountry.descriptionAr : activeCountry.descriptionEn}
               </p>
             </div>
 

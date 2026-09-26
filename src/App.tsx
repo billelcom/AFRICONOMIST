@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Header } from './components/Header';
+import { Header, HeaderTab } from './components/Header';
 import { LiveTicker } from './components/LiveTicker';
 import { HomeView } from './components/views/HomeView';
 import { CountryView } from './components/views/CountryView';
@@ -36,7 +36,7 @@ const STORAGE_KEY = 'africonomist_custom_articles_v1';
 
 export default function App() {
   const [lang, setLang] = useState<'ar' | 'en'>('ar');
-  const [currentTab, setCurrentTab] = useState<'home' | 'country' | 'article' | 'editorial' | 'data-journalism'>('home');
+  const [currentTab, setCurrentTab] = useState<HeaderTab>('home');
   const [isUpdaterModalOpen, setIsUpdaterModalOpen] = useState<boolean>(false);
 
   // حالة الدول الـ 54 الديناميكية مع الترتيب التلقائي (متطابقة مع الخادم لمنع تعارض الـ Hydration)

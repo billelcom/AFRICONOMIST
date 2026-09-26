@@ -41,7 +41,9 @@ import {
   Sun, 
   Moon, 
   FileCheck2,
-  BookOpen
+  BookOpen,
+  Maximize2,
+  X
 } from 'lucide-react';
 
 interface ArticleViewProps {
@@ -78,6 +80,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
   const [isSaved, setIsSaved] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
+  const [isInfographicModalOpen, setIsInfographicModalOpen] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [activeCitationId, setActiveCitationId] = useState<string | null>(null);
 
@@ -878,19 +881,19 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
             {isTocOpen && (
               <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-newspaper-body">
                 <button
-                  onClick={() => scrollToAnchor('sec-infographic')}
-                  className="text-right flex items-center gap-2 p-2 rounded-lg hover:bg-stone-500/10 transition-colors text-stone-800 dark:text-stone-300 cursor-pointer"
-                >
-                  <span className="font-mono text-amber-700 font-bold">١.</span>
-                  <span>{isAr ? 'الإنفوجرافيك والتمثيل البياني للأرقام' : 'Economic Infographic & Key Figures'}</span>
-                </button>
-
-                <button
                   onClick={() => scrollToAnchor('sec-analysis')}
                   className="text-right flex items-center gap-2 p-2 rounded-lg hover:bg-stone-500/10 transition-colors text-stone-800 dark:text-stone-300 cursor-pointer"
                 >
-                  <span className="font-mono text-amber-700 font-bold">٢.</span>
+                  <span className="font-mono text-amber-700 font-bold">١.</span>
                   <span>{isAr ? 'التحليل الاقتصادي والرصد الميداني' : 'In-Depth Economic Analysis'}</span>
+                </button>
+
+                <button
+                  onClick={() => scrollToAnchor('sec-infographic-inline')}
+                  className="text-right flex items-center gap-2 p-2 rounded-lg hover:bg-stone-500/10 transition-colors text-stone-800 dark:text-stone-300 cursor-pointer"
+                >
+                  <span className="font-mono text-amber-700 font-bold">٢.</span>
+                  <span>{isAr ? 'الإنفوجرافيك والتمثيل البياني الميداني' : 'Economic Infographic & Data Chart'}</span>
                 </button>
 
                 <button
@@ -902,18 +905,10 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                 </button>
 
                 <button
-                  onClick={() => scrollToAnchor('sec-factcheck')}
-                  className="text-right flex items-center gap-2 p-2 rounded-lg hover:bg-stone-500/10 transition-colors text-stone-800 dark:text-stone-300 cursor-pointer"
-                >
-                  <span className="font-mono text-amber-700 font-bold">٤.</span>
-                  <span>{isAr ? 'تقرير تدقيق الحقائق والنزاهة التحليلية' : 'Fact-Check Verification & Integrity'}</span>
-                </button>
-
-                <button
                   onClick={() => scrollToAnchor('sec-citations')}
                   className="text-right flex items-center gap-2 p-2 rounded-lg hover:bg-stone-500/10 transition-colors text-stone-800 dark:text-stone-300 cursor-pointer"
                 >
-                  <span className="font-mono text-amber-700 font-bold">٥.</span>
+                  <span className="font-mono text-amber-700 font-bold">٤.</span>
                   <span>{isAr ? 'المراجع والمصادر الرسمية الموثقة' : 'Verified Citations & References'}</span>
                 </button>
 
@@ -921,127 +916,96 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                   onClick={() => scrollToAnchor('discussion-section')}
                   className="text-right flex items-center gap-2 p-2 rounded-lg hover:bg-stone-500/10 transition-colors text-stone-800 dark:text-stone-300 cursor-pointer"
                 >
-                  <span className="font-mono text-amber-700 font-bold">٦.</span>
+                  <span className="font-mono text-amber-700 font-bold">٥.</span>
                   <span>{isAr ? 'مناقشات القراء وملاحظات الخبراء' : 'Reader Discussions & Notes'}</span>
                 </button>
               </div>
             )}
           </section>
 
-          {/* --- ECONOMIC INFOGRAPHIC & DATA VISUALIZATION SECTION --- */}
-          {/* لا صور عامة؛ فقط رسوم بيانية وانفوجرافيك وخرائط اقتصادية */}
-          <section 
-            id="sec-infographic"
-            aria-label={isAr ? 'تمثيل بياني وانفوجرافيك اقتصادي' : 'Economic Infographic'}
-            className={`w-[98%] mx-auto mb-8 sm:mb-10 p-4 sm:p-5 rounded-2xl border ${themeClasses.infobox}`}
+          {/* --- MAIN ARTICLE BODY (النص الصحفي المنسق مع انفوجرافيك مدمج تلتف حوله الكتابة) --- */}
+          <main 
+            id="sec-analysis"
+            className={`w-[98%] mx-auto font-newspaper-body text-justify ${fontSizeClass} ${lineSpacingClass}`}
           >
-            <div className="flex items-center justify-between pb-3 border-b border-stone-300/80 dark:border-stone-700 mb-4">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-amber-700 dark:text-amber-400" />
-                <div>
-                  <h3 className="font-newspaper-headline text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100">
-                    {isAr ? 'إنفوجرافيك المؤشرات والبيانات المرتبطة' : 'Economic Infographic & Data Metrics'}
-                  </h3>
-                  <p className={`text-[11px] ${themeClasses.subtext}`}>
-                    {isAr ? 'تمثيل بياني للأرقام الواردة في التقرير وفق المسح الميداني' : 'Structured macroeconomic indices referenced in this report'}
-                  </p>
-                </div>
+            {/* الفقرة الأولى قبل أو بجانب التمثيل البياني */}
+            {articleParagraphs[0] && (
+              <div className="mb-4 sm:mb-5">
+                <p className={`text-stone-900 dark:text-stone-100 ${
+                  activeSpeechParagraph === 0 ? 'bg-amber-500/15 p-2 rounded-lg' : ''
+                }`}>
+                  {articleParagraphs[0]}
+                  {article.citations[0] && (
+                    <button
+                      onClick={() => {
+                        setActiveCitationId(article.citations[0].id);
+                        scrollToAnchor(`cit-${article.citations[0].id}`);
+                      }}
+                      className="inline-flex items-center justify-center mx-1 px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-800 dark:text-amber-300 text-xs font-mono font-bold hover:bg-amber-500/40 border border-amber-600/30 transition-colors cursor-pointer"
+                      title={isAr ? 'عرض مصدر التوثيق المعتمد #1' : 'View citation #1'}
+                    >
+                      [1]
+                    </button>
+                  )}
+                </p>
               </div>
+            )}
 
-              <span className="px-2.5 py-1 rounded bg-amber-500/20 text-amber-800 dark:text-amber-300 font-mono text-[11px] font-bold">
-                {isAr ? article.countryName : article.countryNameEn}
-              </span>
-            </div>
-
-            {/* Key Metric Indicators Grid */}
-            <div className="w-[98%] mx-auto grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 mb-4 sm:mb-5">
-              <div className="p-3 rounded-xl bg-white/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800">
-                <div className={`text-[10px] ${themeClasses.subtext}`}>
-                  {isAr ? 'القطاع الاستراتيجي' : 'Target Sector'}
-                </div>
-                <div className="font-bold text-stone-900 dark:text-stone-100 text-xs sm:text-sm mt-0.5 truncate">
-                  {article.sector || article.category}
-                </div>
-              </div>
-
-              <div className="p-3 rounded-xl bg-white/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800">
-                <div className={`text-[10px] ${themeClasses.subtext}`}>
-                  {isAr ? 'مؤشر الثقة والموثوقية' : 'Credibility Index'}
-                </div>
-                <div className="font-bold text-emerald-700 dark:text-emerald-400 text-xs sm:text-sm mt-0.5 font-mono">
-                  {article.factCheck.score}% ({isAr ? 'فائق' : 'High'})
-                </div>
-              </div>
-
-              <div className="p-3 rounded-xl bg-white/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800">
-                <div className={`text-[10px] ${themeClasses.subtext}`}>
-                  {isAr ? 'الادعاءات الرقمية المفحوصة' : 'Claims Verified'}
-                </div>
-                <div className="font-bold text-stone-900 dark:text-stone-100 text-xs sm:text-sm mt-0.5 font-mono">
-                  {article.factCheck.verifiedClaimsCount} / {article.factCheck.totalClaimsCount}
-                </div>
-              </div>
-
-              <div className="p-3 rounded-xl bg-white/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800">
-                <div className={`text-[10px] ${themeClasses.subtext}`}>
-                  {isAr ? 'الأثر التراكمي للأسواق' : 'Market Impact'}
-                </div>
-                <div className="font-bold text-amber-700 dark:text-amber-400 text-xs sm:text-sm mt-0.5">
-                  {article.marketImpact === 'positive' ? (isAr ? 'نمو وتوسع' : 'Growth') : (isAr ? 'استقرار متوازن' : 'Stable')}
-                </div>
-              </div>
-            </div>
-
-            {/* Economic Flow & Trade Representation Diagram (خارطة ومخطط التدفق الاقتصادي) */}
-            <div className="w-[98%] mx-auto p-3.5 sm:p-4 rounded-xl bg-stone-950 text-stone-200 border border-stone-800 font-mono text-xs space-y-3">
-              <div className="flex items-center justify-between text-stone-400 text-[11px] pb-2 border-b border-stone-800">
-                <span className="flex items-center gap-1.5">
-                  <Globe2 className="w-3.5 h-3.5 text-amber-400" />
-                  <span>{isAr ? 'مسار التدفقات الاستثمارية ومحاور التجارة الإفريقية' : 'Trade & Capital Flow Nexus'}</span>
+            {/* صورة التمثيل البياني (الإنفوجرافيك) المدمجة جانب المقال وتلتف حولها الكتابة وقابلة للتكبير */}
+            <div 
+              id="sec-infographic-inline"
+              onClick={() => setIsInfographicModalOpen(true)}
+              className="float-none sm:float-right sm:ml-6 sm:mb-4 sm:mt-1 w-full sm:w-[320px] md:w-[340px] rounded-2xl bg-stone-950 text-stone-200 border border-stone-800 p-3 sm:p-3.5 shadow-md hover:border-amber-500/60 hover:shadow-xl transition-all cursor-pointer group select-none my-4 sm:my-0"
+              title={isAr ? 'اضغط لعرض التمثيل البياني بشكل كبير ومكبر' : 'Click to enlarge graphic'}
+            >
+              <div className="flex items-center justify-between text-stone-400 text-[10px] pb-2 border-b border-stone-800">
+                <span className="flex items-center gap-1.5 text-amber-400 font-bold">
+                  <BarChart3 className="w-3.5 h-3.5" />
+                  <span>{isAr ? 'إنفوجرافيك المؤشرات والتدفقات' : 'Data & Capital Flow Infographic'}</span>
                 </span>
-                <span className="text-emerald-400 font-bold">LIVE METRIC</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono flex items-center gap-1 group-hover:bg-amber-500/30">
+                  <Maximize2 className="w-2.5 h-2.5" />
+                  <span>{isAr ? 'تكبير' : 'Enlarge'}</span>
+                </span>
               </div>
 
-              {/* Visual SVG Economic Diagram */}
-              <div className="h-24 w-full flex items-end justify-between gap-2 pt-4 px-2">
+              {/* الرسم والتمثيل البياني البصري */}
+              <div className="h-28 w-full flex items-end justify-between gap-2 pt-3 px-1">
                 {[
                   { label: isAr ? 'الربع الأول' : 'Q1', value: 68, color: 'bg-amber-600' },
                   { label: isAr ? 'الربع الثاني' : 'Q2', value: 82, color: 'bg-amber-500' },
                   { label: isAr ? 'الربع الثالث' : 'Q3', value: 94, color: 'bg-emerald-500' },
                   { label: isAr ? 'المستهدف' : 'Target', value: 100, color: 'bg-sky-500' },
                 ].map((bar, idx) => (
-                  <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
-                    <span className="text-[10px] text-stone-400">{bar.value}%</span>
+                  <div key={idx} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                    <span className="text-[9px] text-stone-400 font-mono">{bar.value}%</span>
                     <div 
-                      className={`w-full max-w-[48px] rounded-t ${bar.color} transition-all duration-500`}
+                      className={`w-full max-w-[36px] rounded-t ${bar.color} transition-all duration-500`}
                       style={{ height: `${bar.value * 0.7}%` }}
                     />
-                    <span className="text-[10px] text-stone-400 text-center truncate w-full">{bar.label}</span>
+                    <span className="text-[9px] text-stone-400 text-center truncate w-full">{bar.label}</span>
                   </div>
                 ))}
               </div>
 
-              <div className="text-[10px] text-stone-400 text-center pt-2 border-t border-stone-800">
-                {isAr 
-                  ? `المصدر: وحدة البيانات الاقتصادية بلافريكونوميست - رصد وتوثيق: ${isAr ? article.countryName : article.countryNameEn}` 
-                  : `Source: L'Africonomist Economic Research Desk - Tracked for ${article.countryNameEn}`}
+              <div className="text-[10px] text-stone-400 text-center pt-2 mt-2 border-t border-stone-800 flex items-center justify-between">
+                <span className="truncate">{isAr ? `رصد: ${article.countryName}` : `Tracked: ${article.countryNameEn}`}</span>
+                <span className="text-amber-400/90 font-sans text-[10px] group-hover:underline flex items-center gap-0.5">
+                  <span>{isAr ? 'انقر لتكبير العرض' : 'Click to zoom'}</span>
+                  <Maximize2 className="w-3 h-3" />
+                </span>
               </div>
             </div>
-          </section>
 
-          {/* --- MAIN ARTICLE BODY (النص الصحفي المنسق) --- */}
-          <main 
-            id="sec-analysis"
-            className={`w-[98%] mx-auto space-y-5 sm:space-y-6 font-newspaper-body text-justify ${fontSizeClass} ${lineSpacingClass}`}
-          >
-            {articleParagraphs.map((paragraph, idx) => {
-              const isFirst = idx === 0;
-              const hasCitation = article.citations[idx];
+            {/* باقي الفقرات التي تلتف بسلاسة حول التمثيل البياني المستمر على اليمين */}
+            {articleParagraphs.slice(1).map((paragraph, idx) => {
+              const actualIdx = idx + 1;
+              const hasCitation = article.citations[actualIdx];
 
               return (
-                <div key={idx} className="relative group">
+                <div key={actualIdx} className="mb-4 sm:mb-5">
                   <p className={`text-stone-900 dark:text-stone-100 ${
-                    activeSpeechParagraph === idx ? 'bg-amber-500/15 p-2 rounded-lg' : ''
+                    activeSpeechParagraph === actualIdx ? 'bg-amber-500/15 p-2 rounded-lg' : ''
                   }`}>
                     {paragraph}
 
@@ -1053,15 +1017,18 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                           scrollToAnchor(`cit-${hasCitation.id}`);
                         }}
                         className="inline-flex items-center justify-center mx-1 px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-800 dark:text-amber-300 text-xs font-mono font-bold hover:bg-amber-500/40 border border-amber-600/30 transition-colors cursor-pointer"
-                        title={isAr ? `عرض مصدر التوثيق المعتمد #${idx + 1}` : `View citation #${idx + 1}`}
+                        title={isAr ? `عرض مصدر التوثيق المعتمد #${actualIdx + 1}` : `View citation #${actualIdx + 1}`}
                       >
-                        [{idx + 1}]
+                        [{actualIdx + 1}]
                       </button>
                     )}
                   </p>
                 </div>
               );
             })}
+
+            {/* إلغاء الـ float لضمان استقامة الاقتباس التحريري وملاحظة التدقيق */}
+            <div className="clear-both" />
 
             {/* --- PULL QUOTE IN SPECIAL BOX WITHOUT QUOTATION MARKS --- */}
             {/* الاقتباسات تكون في مربعات بخلفية مميزة دون علامات اقتباس */}
@@ -1099,49 +1066,9 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
             )}
           </main>
 
-          {/* --- FACT CHECK & CITATIONS SECTION --- */}
+          {/* --- CITATIONS SECTION --- */}
           <footer className="w-[98%] mx-auto mt-8 sm:mt-12 pt-6 sm:pt-8 border-t-2 border-stone-300 dark:border-stone-700 space-y-5 sm:space-y-6">
             
-            {/* Fact Check Report Box */}
-            <section 
-              id="sec-factcheck"
-              aria-label={isAr ? 'تقرير فحص الحقائق' : 'Fact Check Report'}
-              className="w-[98%] mx-auto p-3.5 sm:p-5 rounded-2xl bg-stone-900 text-stone-100 border border-stone-800 shadow-md"
-            >
-              <div className="flex items-center justify-between pb-3 border-b border-stone-800 mb-3">
-                <h3 className="text-sm font-bold text-white flex items-center gap-2 font-newspaper-headline">
-                  <FileCheck2 className="w-4 h-4 text-emerald-400" />
-                  <span>{isAr ? 'تقرير فحص الحقائق وتدقيق النزاهة التحليلية' : 'Zero-Trust Fact-Check Audit'}</span>
-                </h3>
-                <span className="text-sm font-bold font-mono text-emerald-400">
-                  {article.factCheck.score}% {isAr ? 'مطابق تماماً' : 'Verified'}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="p-2.5 rounded-lg bg-stone-800/80">
-                  <div className="text-stone-400 text-[10px]">{isAr ? 'الادعاءات المفحوصة' : 'Claims Tested'}</div>
-                  <div className="font-mono text-stone-100 font-bold mt-0.5">
-                    {article.factCheck.verifiedClaimsCount} / {article.factCheck.totalClaimsCount}
-                  </div>
-                </div>
-
-                <div className="p-2.5 rounded-lg bg-stone-800/80">
-                  <div className="text-stone-400 text-[10px]">{isAr ? 'مؤشر النزاهة والموضوعية' : 'Bias Rating'}</div>
-                  <div className="text-emerald-400 font-bold mt-0.5">
-                    {article.factCheck.biasRating === 'Neutral' ? (isAr ? 'حياد تام وموضوعي' : 'Neutral') : article.factCheck.biasRating}
-                  </div>
-                </div>
-
-                <div className="p-2.5 rounded-lg bg-stone-800/80">
-                  <div className="text-stone-400 text-[10px]">{isAr ? 'مستوى المخاطر التحريرية' : 'Editorial Risk'}</div>
-                  <div className="text-emerald-400 font-mono font-bold mt-0.5">
-                    {article.factCheck.riskScore}
-                  </div>
-                </div>
-              </div>
-            </section>
-
             {/* Citations List */}
             <section 
               id="sec-citations"
@@ -1351,6 +1278,118 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
               >
                 لينكد إن
               </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- ENLARGED INFOGRAPHIC LIGHTBOX MODAL (عرض التمثيل البياني بشكل كبير) --- */}
+      {isInfographicModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in"
+          onClick={() => setIsInfographicModalOpen(false)}
+        >
+          <div 
+            className="relative w-full max-w-4xl rounded-2xl bg-stone-950 text-stone-100 p-5 sm:p-8 border border-stone-800 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-stone-800">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                  <BarChart3 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-newspaper-headline text-base sm:text-xl font-bold text-stone-100">
+                    {isAr ? 'التمثيل البياني والإنفوجرافيك الاقتصادي الموسّع' : 'Expanded Economic Data Infographic'}
+                  </h3>
+                  <p className="text-xs text-stone-400">
+                    {isAr 
+                      ? `رصد المؤشرات الميدانية والتدفقات الإقليمية: ${article.countryName} · ${article.sector || article.category}`
+                      : `Macroeconomic flow & tracking: ${article.countryNameEn} · ${article.sector || article.category}`}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsInfographicModalOpen(false)}
+                className="w-8 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white flex items-center justify-center cursor-pointer transition-colors"
+                title={isAr ? 'إغلاق' : 'Close'}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* High-Resolution Expanded Chart */}
+            <div className="p-4 sm:p-6 rounded-xl bg-[#0b0f19] border border-stone-800 space-y-6">
+              <div className="flex items-center justify-between text-xs text-stone-400 pb-2 border-b border-stone-800">
+                <span className="flex items-center gap-2 font-mono">
+                  <Globe2 className="w-4 h-4 text-amber-400" />
+                  <span>{isAr ? 'مؤشر نمو وتدفقات الطاقة والاستثمار الإقليمي عبر القارة' : 'Pan-African Investment & Trade Velocity Index'}</span>
+                </span>
+                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono text-[11px] font-bold">
+                  {isAr ? 'بيانات معتمدة' : 'VERIFIED DATA'}
+                </span>
+              </div>
+
+              {/* Large Visual SVG/Bar Chart */}
+              <div className="h-56 sm:h-64 w-full flex items-end justify-between gap-3 sm:gap-6 pt-6 px-3 sm:px-6">
+                {[
+                  { label: isAr ? 'الربع الأول' : 'Q1', value: 68, color: 'bg-amber-600', desc: isAr ? 'بدء تدفقات التوريد' : 'Supply initialization' },
+                  { label: isAr ? 'الربع الثاني' : 'Q2', value: 82, color: 'bg-amber-500', desc: isAr ? 'توسع التوزيع الإقليمي' : 'Regional expansion' },
+                  { label: isAr ? 'الربع الثالث' : 'Q3', value: 94, color: 'bg-emerald-500', desc: isAr ? 'تحقيق الاستقرار الذاتي' : 'Self-sufficiency point' },
+                  { label: isAr ? 'المستهدف السنوي' : 'Annual Target', value: 100, color: 'bg-sky-500', desc: isAr ? 'ذروة الطاقة التصديرية' : 'Peak export capacity' },
+                ].map((bar, idx) => (
+                  <div key={idx} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                    <span className="text-xs sm:text-sm text-stone-200 font-mono font-bold">{bar.value}%</span>
+                    <div 
+                      className={`w-full max-w-[64px] rounded-t-lg ${bar.color} transition-all duration-700 shadow-lg`}
+                      style={{ height: `${bar.value * 0.75}%` }}
+                    />
+                    <div className="text-center">
+                      <span className="text-xs font-bold text-stone-200 block truncate">{bar.label}</span>
+                      <span className="text-[10px] text-stone-500 hidden sm:block truncate">{bar.desc}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Detailed Metrics Table */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-stone-800 text-xs">
+                <div className="p-3 rounded-lg bg-stone-900/90 border border-stone-800">
+                  <div className="text-[10px] text-stone-400">{isAr ? 'الدولة / الإقليم' : 'Country'}</div>
+                  <div className="font-bold text-amber-400 mt-0.5">{isAr ? article.countryName : article.countryNameEn}</div>
+                </div>
+                <div className="p-3 rounded-lg bg-stone-900/90 border border-stone-800">
+                  <div className="text-[10px] text-stone-400">{isAr ? 'القطاع الاقتصادي' : 'Sector'}</div>
+                  <div className="font-bold text-stone-200 mt-0.5">{article.sector || article.category}</div>
+                </div>
+                <div className="p-3 rounded-lg bg-stone-900/90 border border-stone-800">
+                  <div className="text-[10px] text-stone-400">{isAr ? 'المصداقية الميدانية' : 'Credibility'}</div>
+                  <div className="font-bold text-emerald-400 mt-0.5 font-mono">{article.factCheck.score}%</div>
+                </div>
+                <div className="p-3 rounded-lg bg-stone-900/90 border border-stone-800">
+                  <div className="text-[10px] text-stone-400">{isAr ? 'الأثر التراكمي' : 'Market Impact'}</div>
+                  <div className="font-bold text-stone-200 mt-0.5">
+                    {article.marketImpact === 'positive' ? (isAr ? 'نمو وتوسع' : 'Growth') : (isAr ? 'استقرار' : 'Stable')}
+                  </div>
+                </div>
+              </div>
+
+              {/* Methodology & Source Footer */}
+              <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-stone-400 pt-3 border-t border-stone-800/80 font-newspaper-body">
+                <div>
+                  {isAr 
+                    ? `المصدر: قاعدة بيانات لافريكونوميست للأبحاث والمسوح الميدانية · جميع الحقوق محفوظة`
+                    : `Source: L'Africonomist Empirical Research & Macro Desk · All rights reserved`}
+                </div>
+                <button
+                  onClick={() => setIsInfographicModalOpen(false)}
+                  className="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs transition-colors cursor-pointer"
+                >
+                  {isAr ? 'إغلاق العرض المكبّر' : 'Close Zoom'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

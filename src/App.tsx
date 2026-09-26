@@ -678,8 +678,8 @@ export default function App() {
         lang={lang}
       />
 
-      {/* Draggable Currency Exchange & Conversion Widget (Available Everywhere) */}
-      <CurrencyExchangeWidget lang={lang} />
+      {/* Draggable Currency Exchange & Conversion Widget (متاح في جميع الصفحات ما عدا صفحة قراءة المقال حصراً لمنع التشتيت) */}
+      {currentTab !== 'article' && <CurrencyExchangeWidget lang={lang} />}
 
       {/* Professional Financial Media Footer (تصميم احترافي متوازن مع أزرار المشاركة وتوسيط شريط الحقوق) */}
       <footer className="border-t border-slate-800/90 bg-[#050811] text-slate-400 text-xs mt-auto">

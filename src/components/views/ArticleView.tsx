@@ -488,7 +488,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
   };
 
   return (
-    <div className={`min-h-screen py-4 sm:py-8 transition-colors duration-200 ${themeClasses.wrapper}`}>
+    <div className={`w-full min-h-screen py-2 sm:py-8 transition-colors duration-200 ${themeClasses.wrapper}`}>
       {/* Structured SEO Data */}
       <script
         type="application/ld+json"
@@ -507,12 +507,12 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto px-3 sm:px-6">
+      <div className="w-full flex flex-col items-center">
 
         {/* --- Top Sticky Reader Toolbar (تحميل، حفظ، مشاركة، طباعة، حجم الخط، الوضع الورقي) --- */}
         <nav 
           aria-label={isAr ? 'شريط أدوات القارئ' : 'Reader tools'}
-          className="no-print sticky top-3 z-40 mb-6 p-2 sm:p-2.5 rounded-2xl bg-stone-900/90 backdrop-blur-md text-stone-200 border border-stone-800 shadow-xl flex flex-wrap items-center justify-between gap-2 text-xs"
+          className="no-print sticky top-2 z-40 mb-3 sm:mb-6 w-[98%] sm:max-w-4xl mx-auto p-2 sm:p-2.5 rounded-2xl bg-stone-900/90 backdrop-blur-md text-stone-200 border border-stone-800 shadow-xl flex flex-wrap items-center justify-between gap-2 text-xs"
         >
           {/* Back button */}
           <button
@@ -674,10 +674,10 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
 
         {/* --- PHYSICAL NEWSPAPER BROADSHEET CANVAS --- */}
         <article 
-          className={`article-print-canvas rounded-2xl p-5 sm:p-10 md:p-12 border shadow-lg transition-colors ${themeClasses.paperCanvas}`}
+          className={`article-print-canvas w-[98%] sm:max-w-4xl mx-auto rounded-2xl p-2.5 sm:p-10 md:p-12 border shadow-lg transition-colors ${themeClasses.paperCanvas}`}
         >
           {/* Newspaper Broadsheet Masthead Header (رأس الصحيفة الورقية) */}
-          <header className={`pb-5 mb-6 border-b-2 ${themeClasses.headerBorder}`}>
+          <header className={`w-[98%] mx-auto pb-4 sm:pb-5 mb-5 sm:mb-6 border-b-2 ${themeClasses.headerBorder}`}>
             {/* Masthead rule line */}
             <div className="flex items-center justify-between text-[11px] font-newspaper-body uppercase tracking-wider mb-3 pb-2 border-b border-stone-300/80">
               <span className="font-bold text-amber-800">
@@ -758,7 +758,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
           </header>
 
           {/* Lead Summary (الاستهلال الصحفي) */}
-          <div className="p-4 sm:p-5 rounded-xl bg-amber-500/10 border-r-4 border-amber-700 text-stone-800 dark:text-stone-200 text-base sm:text-lg font-newspaper-body font-medium leading-relaxed mb-6">
+          <div className="w-[98%] mx-auto p-3.5 sm:p-5 rounded-xl bg-amber-500/10 border-r-4 border-amber-700 text-stone-800 dark:text-stone-200 text-base sm:text-lg font-newspaper-body font-medium leading-relaxed mb-6">
             <p className="newspaper-lead">
               {isAr ? article.summary : article.summaryEn}
             </p>
@@ -767,7 +767,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
           {/* --- AUDIO READER PLAYER (قارئ مسموع للمقال) --- */}
           <section 
             aria-label={isAr ? 'قارئ المقال المسموع' : 'Audio reader'}
-            className="no-print mb-8 p-3.5 sm:p-4 rounded-xl border bg-stone-900 text-stone-100 shadow-md"
+            className="no-print w-[98%] mx-auto mb-6 sm:mb-8 p-3 sm:p-4 rounded-xl border bg-stone-900 text-stone-100 shadow-md"
           >
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-2.5">
@@ -857,7 +857,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
           <section 
             id="table-of-contents"
             aria-label={isAr ? 'فهرس محتويات المقال' : 'Table of Contents'}
-            className={`mb-8 p-4 sm:p-5 rounded-xl border ${themeClasses.infobox} transition-all`}
+            className={`w-[98%] mx-auto mb-6 sm:mb-8 p-3.5 sm:p-5 rounded-xl border ${themeClasses.infobox} transition-all`}
           >
             <div className="flex items-center justify-between pb-3 border-b border-stone-300/70 dark:border-stone-700">
               <div className="flex items-center gap-2">
@@ -933,7 +933,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
           <section 
             id="sec-infographic"
             aria-label={isAr ? 'تمثيل بياني وانفوجرافيك اقتصادي' : 'Economic Infographic'}
-            className={`mb-10 p-5 rounded-2xl border ${themeClasses.infobox}`}
+            className={`w-[98%] mx-auto mb-8 sm:mb-10 p-4 sm:p-5 rounded-2xl border ${themeClasses.infobox}`}
           >
             <div className="flex items-center justify-between pb-3 border-b border-stone-300/80 dark:border-stone-700 mb-4">
               <div className="flex items-center gap-2">
@@ -954,7 +954,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
             </div>
 
             {/* Key Metric Indicators Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+            <div className="w-[98%] mx-auto grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 mb-4 sm:mb-5">
               <div className="p-3 rounded-xl bg-white/70 dark:bg-stone-900/60 border border-stone-200 dark:border-stone-800">
                 <div className={`text-[10px] ${themeClasses.subtext}`}>
                   {isAr ? 'القطاع الاستراتيجي' : 'Target Sector'}
@@ -993,7 +993,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
             </div>
 
             {/* Economic Flow & Trade Representation Diagram (خارطة ومخطط التدفق الاقتصادي) */}
-            <div className="p-4 rounded-xl bg-stone-950 text-stone-200 border border-stone-800 font-mono text-xs space-y-3">
+            <div className="w-[98%] mx-auto p-3.5 sm:p-4 rounded-xl bg-stone-950 text-stone-200 border border-stone-800 font-mono text-xs space-y-3">
               <div className="flex items-center justify-between text-stone-400 text-[11px] pb-2 border-b border-stone-800">
                 <span className="flex items-center gap-1.5">
                   <Globe2 className="w-3.5 h-3.5 text-amber-400" />
@@ -1032,7 +1032,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
           {/* --- MAIN ARTICLE BODY (النص الصحفي المنسق) --- */}
           <main 
             id="sec-analysis"
-            className={`space-y-6 font-newspaper-body text-justify ${fontSizeClass} ${lineSpacingClass}`}
+            className={`w-[98%] mx-auto space-y-5 sm:space-y-6 font-newspaper-body text-justify ${fontSizeClass} ${lineSpacingClass}`}
           >
             {articleParagraphs.map((paragraph, idx) => {
               const isFirst = idx === 0;
@@ -1068,7 +1068,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
             <aside 
               id="sec-quote"
               aria-label={isAr ? 'اقتباس تحريري مميز' : 'Editorial Highlight'}
-              className={`my-8 p-6 sm:p-7 rounded-2xl border-r-4 ${themeClasses.quoteBox} shadow-sm transition-all`}
+              className={`w-[98%] mx-auto my-6 sm:my-8 p-5 sm:p-7 rounded-2xl border-r-4 ${themeClasses.quoteBox} shadow-sm transition-all`}
             >
               <div className="font-newspaper-headline text-lg sm:text-xl md:text-2xl font-bold leading-relaxed tracking-tight text-stone-950 dark:text-stone-100">
                 {isAr
@@ -1088,7 +1088,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
 
             {/* Additional analytical paragraph if present */}
             {article.reviewNotes && (
-              <div className="p-4 rounded-xl bg-stone-200/60 dark:bg-stone-900/70 border border-stone-300 dark:border-stone-800 text-xs font-newspaper-body">
+              <div className="w-[98%] mx-auto p-3.5 sm:p-4 rounded-xl bg-stone-200/60 dark:bg-stone-900/70 border border-stone-300 dark:border-stone-800 text-xs font-newspaper-body">
                 <span className="font-bold text-amber-800 dark:text-amber-400 block mb-1">
                   {isAr ? 'ملاحظة التدقيق الاقتصادي المسجلة في السجل التحريري:' : 'Editorial Verification Note:'}
                 </span>
@@ -1100,13 +1100,13 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
           </main>
 
           {/* --- FACT CHECK & CITATIONS SECTION --- */}
-          <footer className="mt-12 pt-8 border-t-2 border-stone-300 dark:border-stone-700 space-y-6">
+          <footer className="w-[98%] mx-auto mt-8 sm:mt-12 pt-6 sm:pt-8 border-t-2 border-stone-300 dark:border-stone-700 space-y-5 sm:space-y-6">
             
             {/* Fact Check Report Box */}
             <section 
               id="sec-factcheck"
               aria-label={isAr ? 'تقرير فحص الحقائق' : 'Fact Check Report'}
-              className="p-5 rounded-2xl bg-stone-900 text-stone-100 border border-stone-800 shadow-md"
+              className="w-[98%] mx-auto p-3.5 sm:p-5 rounded-2xl bg-stone-900 text-stone-100 border border-stone-800 shadow-md"
             >
               <div className="flex items-center justify-between pb-3 border-b border-stone-800 mb-3">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2 font-newspaper-headline">
@@ -1146,7 +1146,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
             <section 
               id="sec-citations"
               aria-label={isAr ? 'المصادر والتوثيق' : 'Citations'}
-              className={`p-5 rounded-2xl border ${themeClasses.infobox}`}
+              className={`w-[98%] mx-auto p-3.5 sm:p-5 rounded-2xl border ${themeClasses.infobox}`}
             >
               <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2 font-newspaper-headline mb-3">
                 <BookOpen className="w-4 h-4 text-amber-700 dark:text-amber-400" />
@@ -1158,7 +1158,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                   <div
                     key={cit.id}
                     id={`cit-${cit.id}`}
-                    className={`p-3.5 rounded-xl border text-xs transition-all ${
+                    className={`w-[98%] mx-auto p-3 sm:p-3.5 rounded-xl border text-xs transition-all ${
                       activeCitationId === cit.id
                         ? 'bg-amber-500/15 border-amber-600/50 shadow-sm'
                         : 'bg-white/60 dark:bg-stone-900/60 border-stone-200 dark:border-stone-800'
@@ -1200,7 +1200,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
             <section 
               id="discussion-section"
               aria-label={isAr ? 'نقاش القراء' : 'Reader Discussions'}
-              className="no-print pt-6 border-t border-stone-300 dark:border-stone-800"
+              className="no-print w-[98%] mx-auto pt-6 border-t border-stone-300 dark:border-stone-800"
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -1215,7 +1215,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
               </div>
 
               {/* Add Comment Form */}
-              <form onSubmit={handleAddComment} className="mb-6 p-4 rounded-xl bg-white/70 dark:bg-stone-900/80 border border-stone-300 dark:border-stone-800 space-y-3">
+              <form onSubmit={handleAddComment} className="w-[98%] mx-auto mb-6 p-3.5 sm:p-4 rounded-xl bg-white/70 dark:bg-stone-900/80 border border-stone-300 dark:border-stone-800 space-y-3">
                 <div className="text-xs font-bold text-stone-800 dark:text-stone-200">
                   {isAr ? 'أضف قراءتك أو تحليلك الاقتصادي لهذا التقرير:' : 'Add your economic note or perspective:'}
                 </div>
@@ -1255,9 +1255,9 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
               </form>
 
               {/* Comments List */}
-              <div className="space-y-3">
+              <div className="w-[98%] mx-auto space-y-3">
                 {comments.map((c) => (
-                  <div key={c.id} className="p-3.5 rounded-xl bg-white/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800/80 text-xs">
+                  <div key={c.id} className="w-[98%] mx-auto p-3 sm:p-3.5 rounded-xl bg-white/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800/80 text-xs">
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-800 dark:text-amber-400 font-bold text-[10px] flex items-center justify-center">
@@ -1281,7 +1281,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
         </article>
 
         {/* Newspaper Bottom Stamp */}
-        <div className="mt-8 text-center text-xs font-newspaper-body text-stone-500 dark:text-stone-400 pb-12">
+        <div className="w-[98%] mx-auto mt-6 sm:mt-8 text-center text-xs font-newspaper-body text-stone-500 dark:text-stone-400 pb-12">
           <div>{isAr ? 'صحيفة لافريكونوميست · حرية الرصد والاستقصاء المالي المستقل' : "L'Africonomist · Independent Pan-African Financial Gazette"}</div>
           <div className="text-[10px] text-stone-400 dark:text-stone-600 mt-1">
             {isAr ? 'جميع الحقوق محفوظة للمؤسسة الناشرة © 2026' : 'All Rights Reserved © 2026'}

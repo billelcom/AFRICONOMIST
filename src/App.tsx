@@ -549,6 +549,8 @@ export default function App() {
         className={`flex-1 w-full mx-auto ${
           currentTab === 'editorial' 
             ? 'w-[98%] max-w-[98%] sm:max-w-7xl px-0 sm:px-6 lg:px-8 pt-2 sm:pt-6' 
+            : currentTab === 'article'
+            ? 'w-full max-w-full px-0 sm:px-6 lg:px-8 pt-1 sm:pt-4'
             : 'max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8'
         }`}
       >

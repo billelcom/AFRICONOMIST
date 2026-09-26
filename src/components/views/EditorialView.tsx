@@ -545,7 +545,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
   };
 
   return (
-    <div className="w-[98%] max-w-[98%] sm:max-w-none sm:w-full mx-auto min-h-screen text-slate-100 flex flex-col">
+    <div className="w-full max-w-full mx-auto min-h-screen bg-white text-slate-900 flex flex-col">
       {/* =========================================================================
           1. MOBILE TOP HORIZONTAL SCROLLING MENU (قائمة الهاتف الأفقية بدون سكرول بار)
          ========================================================================= */}
@@ -667,7 +667,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
       {/* =========================================================================
           2. MAIN WORKSPACE WITH ARTISTIC DESKTOP SIDEBAR + CONTENT AREA
          ========================================================================= */}
-      <div className="flex-1 flex flex-col md:flex-row w-full">
+      <div className="flex-1 flex flex-col md:flex-row w-full max-w-full">
         {/* =======================================================================
             DESKTOP ARTISTIC SIDEBAR (قطعة فنية إبداعية قائمة على اليسار/اليمين)
            ======================================================================= */}
@@ -892,7 +892,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
         {/* =======================================================================
             MAIN CONTENT AREA (بدون سكرول بار إضافي مزدوج على الحاسوب)
            ======================================================================= */}
-        <div className="flex-1 p-2 sm:p-6 lg:p-8 space-y-6">
+        <div className="flex-1 p-2 sm:p-6 lg:p-8 space-y-6 w-full max-w-full bg-white">
           {/* Success Banner Notice */}
           {saveSuccessNotice && (
             <div className="p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-200 text-xs font-bold flex items-center gap-2 animate-in fade-in duration-200">
@@ -967,21 +967,21 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                   const SectorIcon = sector.icon;
 
                   return (
-                    <section key={sector.id} className="space-y-4 w-full">
+                    <section key={sector.id} className="space-y-4 w-full max-w-full">
                       {/* Sector Header with Desktop Controls */}
-                      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                      <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                         <div className="flex items-center gap-3">
                           <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br ${sector.accentColor} border flex items-center justify-center shrink-0`}>
                             <SectorIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                           </div>
                           <div>
-                            <h3 className="text-sm sm:text-base font-black text-white flex items-center gap-2">
+                            <h3 className="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
                               <span>{isAr ? sector.nameAr : sector.nameEn}</span>
-                              <span className="text-[10px] sm:text-[11px] font-mono px-2 py-0.2 rounded-full bg-slate-800 text-slate-300">
+                              <span className="text-[10px] sm:text-[11px] font-mono px-2 py-0.2 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
                                 {sectorArticles.length} {isAr ? 'تقارير' : 'reports'}
                               </span>
                             </h3>
-                            <p className="text-[11px] sm:text-xs text-slate-400">
+                            <p className="text-[11px] sm:text-xs text-slate-600">
                               {isAr ? sector.descriptionAr : sector.descriptionEn}
                             </p>
                           </div>
@@ -995,7 +995,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                           <button
                             type="button"
                             onClick={() => handleScrollSector(sector.id, 'prev')}
-                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer border border-slate-700"
+                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 transition-colors cursor-pointer border border-slate-300 shadow-sm"
                             title={isAr ? 'السابق' : 'Previous'}
                           >
                             <ChevronRight className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
@@ -1003,7 +1003,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                           <button
                             type="button"
                             onClick={() => handleScrollSector(sector.id, 'next')}
-                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer border border-slate-700"
+                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 transition-colors cursor-pointer border border-slate-300 shadow-sm"
                             title={isAr ? 'التالي' : 'Next'}
                           >
                             <ChevronLeft className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
@@ -1012,12 +1012,12 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                       </div>
 
                       {/* Sector Slides / Cards:
-                          - On Mobile: Takes 98% of width, snap-center, without any scrollbar!
+                          - On Mobile: Takes 100% of width, snap-center, without any scrollbar!
                           - On Desktop: Multi-card layout with smooth scroll buttons
                       */}
                       <div 
                         id={`sector-slider-${sector.id}`}
-                        className="overflow-x-auto no-scrollbar scroll-smooth flex gap-3 sm:gap-4 pb-2 snap-x snap-mandatory w-full"
+                        className="overflow-x-auto no-scrollbar scroll-smooth flex gap-3 sm:gap-4 pb-2 snap-x snap-mandatory w-full max-w-full"
                       >
                         {sectorArticles.map((art, idx) => {
                           const isPending = art.status === 'pending_review';
@@ -1026,7 +1026,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                             <div
                               key={art.id || idx}
                               onClick={() => handleOpenInEditor(art)}
-                              className="w-[98%] min-w-[98%] max-w-[98%] sm:w-80 sm:min-w-0 sm:max-w-none shrink-0 snap-center sm:snap-start bg-slate-900/90 hover:bg-slate-850/90 border border-slate-800 hover:border-amber-500/50 rounded-2xl p-4 space-y-3 cursor-pointer transition-all duration-200 group shadow-lg flex flex-col justify-between mx-auto sm:mx-0"
+                              className="w-full min-w-full max-w-full sm:w-80 sm:min-w-[320px] sm:max-w-none shrink-0 snap-center sm:snap-start bg-slate-900/95 hover:bg-slate-850 border border-slate-800 hover:border-amber-500/50 rounded-2xl p-4 space-y-3 cursor-pointer transition-all duration-200 group shadow-lg flex flex-col justify-between mx-auto sm:mx-0"
                             >
                               {/* Top Bar: Country & Journalistic Genre */}
                               <div className="space-y-2">
@@ -1174,30 +1174,30 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
               VIEW 3: PENDING QUEUE (المقالات التي تحتاج إلى معالجة)
              ===================================================================== */}
           {activeTab === 'pending' && (
-            <div className="space-y-5 animate-in fade-in duration-200 w-[98%] max-w-[98%] sm:max-w-none mx-auto">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="space-y-5 animate-in fade-in duration-200 w-full max-w-full mx-auto">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                 <div>
-                  <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5 text-rose-400" />
+                  <h2 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-rose-500" />
                     <span>{isAr ? 'المقالات المولدة التي تحتاج إلى معالجة' : 'Pending Ingestion Desk'}</span>
                   </h2>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-600">
                     {isAr ? 'مسودات وكلاء الذكاء الاصطناعي بانتظار قراءة المشرف البشري ونقده وإجازته.' : 'Agent-generated drafts awaiting human editorial review.'}
                   </p>
                 </div>
-                <span className="px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-bold border border-rose-500/30">
+                <span className="px-3 py-1 rounded-full bg-rose-500/15 text-rose-700 text-xs font-bold border border-rose-500/30">
                   {pendingArticles.length} {isAr ? 'مسودات معلقة' : 'pending'}
                 </span>
               </div>
 
               {pendingArticles.length === 0 ? (
-                <div className="p-12 text-center rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
-                  <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
-                  <h3 className="text-base font-bold text-white">{isAr ? 'لا توجد مقالات معلقة حالياً' : 'All drafts processed'}</h3>
-                  <p className="text-xs text-slate-400">{isAr ? 'كافة التقارير تمت معالجتها ومراجعتها. يمكنك استخدام "توليد فوري عشوائي" لإنشاء مسودة جديدة فوراً.' : 'Queue clear. Commission a new draft using instant generation.'}</p>
+                <div className="p-12 text-center rounded-2xl bg-slate-50 border border-slate-200 space-y-3 w-full max-w-full">
+                  <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
+                  <h3 className="text-base font-bold text-slate-900">{isAr ? 'لا توجد مقالات معلقة حالياً' : 'All drafts processed'}</h3>
+                  <p className="text-xs text-slate-600">{isAr ? 'كافة التقارير تمت معالجتها ومراجعتها. يمكنك استخدام "توليد فوري عشوائي" لإنشاء مسودة جديدة فوراً.' : 'Queue clear. Commission a new draft using instant generation.'}</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-full">
                   {pendingArticles.map((art) => (
                     <div
                       key={art.id}
@@ -1236,25 +1236,25 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
               VIEW 4: AGENT TRAINING (تدريب الوكيل وضبط المعايير التحريرية)
              ===================================================================== */}
           {activeTab === 'training' && (
-            <div className="space-y-6 animate-in fade-in duration-200 w-[98%] max-w-[98%] sm:max-w-3xl mx-auto">
-              <div className="border-b border-slate-800 pb-3">
-                <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
-                  <Brain className="w-5 h-5 text-purple-400" />
+            <div className="space-y-6 animate-in fade-in duration-200 w-full max-w-full mx-auto">
+              <div className="border-b border-slate-200 pb-3">
+                <h2 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+                  <Brain className="w-5 h-5 text-purple-600" />
                   <span>{isAr ? 'منصة تدريب وضبط وكلاء الذكاء الاصطناعي' : 'Agent Training & Directives Workbench'}</span>
                 </h2>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-600">
                   {isAr ? 'تحديد معايير الصرامة التحريرية، نبرة الصياغة، وضوابط استشهاد المصادر الرسمية.' : 'Configure strictness, tone of voice, and official fact-check tolerances.'}
                 </p>
               </div>
 
               {trainingSavedAlert && (
-                <div className="p-3.5 rounded-xl bg-purple-950/40 border border-purple-500/40 text-purple-200 text-xs font-bold flex items-center gap-2">
+                <div className="p-3.5 rounded-xl bg-purple-950/40 border border-purple-500/40 text-purple-200 text-xs font-bold flex items-center gap-2 w-full max-w-full">
                   <Check className="w-4 h-4 text-purple-400" />
                   <span>{isAr ? 'تم حفظ معايير التدريب بنجاح وتطبيقها على خط الإنتاج الآلي!' : 'Agent directives updated successfully!'}</span>
                 </div>
               )}
 
-              <div className="p-4 sm:p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-6 shadow-xl">
+              <div className="p-4 sm:p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-6 shadow-xl w-full max-w-full">
                 {/* 1. النبرة التحريرية */}
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-white flex items-center gap-2">
@@ -1338,23 +1338,23 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
               VIEW 5: LIBRARY (المكتبة)
              ===================================================================== */}
           {activeTab === 'library' && (
-            <div className="space-y-5 animate-in fade-in duration-200 w-[98%] max-w-[98%] sm:max-w-none mx-auto">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="space-y-5 animate-in fade-in duration-200 w-full max-w-full mx-auto">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                 <div>
-                  <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-teal-400" />
+                  <h2 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-teal-600" />
                     <span>{isAr ? 'مكتبة التقارير والمصادر المعتمدة' : 'Verified Editorial Library'}</span>
                   </h2>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-600">
                     {isAr ? 'أرشيف المقالات والتحقيقات التي أجازها المشرف البشري ونُشرت للجمهور.' : 'Comprehensive repository of human-approved and published reports.'}
                   </p>
                 </div>
-                <span className="px-3 py-1 rounded-full bg-teal-500/20 text-teal-300 text-xs font-bold border border-teal-500/30">
+                <span className="px-3 py-1 rounded-full bg-teal-500/15 text-teal-700 text-xs font-bold border border-teal-500/30">
                   {publishedArticles.length} {isAr ? 'تقارير منشورة' : 'published'}
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-full">
                 {publishedArticles.map((art) => (
                   <div
                     key={art.id}
@@ -1392,30 +1392,30 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
               VIEW 6: ARCHIVE (الأرشيف)
              ===================================================================== */}
           {activeTab === 'archive' && (
-            <div className="space-y-5 animate-in fade-in duration-200 w-[98%] max-w-[98%] sm:max-w-none mx-auto">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="space-y-5 animate-in fade-in duration-200 w-full max-w-full mx-auto">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                 <div>
-                  <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
-                    <Archive className="w-5 h-5 text-slate-400" />
+                  <h2 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+                    <Archive className="w-5 h-5 text-slate-600" />
                     <span>{isAr ? 'الأرشيف والتقارير المستبعدة' : 'Editorial Archive & Shelved Records'}</span>
                   </h2>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-600">
                     {isAr ? 'المقالات التي تم استبعادها أو أرشفتها لحين استكمال الوثائق الرسمية.' : 'Shelved articles held for further document verification.'}
                   </p>
                 </div>
-                <span className="px-3 py-1 rounded-full bg-slate-800 text-slate-300 text-xs font-bold border border-slate-700">
+                <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold border border-slate-300">
                   {archivedArticles.length} {isAr ? 'مقالات مؤرشفة' : 'archived'}
                 </span>
               </div>
 
               {archivedArticles.length === 0 ? (
-                <div className="p-12 text-center rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
-                  <Archive className="w-10 h-10 text-slate-500 mx-auto" />
-                  <h3 className="text-base font-bold text-white">{isAr ? 'الأرشيف فارغ حالياً' : 'Archive empty'}</h3>
-                  <p className="text-xs text-slate-400">{isAr ? 'لم يتم أرشفة أي مقالات بعد.' : 'No archived articles.'}</p>
+                <div className="p-12 text-center rounded-2xl bg-slate-50 border border-slate-200 space-y-3 w-full max-w-full">
+                  <Archive className="w-10 h-10 text-slate-400 mx-auto" />
+                  <h3 className="text-base font-bold text-slate-900">{isAr ? 'الأرشيف فارغ حالياً' : 'Archive empty'}</h3>
+                  <p className="text-xs text-slate-600">{isAr ? 'لم يتم أرشفة أي مقالات بعد.' : 'No archived articles.'}</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-full">
                   {archivedArticles.map((art) => (
                     <div
                       key={art.id}

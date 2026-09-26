@@ -220,7 +220,7 @@ export const CommissionWizard: React.FC<CommissionWizardProps> = ({
   ];
 
   return (
-    <div className="w-[98%] max-w-[98%] sm:max-w-5xl mx-auto space-y-5 animate-in fade-in duration-200 pb-12">
+    <div className="w-full max-w-full mx-auto space-y-5 animate-in fade-in duration-200 pb-12">
       {/* Header Banner - Solid, clean, no popup */}
       <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-[#0B101E] to-slate-900 border border-slate-800 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="space-y-1">

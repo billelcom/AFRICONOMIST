@@ -507,7 +507,7 @@ export default function App() {
   const currentCountry = countries.find(c => c.slug === selectedCountrySlug) || countries[0];
 
   return (
-    <div className={`min-h-screen bg-[#080C14] text-slate-100 flex flex-col font-sans ${isAr ? 'rtl' : 'ltr'}`} dir={isAr ? 'rtl' : 'ltr'}>
+    <div className={`min-h-screen ${currentTab === 'editorial' ? 'bg-white text-slate-900' : 'bg-[#080C14] text-slate-100'} flex flex-col font-sans ${isAr ? 'rtl' : 'ltr'}`} dir={isAr ? 'rtl' : 'ltr'}>
       {/* Skip Link for WCAG 2.1 Accessibility */}
       <a 
         href="#main-content" 
@@ -559,14 +559,14 @@ export default function App() {
         id="main-content" 
         className={`flex-1 w-full mx-auto ${
           currentTab === 'editorial' 
-            ? 'w-[98%] max-w-[98%] sm:max-w-7xl px-0 sm:px-6 lg:px-8 pt-2 sm:pt-6' 
+            ? 'w-full max-w-full px-0 pt-0' 
             : currentTab === 'article'
             ? 'w-full max-w-full px-0 sm:px-6 lg:px-8 pt-1 sm:pt-4'
             : 'max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8'
         }`}
       >
-        {/* ظهور بطاقة الساعة والطقس والمشاركة في جميع الصفحات العامة (ماعدا صفحة قراءة المقال التي تكون مخصصة حصراً للقراءة دون أي مشتتات) */}
-        {currentTab !== 'home' && currentTab !== 'article' && (
+        {/* ظهور بطاقة الساعة والطقس والمشاركة في جميع الصفحات العامة (ماعدا صفحة قراءة المقال وغرفة الأخبار المخصصة للتحرير) */}
+        {currentTab !== 'home' && currentTab !== 'article' && currentTab !== 'editorial' && (
           <div className="mb-6">
             <InteractiveTopCard lang={lang} />
           </div>

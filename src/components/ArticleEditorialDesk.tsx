@@ -512,11 +512,11 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
   const currentEndGraphics = graphics.filter(g => g.position === 'end');
 
   return (
-    <div className="w-full max-w-[99%] sm:max-w-[98%] 2xl:max-w-[1650px] mx-auto space-y-6">
+    <div className="w-full max-w-full mx-auto space-y-6">
       {/* =========================================================================
           TOP COMMAND & NAVIGATION BAR (شريط التحكم العلوي العريض)
          ========================================================================= */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-[#0A0F1D] to-slate-900 border border-slate-800 shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-[#0A0F1D] to-slate-900 border border-slate-800 shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4 w-full max-w-full">
         {/* Left: Back & Article Sequence */}
         <div className="flex flex-wrap items-center gap-3">
           <button
@@ -624,13 +624,13 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
           VIEW MODE 1: EXPANSIVE EDITORIAL DESK (المحرر الموسع بدون سكرول بار)
          ========================================================================= */}
       {viewMode === 'edit' && (
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 w-full items-start">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 w-full max-w-full items-start">
           {/* -------------------------------------------------------------------
               MAIN COLUMN (8 COLS): HEADLINE, SUMMARY, EXPANDING CONTENT, GRAPHICS
              ------------------------------------------------------------------- */}
-          <div className="xl:col-span-8 space-y-6">
+          <div className="xl:col-span-8 space-y-6 w-full max-w-full">
             {/* Box 1: Expansive Headline */}
-            <div className="p-5 sm:p-6 rounded-2xl bg-[#080C17] border border-slate-800 shadow-xl space-y-2">
+            <div className="p-5 sm:p-6 rounded-2xl bg-[#080C17] border border-slate-800 shadow-xl space-y-2 w-full max-w-full">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-amber-400 flex items-center gap-2">
                   <FileEdit className="w-4 h-4" />
@@ -1012,9 +1012,9 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
           {/* -------------------------------------------------------------------
               SIDE COLUMN (4 COLS): EDITORIAL ACTIONS, METADATA, FACT-CHECK & AI
              ------------------------------------------------------------------- */}
-          <div className="xl:col-span-4 space-y-6">
+          <div className="xl:col-span-4 space-y-6 w-full max-w-full">
             {/* Box A: Editorial Decision Deck (المبدأ الصحفي: ينشر، يعدل، يؤرشف) */}
-            <div className="p-5 sm:p-6 rounded-2xl bg-[#080C17] border border-slate-800 shadow-xl space-y-4">
+            <div className="p-5 sm:p-6 rounded-2xl bg-[#080C17] border border-slate-800 shadow-xl space-y-4 w-full max-w-full">
               <div className="border-b border-slate-800/80 pb-3">
                 <h3 className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
@@ -1083,7 +1083,7 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
             </div>
 
             {/* Box B: Editorial Classification & Metadata (التصنيف الثلاثي والكاتب) */}
-            <div ref={classificationBoxRef} className="p-5 sm:p-6 rounded-2xl bg-[#080C17] border border-slate-800 shadow-xl space-y-4">
+            <div ref={classificationBoxRef} className="p-5 sm:p-6 rounded-2xl bg-[#080C17] border border-slate-800 shadow-xl space-y-4 w-full max-w-full">
               <div className="border-b border-slate-800/80 pb-3 flex items-center justify-between">
                 <h3 className="text-xs font-black uppercase tracking-wider text-slate-300 flex items-center gap-2">
                   <Layers className="w-4 h-4 text-amber-400" />
@@ -1611,7 +1611,7 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
             </div>
 
             {/* Box C: Fact-Check & Sources Audit */}
-            <div className="p-5 sm:p-6 rounded-2xl bg-[#080C17] border border-slate-800 shadow-xl space-y-3">
+            <div className="p-5 sm:p-6 rounded-2xl bg-[#080C17] border border-slate-800 shadow-xl space-y-3 w-full max-w-full">
               <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
@@ -1644,7 +1644,7 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
           VIEW MODE 2: LIVE PAPER REPLICA PREVIEW (المعاينة الورقية الحية المدمجة)
          ========================================================================= */}
       {viewMode === 'paper_preview' && (
-        <div className="w-full bg-[#FAF7F0] text-stone-900 rounded-3xl p-6 sm:p-12 lg:p-16 border border-amber-900/10 shadow-2xl space-y-8 animate-in fade-in duration-200">
+        <div className="w-full max-w-full bg-[#FAF7F0] text-stone-900 rounded-3xl p-6 sm:p-12 lg:p-16 border border-amber-900/10 shadow-2xl space-y-8 animate-in fade-in duration-200">
           {/* Header Metadata matching ArticleView */}
           <div className="border-b border-stone-300 pb-6 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-stone-600 font-sans">

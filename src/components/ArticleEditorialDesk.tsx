@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
@@ -30,7 +31,11 @@ import {
   Layers, 
   Sparkles,
   ExternalLink,
-  Volume2
+  Volume2,
+  Upload,
+  ImagePlus,
+  Link as LinkIcon,
+  RefreshCw
 } from 'lucide-react';
 
 interface ArticleEditorialDeskProps {
@@ -72,6 +77,7 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
 
   // State for editable fields
   const [editableTitle, setEditableTitle] = useState<string>(article.title || '');
+  const [editableImageUrl, setEditableImageUrl] = useState<string>(article.imageUrl || '');
   const [editableSummary, setEditableSummary] = useState<string>(article.summary || '');
   const [editableContent, setEditableContent] = useState<string>(
     Array.isArray(article.content) ? article.content.join('\n\n') : (article.content || '')
@@ -83,6 +89,68 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
   const [editableAuthorRole, setEditableAuthorRole] = useState<string>(article.authorRole || 'محرر الشؤون القارية');
   const [editableMarketImpact, setEditableMarketImpact] = useState<'positive' | 'negative' | 'neutral'>(article.marketImpact || 'positive');
   const [humanReviewerNote, setHumanReviewerNote] = useState<string>(article.reviewNotes || '');
+
+  // File input ref for device photo upload
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        setEditableImageUrl(dataUrl);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Curated high-res presets for African economic news
+  const COVER_IMAGE_PRESETS = [
+    {
+      id: 'energy',
+      nameAr: '⚡ طاقة وتكرير ونفط',
+      nameEn: 'Energy & Refining',
+      url: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80'
+    },
+    {
+      id: 'trade',
+      nameAr: '🚢 موانئ وشحن إقليمي',
+      nameEn: 'Maritime Trade & Ports',
+      url: 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=600&q=80'
+    },
+    {
+      id: 'markets',
+      nameAr: '🏦 أسواق مال وبنوك مركزية',
+      nameEn: 'Financial Markets & Banking',
+      url: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=600&q=80'
+    },
+    {
+      id: 'mining',
+      nameAr: '⛏️ تعدين ومعادن إستراتيجية',
+      nameEn: 'Mining & Critical Minerals',
+      url: 'https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?auto=format&fit=crop&w=600&q=80'
+    },
+    {
+      id: 'agri',
+      nameAr: '🌾 زراعة وأمن غذائي',
+      nameEn: 'Agribusiness & Food Security',
+      url: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=600&q=80'
+    },
+    {
+      id: 'tech',
+      nameAr: '💻 تكنولوجيا واقتصاد رقمي',
+      nameEn: 'FinTech & Digital Economy',
+      url: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=600&q=80'
+    },
+    {
+      id: 'infra',
+      nameAr: '🏗️ مشاريع بنية تحتية',
+      nameEn: 'Infrastructure & Power',
+      url: 'https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&w=600&q=80'
+    }
+  ];
 
   // Graphics state
   const [graphics, setGraphics] = useState<ArticleGraphicItem[]>(() => {
@@ -129,6 +197,7 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
 
   useEffect(() => {
     setEditableTitle(article.title || '');
+    setEditableImageUrl(article.imageUrl || '');
     setEditableSummary(article.summary || '');
     setEditableContent(
       Array.isArray(article.content) ? article.content.join('\n\n') : (article.content || '')
@@ -171,6 +240,7 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
     return {
       ...article,
       title: editableTitle,
+      imageUrl: editableImageUrl,
       summary: editableSummary,
       content: paragraphs.length > 0 ? paragraphs : [editableContent],
       countryName: editableCountry,
@@ -408,12 +478,12 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
               MAIN COLUMN (8 COLS): HEADLINE, SUMMARY, EXPANDING CONTENT, GRAPHICS
              ------------------------------------------------------------------- */}
           <div className="xl:col-span-8 space-y-6">
-            {/* Box 1: Expansive Headline (بدون سكرول بار - يتمدد حسب الطول) */}
+            {/* Box 1: Expansive Headline */}
             <div className="p-5 sm:p-6 rounded-2xl bg-[#080C17] border border-slate-800 shadow-xl space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-amber-400 flex items-center gap-2">
                   <FileEdit className="w-4 h-4" />
-                  <span>{isAr ? 'عنوان التقرير الصحفي (إطار كامل يتمدد تلقائياً بدون سكرول بار):' : 'Editorial Headline (Auto-expanding, No Scrollbar):'}</span>
+                  <span>{isAr ? 'عنوان التقرير الصحفي:' : 'Editorial Headline:'}</span>
                 </label>
                 <span className="text-[10px] text-slate-500 font-mono">
                   {editableTitle.length} {isAr ? 'حرفاً' : 'chars'}
@@ -432,12 +502,193 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
               />
             </div>
 
-            {/* Box 2: Expansive Lead / Summary (بدون سكرول بار - يتمدد حسب الطول) */}
+            {/* Box 2: Featured Lead Image for Homepage Card (خاصية إضافة صورة التي تظهر في الصفحة الرئيسية مع العنوان والملخص) */}
+            <div className="p-5 sm:p-6 rounded-2xl bg-[#080C17] border border-slate-800 shadow-xl space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                    <ImageIcon className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
+                      <span>{isAr ? 'صورة المقال الرئيسية (المعروضة بالصفحة الرئيسية مع العنوان والملخص)' : 'Lead Article Image (Featured on Homepage with Headline & Summary)'}</span>
+                    </h3>
+                    <p className="text-[10.5px] text-slate-400 mt-0.5">
+                      {isAr 
+                        ? 'تظهر هذه الصورة في الصفحة الرئيسية مباشرة بجانب العنوان وموجز التقرير، وفي صدارة بطاقة العرض.' 
+                        : 'This image appears on the homepage directly alongside the article headline and summary.'}
+                    </p>
+                  </div>
+                </div>
+
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                  {editableImageUrl ? (isAr ? 'صورة معتمدة' : 'Custom Image Set') : (isAr ? 'صورة افتراضية' : 'Default Placeholder')}
+                </span>
+              </div>
+
+              {/* Main Image Grid: Live Homepage Card Preview + Upload / Presets Deck */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                {/* Column A (5 cols): Live Exact Homepage Card Preview */}
+                <div className="lg:col-span-5 space-y-2">
+                  <div className="flex items-center justify-between text-[11px] text-slate-400">
+                    <span className="font-bold flex items-center gap-1 text-amber-400">
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>{isAr ? 'المعاينة الحية في بطاقة الصفحة الرئيسية:' : 'Live Homepage Card Preview:'}</span>
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">1:1 Square</span>
+                  </div>
+
+                  {/* The Simulated Card (Matches CreativeReportCard on HomeView) */}
+                  <div className="p-3.5 sm:p-4 rounded-xl bg-gradient-to-br from-[#0d1424] via-[#0a0f1c] to-[#070b14] border border-amber-500/30 shadow-lg relative overflow-hidden group">
+                    {/* Top strip */}
+                    <div className="flex items-center justify-between text-[10px] text-slate-400 mb-2 font-medium">
+                      <div className="flex items-center gap-1.5 truncate">
+                        <span className="text-slate-200 font-bold truncate">{editableCountry}</span>
+                        <span className="text-slate-600">·</span>
+                        <span className="text-amber-400/90 truncate font-sans">{editableSector}</span>
+                      </div>
+                      <div className="flex items-center gap-1 font-mono text-[9px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/20">
+                        <ShieldCheck className="w-2.5 h-2.5" />
+                        <span>97% {isAr ? 'دقة' : ''}</span>
+                      </div>
+                    </div>
+
+                    {/* Headline + Small Square Image Box Side-by-Side */}
+                    <div className="flex items-start justify-between gap-2.5 mb-2">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-xs sm:text-[13px] font-bold text-white line-clamp-2 leading-snug">
+                          {editableTitle || (isAr ? 'عنوان التقرير الصحفي...' : 'Article Headline...')}
+                        </h4>
+                        <div className="flex items-center gap-1 text-[9px] font-mono text-slate-400 mt-1">
+                          <Clock className="w-2.5 h-2.5 text-slate-500" />
+                          <span>{isAr ? 'اليوم · 16:30' : 'Today · 16:30'}</span>
+                        </div>
+                      </div>
+
+                      {/* The Square Image Box */}
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 border border-amber-500/40 shadow-md relative bg-slate-900 group-hover:scale-105 transition-transform duration-300">
+                        <img
+                          src={editableImageUrl || 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=300&q=80'}
+                          alt="Cover preview"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=200&q=80';
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none"></div>
+                      </div>
+                    </div>
+
+                    {/* Divider line */}
+                    <div className="my-2 h-px bg-gradient-to-r from-transparent via-slate-800 to-transparent"></div>
+
+                    {/* Summary text */}
+                    <p className="text-[11px] text-slate-300/85 line-clamp-2 leading-relaxed">
+                      {editableSummary || (isAr ? 'الموجز التحريري المعروض أسفل الفاصل مباشرة بالصفحة الرئيسية...' : 'Summary text appearing below divider on frontpage...')}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Column B (7 cols): URL input, Device Upload, and Curated Presets */}
+                <div className="lg:col-span-7 space-y-3.5">
+                  {/* Option 1: Direct Image URL */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-300 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <LinkIcon className="w-3.5 h-3.5 text-amber-400" />
+                        <span>{isAr ? 'رابط الصورة المباشر (URL):' : 'Direct Image URL:'}</span>
+                      </span>
+                      {editableImageUrl && (
+                        <button
+                          type="button"
+                          onClick={() => setEditableImageUrl('')}
+                          className="text-[10px] text-rose-400 hover:text-rose-300 hover:underline cursor-pointer flex items-center gap-1"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          <span>{isAr ? 'إزالة / إعادة ضبط' : 'Clear'}</span>
+                        </button>
+                      )}
+                    </label>
+
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <input
+                          type="text"
+                          value={editableImageUrl}
+                          onChange={(e) => setEditableImageUrl(e.target.value)}
+                          placeholder={isAr ? "الصق رابط صورة المقال هنا (https://...)" : "Paste image URL here (https://...)"}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-amber-500 font-mono"
+                        />
+                        {editableImageUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setEditableImageUrl('')}
+                            className="absolute ltr:right-2 rtl:left-2 top-2 text-slate-500 hover:text-white"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Device File Upload Button */}
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-amber-500/40 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                        title={isAr ? 'رفع صورة من ملفات جهازك' : 'Upload from device'}
+                      >
+                        <Upload className="w-3.5 h-3.5 text-amber-400" />
+                        <span>{isAr ? 'رفع من الجهاز' : 'Upload File'}</span>
+                      </button>
+
+                      {/* Hidden File Input */}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageFileUpload}
+                        className="hidden"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Option 2: Curated African Economic Photography Presets */}
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-[11px] font-bold text-slate-400 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                      <span>{isAr ? 'نماذج صور صحفية واقتصادية جاهزة عالية الدقة:' : 'High-Resolution Pan-African Photo Presets:'}</span>
+                    </span>
+
+                    <div className="flex flex-wrap gap-1.5">
+                      {COVER_IMAGE_PRESETS.map((preset) => (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() => setEditableImageUrl(preset.url)}
+                          className={`px-2.5 py-1.5 rounded-lg text-[10.5px] font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
+                            editableImageUrl === preset.url
+                              ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-sm'
+                              : 'bg-slate-950/80 hover:bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700'
+                          }`}
+                        >
+                          <span>{isAr ? preset.nameAr : preset.nameEn}</span>
+                          {editableImageUrl === preset.url && (
+                            <Check className="w-3 h-3 text-amber-400" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Box 3: Expansive Lead / Summary */}
             <div className="p-5 sm:p-6 rounded-2xl bg-[#080C17] border border-slate-800 shadow-xl space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-blue-400 flex items-center gap-2">
                   <Bookmark className="w-4 h-4" />
-                  <span>{isAr ? 'الموجز التحريري / المقدمة الاستقصائية (يتمدد تلقائياً بدون سكرول بار):' : 'Lead / Executive Summary (Auto-expanding, No Scrollbar):'}</span>
+                  <span>{isAr ? 'الموجز التحريري / المقدمة الاستقصائية:' : 'Lead / Executive Summary:'}</span>
                 </label>
                 <span className="text-[10px] text-slate-500 font-mono">
                   {editableSummary.split(/\s+/).filter(Boolean).length} {isAr ? 'كلمة' : 'words'}
@@ -456,13 +707,13 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
               />
             </div>
 
-            {/* Box 3: Expansive Full Article Body (بدون سكرول بار - يتمدد مع طول المقال) */}
+            {/* Box 4: Expansive Full Article Body */}
             <div className="p-5 sm:p-6 rounded-2xl bg-[#080C17] border border-slate-800 shadow-xl space-y-3">
               <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
                 <div className="flex items-center gap-2">
                   <FileText className="w-4 h-4 text-emerald-400" />
                   <span className="text-xs sm:text-sm font-black text-white">
-                    {isAr ? 'متن التقرير الكامل (إطار كامل يتمدد بالكامل حسب طول المقال بدون سكرول بار):' : 'Full Article Body (Expands dynamically to full content length without scrollbar):'}
+                    {isAr ? 'متن التقرير الكامل:' : 'Full Article Body:'}
                   </span>
                 </div>
                 {/* Live Stats: Words & Read Time */}
@@ -840,10 +1091,29 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
               {editableTitle}
             </h1>
 
-            {/* Summary Lead */}
-            <p className="text-sm sm:text-base text-stone-700 leading-relaxed font-sans italic border-r-2 border-amber-700 pe-4">
-              {editableSummary}
-            </p>
+            {/* Summary Lead & Featured Homepage Image */}
+            <div className="space-y-4">
+              {editableImageUrl && (
+                <div className="rounded-2xl overflow-hidden border border-amber-900/15 bg-stone-100 shadow-md">
+                  <img
+                    src={editableImageUrl}
+                    alt={editableTitle}
+                    className="w-full max-h-[380px] object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=800&q=80';
+                    }}
+                  />
+                  <div className="p-2.5 bg-stone-200/70 text-[11px] text-stone-600 font-sans flex items-center justify-between border-t border-stone-200">
+                    <span className="font-medium">{isAr ? 'صورة المقال الرئيسية المعتمدة على الصفحة الرئيسية' : 'Lead report image published to frontpage'}</span>
+                    <span className="font-mono text-[10px] text-stone-500">{editableCountry} · {editableSector}</span>
+                  </div>
+                </div>
+              )}
+
+              <p className="text-sm sm:text-base text-stone-700 leading-relaxed font-sans italic border-r-2 border-amber-700 pe-4">
+                {editableSummary}
+              </p>
+            </div>
 
             {/* Audio Narrator Preview Bar */}
             <div className="p-3.5 rounded-2xl bg-[#F0EBE1] border border-amber-900/10 flex items-center justify-between text-xs text-stone-700">

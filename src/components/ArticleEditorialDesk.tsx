@@ -480,79 +480,85 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
       {/* =========================================================================
           TOP COMMAND & NAVIGATION BAR (شريط التحكم العلوي المنظم)
          ========================================================================= */}
-      <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-[#0A0F1D] to-slate-900 border border-slate-800 shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full max-w-full">
-        {/* Left: Navigation Group (غرفة الأخبار + السابق والتالي + معتمد ومنشور + فتح صفحة المقال) */}
-        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-          {/* 1. زر غرفة الأخبار والأقسام */}
-          <button
-            onClick={onBackToOverview}
-            className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors flex items-center gap-2 text-xs font-bold cursor-pointer border border-slate-700 hover:border-slate-600 shadow-sm"
-          >
-            <ChevronRight className="w-4 h-4 rtl:rotate-0 ltr:rotate-180 text-amber-400" />
-            <span>{isAr ? 'غرفة الأخبار والأقسام' : 'Newsroom Desks'}</span>
-          </button>
-
-          {/* 2. Sequential Prev / Next Navigator (السابق والتالي في الأعلى جنب غرفة الأخبار) */}
-          <div className="flex items-center gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800 shadow-inner">
+      <div className="p-3 sm:p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-[#0A0F1D] to-slate-900 border border-slate-800 shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-3 w-full max-w-full">
+        {/* Navigation Group */}
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2.5 sm:gap-3 w-full lg:w-auto">
+          {/* Top Row on Mobile: غرفة الأخبار على اليمين والسابق/التالي في الأعلى مقابلها على اليسار */}
+          <div className="flex items-center justify-between w-full sm:w-auto gap-2">
+            {/* 1. زر غرفة الأخبار والأقسام */}
             <button
-              type="button"
-              disabled={!hasPrevArticle}
-              onClick={onPrevArticle}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors ${
-                hasPrevArticle 
-                  ? 'text-slate-200 hover:bg-slate-800 hover:text-amber-400 cursor-pointer' 
-                  : 'text-slate-600 cursor-not-allowed'
-              }`}
+              onClick={onBackToOverview}
+              className="px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-bold cursor-pointer border border-slate-700 hover:border-slate-600 shadow-sm shrink-0"
             >
-              <ArrowRight className="w-3.5 h-3.5 rtl:rotate-0 ltr:rotate-180" />
-              <span>{isAr ? 'السابق' : 'Prev'}</span>
+              <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 rtl:rotate-0 ltr:rotate-180 text-amber-400" />
+              <span>{isAr ? 'غرفة الأخبار والأقسام' : 'Newsroom Desks'}</span>
             </button>
 
-            <span className="font-mono text-xs font-bold text-amber-400 px-2.5">
-              {articleIndex + 1} / {totalArticlesCount}
-            </span>
+            {/* 2. السابق والتالي (أقل عرضاً وموجودة في الأعلى مقابل غرفة الأخبار على اليسار) */}
+            <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-950 p-1 sm:p-1.5 rounded-xl border border-slate-800 shadow-inner shrink-0">
+              <button
+                type="button"
+                disabled={!hasPrevArticle}
+                onClick={onPrevArticle}
+                className={`px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold flex items-center gap-1 transition-colors ${
+                  hasPrevArticle 
+                    ? 'text-slate-200 hover:bg-slate-800 hover:text-amber-400 cursor-pointer' 
+                    : 'text-slate-600 cursor-not-allowed'
+                }`}
+              >
+                <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 rtl:rotate-0 ltr:rotate-180" />
+                <span>{isAr ? 'السابق' : 'Prev'}</span>
+              </button>
 
-            <button
-              type="button"
-              disabled={!hasNextArticle}
-              onClick={onNextArticle}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors ${
-                hasNextArticle 
-                  ? 'text-slate-200 hover:bg-slate-800 hover:text-amber-400 cursor-pointer' 
-                  : 'text-slate-600 cursor-not-allowed'
-              }`}
-            >
-              <span>{isAr ? 'التالي' : 'Next'}</span>
-              <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-0 ltr:rotate-180" />
-            </button>
+              <span className="font-mono text-[11px] sm:text-xs font-bold text-amber-400 px-1.5 sm:px-2">
+                {articleIndex + 1} / {totalArticlesCount}
+              </span>
+
+              <button
+                type="button"
+                disabled={!hasNextArticle}
+                onClick={onNextArticle}
+                className={`px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold flex items-center gap-1 transition-colors ${
+                  hasNextArticle 
+                    ? 'text-slate-200 hover:bg-slate-800 hover:text-amber-400 cursor-pointer' 
+                    : 'text-slate-600 cursor-not-allowed'
+                }`}
+              >
+                <span>{isAr ? 'التالي' : 'Next'}</span>
+                <ArrowLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5 rtl:rotate-0 ltr:rotate-180" />
+              </button>
+            </div>
           </div>
 
-          <div className="h-5 w-px bg-slate-800 hidden sm:block mx-1" />
+          <div className="h-5 w-px bg-slate-800 hidden sm:block mx-0.5" />
 
-          {/* 3. Status Badge (معتمد ومنشور) */}
-          <span className={`text-xs px-3 py-1.5 rounded-xl font-bold font-mono border flex items-center gap-1.5 ${
-            article.status === 'published'
-              ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-              : article.status === 'rejected'
-              ? 'bg-slate-800 text-slate-300 border-slate-700'
-              : 'bg-rose-500/15 text-rose-300 border-rose-500/30 animate-pulse'
-          }`}>
-            {article.status === 'published' ? (isAr ? '✅ معتمد ومنشور' : 'Published') :
-             article.status === 'rejected' ? (isAr ? '📦 في الأرشيف' : 'Archived') :
-             (isAr ? '⏳ قيد المراجعة البشرية' : 'Pending Review')}
-          </span>
+          {/* Row 2 on Mobile / Inline on Desktop: Status Badge + Open Article View */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+            {/* 3. Status Badge (معتمد ومنشور) */}
+            <span className={`text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl font-bold font-mono border flex items-center gap-1.5 ${
+              article.status === 'published'
+                ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                : article.status === 'rejected'
+                ? 'bg-slate-800 text-slate-300 border-slate-700'
+                : 'bg-rose-500/15 text-rose-300 border-rose-500/30 animate-pulse'
+            }`}>
+              {article.status === 'published' ? (isAr ? '✅ معتمد ومنشور' : 'Published') :
+               article.status === 'rejected' ? (isAr ? '📦 في الأرشيف' : 'Archived') :
+               (isAr ? '⏳ قيد المراجعة البشرية' : 'Pending Review')}
+            </span>
 
-          {/* 4. فتح صفحة المقالات المستقلة - أمام يعني جنب معتمد ومنشور مباشرة */}
-          {onPreviewArticle && (
-            <button
-              type="button"
-              onClick={() => onPreviewArticle(buildCurrentUpdatedArticle())}
-              className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/15 to-amber-600/20 hover:from-amber-500/25 hover:to-amber-600/30 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-2 shadow-sm transition-all cursor-pointer hover:text-white"
-            >
-              <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
-              <span>{isAr ? 'فتح صفحة المقال المستقلة' : 'Open in Article View'}</span>
-            </button>
-          )}
+            {/* 4. فتح صفحة المقالات المستقلة - أمام يعني جنب معتمد ومنشور مباشرة */}
+            {onPreviewArticle && (
+              <button
+                type="button"
+                onClick={() => onPreviewArticle(buildCurrentUpdatedArticle())}
+                className="px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-xl bg-gradient-to-r from-amber-500/15 to-amber-600/20 hover:from-amber-500/25 hover:to-amber-600/30 text-amber-300 border border-amber-500/40 text-[11px] sm:text-xs font-bold flex items-center gap-1.5 sm:gap-2 shadow-sm transition-all cursor-pointer hover:text-white"
+              >
+                <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" />
+                <span>{isAr ? 'فتح صفحة المقال المستقلة' : 'Open in Article View'}</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Right: View Mode Toggle */}

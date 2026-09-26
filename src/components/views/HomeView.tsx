@@ -570,12 +570,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     }
                   }}
                   className="flex items-center gap-2 p-3 sm:p-3.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-2xl shadow-amber-500/30 hover:scale-105 active:scale-95 transition-all border border-amber-300/40 cursor-grab active:cursor-grabbing"
-                  aria-label={isAr ? 'فتح أقوى 10' : 'Open Top 10'}
-                  title={isAr ? 'أقوى 10 (اسحب للتحريك)' : 'Top 10 (Drag to move)'}
+                  aria-label={isAr ? 'فتح أكبر الاقتصادات الأفريقية' : 'Open Top African Economies'}
+                  title={isAr ? 'أكبر الاقتصادات الأفريقية (اسحب للتحريك)' : 'Top African Economies (Drag to move)'}
                 >
                   <Globe2 className="w-5 h-5 text-slate-950" />
                   <span className="text-xs font-black tracking-tight hidden xs:inline sm:inline">
-                    {isAr ? 'أقوى 10' : 'Top 10'}
+                    {isAr ? 'أكبر الاقتصادات' : 'Top Economies'}
                   </span>
                   <span className="w-2 h-2 rounded-full bg-slate-950 animate-ping"></span>
                 </button>
@@ -598,10 +598,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
                         <Globe2 className="w-4 h-4" />
                       </div>
                       <h3 className="text-xs sm:text-sm font-bold text-white group-hover:text-amber-300 transition-colors">
-                        {isAr ? 'أقوى 10' : 'Top 10'}
+                        {isAr ? 'أكبر الاقتصادات الأفريقية' : 'Top African Economies'}
                       </h3>
                       <span className="text-[10px] text-amber-400 font-mono px-1.5 py-0.2 rounded bg-amber-500/10 font-bold">
-                        10
+                        8
                       </span>
                     </div>
 
@@ -633,7 +633,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   {mobileAccordionStage === 2 && (
                     <div className="p-3 max-h-[55vh] overflow-y-auto space-y-2 animate-in fade-in duration-200">
                       <div className="grid grid-cols-2 gap-2">
-                        {countries.slice(0, 10).map((c) => {
+                        {countries.slice(0, 8).map((c) => {
                           const flag = getCountryFlag(c.code);
                           return (
                             <button

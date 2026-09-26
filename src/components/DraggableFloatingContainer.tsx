@@ -25,11 +25,6 @@ export const DraggableFloatingContainer: React.FC<DraggableFloatingContainerProp
   const [activePos, setActivePos] = useState<{ x: number; y: number } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  const isOpenRef = useRef(isOpen);
-  useEffect(() => {
-    isOpenRef.current = isOpen;
-  }, [isOpen]);
-
   const containerRef = useRef<HTMLDivElement>(null);
   const dragStartRef = useRef<{
     mouseX: number;
@@ -63,9 +58,7 @@ export const DraggableFloatingContainer: React.FC<DraggableFloatingContainerProp
       const y = Math.max(80, h - defaultBottomOffset);
       const pos = { x, y };
       setIconPos(pos);
-      if (!isOpenRef.current) {
-        setActivePos(pos);
-      }
+      setActivePos(pos);
     };
 
     calcDefaultPos();

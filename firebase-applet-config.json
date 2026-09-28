@@ -1,12 +1,10 @@
 {
-  "projectId": "responsive-chimera-ksmzh",
-  "appId": "1:103358083111:web:b3d3e892c9695e815ade02",
-  "apiKey": "AIzaSyCQMsj6zh0FckYImLt-QKVZG-Sm-UPtBg8",
-  "authDomain": "responsive-chimera-ksmzh.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-lafriconomistafr-c4b9348b-15b5-490d-8296-924f6dfb74bc",
-  "storageBucket": "responsive-chimera-ksmzh.firebasestorage.app",
-  "messagingSenderId": "103358083111",
-  "measurementId": "",
-  "oAuthClientId": "103358083111-pqvrh1jol5hfumn2c7k42pulnpfdckvq.apps.googleusercontent.com",
-  "recaptchaSiteKey": ""
+  "projectId": "africonomist-intelligence",
+  "appId": "1:667149718449:web:96ce430090fe0e59562390",
+  "apiKey": "AIzaSyB2VgR6__v8I6cOb1ZRHH7zi6gFN7mrwYs",
+  "authDomain": "africonomist-intelligence.firebaseapp.com",
+  "firestoreDatabaseId": "(default)",
+  "storageBucket": "africonomist-intelligence.firebasestorage.app",
+  "messagingSenderId": "667149718449",
+  "measurementId": "G-13JNXPPC0W"
 }

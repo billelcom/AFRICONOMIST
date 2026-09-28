@@ -37,20 +37,18 @@ service cloud.firestore {
 
     // 1. Users collection
     match /users/{userId} {
-      allow get: if isSignedIn() && (isOwner(userId) || isSupervisor());
+      allow get: if isSignedIn();
       allow list: if isSignedIn() && isSupervisor();
 
-      allow create: if isSignedIn() && isOwner(userId) && isValidId(userId)
-        && request.resource.data.uid == request.auth.uid
+      allow create: if isSignedIn() && isValidId(userId)
+        && (isOwner(userId) || isAdmin())
+        && request.resource.data.uid == userId
         && request.resource.data.email is string
         && request.resource.data.displayName is string
-        && request.resource.data.displayName.size() <= 100
         && request.resource.data.role in ['ADMIN', 'SUPERVISOR', 'EDITOR', 'READER'];
 
       allow update: if isSignedIn() && isValidId(userId) && (
-        // Regular user updating their own profile without privilege escalation
-        (isOwner(userId) && request.resource.data.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'uid'])) ||
-        // Admin full permission
+        isOwner(userId) ||
         isAdmin()
       );
 
@@ -59,8 +57,8 @@ service cloud.firestore {
 
     // 2. Saved Articles collection
     match /savedArticles/{saveId} {
-      allow get: if isSignedIn() && isValidId(saveId) && resource.data.userId == request.auth.uid;
-      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && isValidId(saveId) && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn();
 
       allow create: if isSignedIn() && isValidId(saveId)
         && request.resource.data.userId == request.auth.uid
@@ -68,24 +66,22 @@ service cloud.firestore {
         && request.resource.data.articleTitle is string;
 
       allow update: if isSignedIn() && isValidId(saveId)
-        && resource.data.userId == request.auth.uid
-        && request.resource.data.userId == request.auth.uid;
+        && resource.data.userId == request.auth.uid;
 
-      allow delete: if isSignedIn() && isValidId(saveId) && resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn() && isValidId(saveId) && (resource.data.userId == request.auth.uid || isAdmin());
     }
 
     // 3. Notifications collection
     match /notifications/{notificationId} {
       allow get: if isSignedIn() && isValidId(notificationId) && (resource.data.userId == request.auth.uid || resource.data.userId == 'ALL');
-      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.userId == 'ALL');
+      allow list: if isSignedIn();
 
       allow create: if isSignedIn() && isValidId(notificationId) && (
-        isSupervisor() || request.resource.data.userId == request.auth.uid
+        isSupervisor() || request.resource.data.userId == request.auth.uid || request.resource.data.userId == 'ALL'
       );
 
       allow update: if isSignedIn() && isValidId(notificationId)
-        && (resource.data.userId == request.auth.uid || isSupervisor())
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+        && (resource.data.userId == request.auth.uid || isSupervisor());
 
       allow delete: if isSignedIn() && isValidId(notificationId) && (resource.data.userId == request.auth.uid || isSupervisor());
     }

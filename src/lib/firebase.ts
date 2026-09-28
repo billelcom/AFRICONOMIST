@@ -16,8 +16,21 @@ if (typeof window !== 'undefined') {
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
-// Initialize Firestore with custom databaseId from configuration
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId || undefined);
+// Initialize Firestore: default to standard database if not specified or '(default)'
+export const db = (!firebaseConfig.firestoreDatabaseId || firebaseConfig.firestoreDatabaseId === '(default)')
+  ? getFirestore(app)
+  : getFirestore(app, firebaseConfig.firestoreDatabaseId);
+
+// Initialize Firebase Analytics if measurementId is present in browser environment
+if (typeof window !== 'undefined' && firebaseConfig.measurementId) {
+  import('firebase/analytics').then(({ getAnalytics, isSupported }) => {
+    isSupported().then((supported) => {
+      if (supported) {
+        getAnalytics(app);
+      }
+    }).catch(() => {});
+  }).catch(() => {});
+}
 
 // Validate connection per Firebase skill directive
 export async function testConnection() {

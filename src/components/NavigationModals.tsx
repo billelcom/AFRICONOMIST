@@ -120,14 +120,18 @@ export const NavigationModals: React.FC<NavigationModalsProps> = ({
     } catch (err: any) {
       console.warn('Email auth error:', err);
       const msg = err.message || '';
-      if (msg.includes('user-not-found') || msg.includes('wrong-password') || msg.includes('invalid-credential')) {
-        setAuthError(isAr ? 'بيانات الدخول غير صحيحة. تحقق من البريد وكلمة المرور أو أنشئ حساباً جديداً.' : 'Invalid credentials. Please verify your email and password.');
-      } else if (msg.includes('email-already-in-use')) {
-        setAuthError(isAr ? 'هذا البريد مستخدم مسبقاً. قم بتسجيل الدخول مباشرة من خيار تسجيل الدخول أعلاه.' : 'Email is already registered. Please switch to Sign In.');
+      if (msg.includes('email-already-in-use')) {
+        setAuthError(isAr ? 'هذا البريد الإلكتروني مسجل مسبقاً! يرجى التبديل إلى خيار [تسجيل الدخول] في الأعلى.' : 'Email is already registered. Please switch to Sign In.');
       } else if (msg.includes('weak-password')) {
-        setAuthError(isAr ? 'كلمة المرور ضعيفة. يرجى إدخال 6 أحرف على الأقل.' : 'Password should be at least 6 characters.');
+        setAuthError(isAr ? 'كلمة المرور قصيرة. يرجى إدخال 6 أحرف أو أرقام على الأقل.' : 'Password should be at least 6 characters.');
+      } else if (msg.includes('invalid-email')) {
+        setAuthError(isAr ? 'صيغة البريد الإلكتروني غير صالحة. يرجى التأكد من كتابة البريد بشكل سليم (مثال: user@domain.com).' : 'Invalid email format.');
+      } else if (msg.includes('invalid-credential') || msg.includes('wrong-password')) {
+        setAuthError(isAr ? 'كلمة المرور غير صحيحة. يرجى التأكد من كلمة المرور والمحاولة مجدداً.' : 'Invalid credentials. Please verify your email and password.');
+      } else if (msg.includes('user-not-found')) {
+        setAuthError(isAr ? 'لا يوجد حساب مسجل بهذا البريد. يمكنك إنشاء حساب جديد عبر خيار [إنشاء حساب جديد] أعلاه.' : 'No account found with this email. Please register.');
       } else {
-        setAuthError(isAr ? 'حدث خطأ أثناء المصادقة. يرجى التحقق من الاتصال والمحاولة مجدداً.' : 'Authentication error. Please try again.');
+        setAuthError(isAr ? 'تعذر إتمام المصادقة. يرجى التأكد من صحة البريد وكلمة المرور (6 أحرف فأكثر) والمحاولة مرة أخرى.' : 'Authentication error. Please check your details and try again.');
       }
     } finally {
       setAuthLoading(false);

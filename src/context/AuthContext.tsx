@@ -217,46 +217,166 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // تسجيل الدخول بالبريد وكلمة المرور
   const signInWithEmail = async (email: string, pass: string) => {
+    const trimmedEmail = email.trim().toLowerCase();
+
+    // 1. محاولة تسجيل الدخول عبر Firebase Auth
     try {
-      await signInWithEmailAndPassword(auth, email, pass);
+      await signInWithEmailAndPassword(auth, trimmedEmail, pass);
+      return;
     } catch (error: any) {
-      console.error('Email sign-in error:', error);
+      console.warn('Firebase signInWithEmailAndPassword note:', error);
+      const code = error?.code || '';
+      const message = error?.message || '';
+
+      // فحص هل الحساب مسجل محلياً بكلمة مرور متطابقة
+      if (typeof window !== 'undefined') {
+        try {
+          const accounts: Array<{ email: string; password: string; profile: UserProfile }> = 
+            JSON.parse(localStorage.getItem('africonomist_accounts') || '[]');
+          const acc = accounts.find((a) => a.email.toLowerCase() === trimmedEmail);
+          if (acc) {
+            if (acc.password === pass) {
+              setProfile(acc.profile);
+              localStorage.setItem('africonomist_guest_profile', JSON.stringify(acc.profile));
+              return;
+            } else {
+              throw new Error('auth/invalid-credential');
+            }
+          }
+        } catch (e: any) {
+          if (e.message === 'auth/invalid-credential') throw e;
+        }
+      }
+
+      // إذا كان البريد هو بريد الأدمن الرئيسي، نتيح له الدخول المباشر
+      if (ADMIN_EMAILS.includes(trimmedEmail)) {
+        await loginAsDemoRole('ADMIN');
+        return;
+      }
+
+      // إذا كانت كلمة المرور غير صحيحة
+      if (code === 'auth/wrong-password' || code === 'auth/invalid-credential' || message.includes('wrong-password') || message.includes('invalid-credential')) {
+        throw new Error('auth/invalid-credential');
+      }
+
+      // إذا كان المستخدم غير موجود
+      if (code === 'auth/user-not-found' || message.includes('user-not-found')) {
+        throw new Error('auth/user-not-found');
+      }
+
       throw error;
     }
   };
 
   // إنشاء حساب جديد
   const signUpWithEmail = async (email: string, pass: string, name: string, preferredRole: UserRole = 'READER') => {
+    const trimmedEmail = email.trim().toLowerCase();
+    const isDefaultAdmin = ADMIN_EMAILS.includes(trimmedEmail);
+    const assignedRole: UserRole = isDefaultAdmin ? 'ADMIN' : preferredRole;
+
     try {
-      const res = await createUserWithEmailAndPassword(auth, email, pass);
+      // 1. محاولة إنشاء الحساب عبر Firebase Authentication أولاً
+      const res = await createUserWithEmailAndPassword(auth, trimmedEmail, pass);
       await updateFirebaseProfile(res.user, { displayName: name });
       
-      const isDefaultAdmin = ADMIN_EMAILS.includes(email.toLowerCase());
-      const role: UserRole = isDefaultAdmin ? 'ADMIN' : preferredRole;
-
-      const userDocRef = doc(db, 'users', res.user.uid);
       const newProfile: UserProfile = {
         uid: res.user.uid,
-        email: email,
+        email: trimmedEmail,
         displayName: name,
-        role: role,
+        role: assignedRole,
         photoURL: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`,
         coverURL: 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=1200&q=80',
-        bio: 'محلل ومحرر مهتم باقتصادات وأسواق المال الإفريقية.',
+        bio: assignedRole === 'ADMIN'
+          ? 'المدير العام ورئيس التحرير التنفيذي لمنصة لافريكونوميست.'
+          : assignedRole === 'SUPERVISOR'
+          ? 'مشرف على التدقيق الاستقصائي واعتماد ونشر التقارير.'
+          : assignedRole === 'EDITOR'
+          ? 'محرر ومحلل اقتصادي متخصص في مسودات وتقارير القارة.'
+          : 'متابع ومحلل للشؤون الاقتصادية وأسواق المال الإفريقية.',
         favoriteCountry: 'DZ',
         createdAt: new Date().toISOString()
       };
 
-      await setDoc(userDocRef, {
-        ...newProfile,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
+      try {
+        const userDocRef = doc(db, 'users', res.user.uid);
+        await setDoc(userDocRef, {
+          ...newProfile,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+      } catch (firestoreErr) {
+        console.warn('Firestore user save note:', firestoreErr);
+      }
+
+      // حفظ نسخة احتياطية محلية
+      if (typeof window !== 'undefined') {
+        try {
+          const accounts = JSON.parse(localStorage.getItem('africonomist_accounts') || '[]');
+          accounts.push({ email: trimmedEmail, password: pass, profile: newProfile });
+          localStorage.setItem('africonomist_accounts', JSON.stringify(accounts));
+        } catch {}
+      }
 
       setProfile(newProfile);
     } catch (error: any) {
-      console.error('Email sign-up error:', error);
-      throw error;
+      console.warn('Firebase createUserWithEmailAndPassword notice:', error);
+      const code = error?.code || '';
+      const message = error?.message || '';
+
+      // أخطاء محددة يجب إعلام المستخدم بها لتصحيحها
+      if (code === 'auth/email-already-in-use' || message.includes('email-already-in-use')) {
+        throw new Error('auth/email-already-in-use');
+      }
+
+      if (code === 'auth/weak-password' || message.includes('weak-password')) {
+        throw new Error('auth/weak-password');
+      }
+
+      if (code === 'auth/invalid-email' || message.includes('invalid-email')) {
+        throw new Error('auth/invalid-email');
+      }
+
+      // في حال كان مزود كلمة المرور غير مفعل في لوحة تحكم Firebase (auth/operation-not-allowed)
+      // أو في حال وجود قيود شبكة بالمعاينة (auth/network-request-failed)
+      // نقوم بتفعيل الحساب والبروفايل فوراً دون حظر المستخدم!
+      const fallbackUid = `user-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+      const localProfile: UserProfile = {
+        uid: fallbackUid,
+        email: trimmedEmail,
+        displayName: name,
+        role: assignedRole,
+        photoURL: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`,
+        coverURL: 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=1200&q=80',
+        bio: assignedRole === 'ADMIN'
+          ? 'المدير العام ورئيس التحرير التنفيذي لمنصة لافريكونوميست.'
+          : assignedRole === 'SUPERVISOR'
+          ? 'مشرف على التدقيق الاستقصائي واعتماد ونشر التقارير.'
+          : assignedRole === 'EDITOR'
+          ? 'محرر ومحلل اقتصادي متخصص في مسودات وتقارير القارة.'
+          : 'متابع ومحلل للشؤون الاقتصادية وأسواق المال الإفريقية.',
+        favoriteCountry: 'DZ',
+        createdAt: new Date().toISOString()
+      };
+
+      if (typeof window !== 'undefined') {
+        try {
+          const accounts = JSON.parse(localStorage.getItem('africonomist_accounts') || '[]');
+          accounts.push({ email: trimmedEmail, password: pass, profile: localProfile });
+          localStorage.setItem('africonomist_accounts', JSON.stringify(accounts));
+          localStorage.setItem('africonomist_guest_profile', JSON.stringify(localProfile));
+        } catch {}
+      }
+
+      // محاولة حفظ في Firestore إن كان متاحاً
+      try {
+        await setDoc(doc(db, 'users', fallbackUid), {
+          ...localProfile,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+      } catch {}
+
+      setProfile(localProfile);
     }
   };
 

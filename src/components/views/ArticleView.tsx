@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Article, ArticleGraphicItem } from '../../types';
 import { shareContent } from '../../lib/pwa/webShare';
+import { useAuth } from '../../context/AuthContext';
 import { 
   ArrowRight, 
   ArrowLeft, 
@@ -72,12 +73,13 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
   onNavigateToEditorial
 }) => {
   const isAr = lang === 'ar';
+  const { isArticleSaved, saveArticle, unsaveArticle } = useAuth();
+  const isSaved = isArticleSaved(article.id);
 
   // --- Reading Preferences State ---
   const [paperTheme, setPaperTheme] = useState<PaperTheme>('paper');
   const [fontSize, setFontSize] = useState<FontSize>('md');
   const [lineSpacing, setLineSpacing] = useState<LineSpacing>('relaxed');
-  const [isSaved, setIsSaved] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
   const [isInfographicModalOpen, setIsInfographicModalOpen] = useState<boolean>(false);
@@ -211,42 +213,18 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
     }
   }, [toastMessage]);
 
-  // Load saved state from localStorage
-  useEffect(() => {
+  // Handle Save / Bookmark via Firebase & AuthContext
+  const handleToggleSave = async () => {
     try {
-      const savedList = JSON.parse(localStorage.getItem('africonomist_saved_articles') || '[]');
-      if (Array.isArray(savedList)) {
-        setIsSaved(savedList.some((item: any) => item.id === article.id));
-      }
-    } catch {
-      // ignore
-    }
-  }, [article.id]);
-
-  // Handle Save / Bookmark
-  const handleToggleSave = () => {
-    try {
-      const savedList = JSON.parse(localStorage.getItem('africonomist_saved_articles') || '[]');
-      let updated: any[];
       if (isSaved) {
-        updated = savedList.filter((item: any) => item.id !== article.id);
-        setIsSaved(false);
-        setToastMessage(isAr ? 'تمت إزالة المقال من قائمة المحفوظات' : 'Removed from saved articles');
+        await unsaveArticle(article.id);
+        setToastMessage(isAr ? 'تمت إزالة المقال من قائمة المحفوظات في حسابك' : 'Removed from saved articles');
       } else {
-        updated = [
-          {
-            id: article.id,
-            title: isAr ? article.title : article.titleEn,
-            savedAt: new Date().toISOString()
-          },
-          ...savedList
-        ];
-        setIsSaved(true);
-        setToastMessage(isAr ? 'تم حفظ المقال في قائمتك للقراءة' : 'Saved to your reading list');
+        await saveArticle(article);
+        setToastMessage(isAr ? 'تم حفظ المقال بنجاح في حسابك الشخصي' : 'Saved to your account profile');
       }
-      localStorage.setItem('africonomist_saved_articles', JSON.stringify(updated));
     } catch {
-      setIsSaved(!isSaved);
+      setToastMessage(isAr ? 'حدث خطأ أثناء حفظ المقال' : 'Error updating saved article');
     }
   };
 

@@ -132,22 +132,20 @@ export const Header: React.FC<HeaderProps> = ({
             {profile ? (
               <button
                 onClick={() => handleNavClick(() => onSelectTab('profile'))}
-                className="flex items-center gap-1 p-1 rounded-lg bg-slate-900 border border-slate-800 hover:border-amber-500/40 transition-colors cursor-pointer"
-                title={profile.displayName}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 font-bold text-xs cursor-pointer hover:bg-amber-500/25 transition-all shadow-sm"
+                title={isAr ? 'صفحة حسابي والمقالات المحفوظة' : 'My Account'}
               >
                 {profile.photoURL ? (
                   <img 
                     src={profile.photoURL} 
                     alt={profile.displayName} 
-                    className="w-5 h-5 rounded-md object-cover border border-amber-500/30" 
+                    className="w-4 h-4 rounded-full object-cover border border-amber-500/40" 
                   />
                 ) : (
-                  <div className="w-5 h-5 rounded-md bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-[10px]">
-                    {profile.displayName.charAt(0)}
-                  </div>
+                  <User className="w-3 h-3 text-amber-400" />
                 )}
-                <span className="text-[10px] text-amber-300 font-bold max-w-[55px] truncate">
-                  {profile.displayName.split(' ')[0]}
+                <span className="text-[11px] font-black text-amber-300">
+                  {isAr ? 'حسابي' : 'Account'}
                 </span>
               </button>
             ) : (
@@ -158,7 +156,7 @@ export const Header: React.FC<HeaderProps> = ({
                     ? 'px-2 py-1 text-[10.5px]' 
                     : 'px-1.5 py-0.5 text-[9px] font-bold'
                 }`}
-                title={isAr ? 'تسجيل الدخول / العضوية' : 'Sign In'}
+                title={isAr ? 'تسجيل الدخول / إنشاء حساب' : 'Sign In'}
               >
                 <User className={isAr ? "w-3 h-3" : "w-2.5 h-2.5"} />
                 <span>{isAr ? 'تسجيل' : 'Sign In'}</span>
@@ -452,26 +450,30 @@ export const Header: React.FC<HeaderProps> = ({
                   onClick={() => onSelectTab('profile')}
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all cursor-pointer group shadow-sm ${
                     currentTab === 'profile'
-                      ? 'bg-amber-500/15 border-amber-500/50 text-amber-300'
-                      : 'bg-slate-900/90 hover:bg-slate-850 border-slate-700/70 text-slate-200'
+                      ? 'bg-amber-500/20 border-amber-500 text-amber-300 ring-2 ring-amber-500/30'
+                      : 'bg-slate-900/90 hover:bg-slate-800 border-amber-500/40 text-slate-200 hover:border-amber-400'
                   }`}
-                  title={isAr ? 'الانتقال إلى صفحتي الشخصية' : 'View Profile'}
+                  title={isAr ? 'الانتقال إلى صفحة حسابي والمقالات المحفوظة' : 'My Account & Saved Articles'}
                 >
                   {profile.photoURL ? (
                     <img 
                       src={profile.photoURL} 
                       alt={profile.displayName} 
-                      className="w-6 h-6 rounded-lg object-cover border border-amber-500/30" 
+                      className="w-6 h-6 rounded-lg object-cover border border-amber-500/40" 
                     />
                   ) : (
-                    <div className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs">
+                    <div className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs border border-amber-500/30">
                       {profile.displayName.charAt(0)}
                     </div>
                   )}
-                  <span className="text-xs font-bold truncate max-w-[110px] group-hover:text-amber-300">
-                    {profile.displayName}
+                  <span className="text-xs font-black text-amber-400 group-hover:text-amber-300 flex items-center gap-1">
+                    <User className="w-3.5 h-3.5 text-amber-400" />
+                    <span>{isAr ? 'حسابي' : 'My Account'}</span>
                   </span>
-                  <span className={`text-[9.5px] px-1.5 py-0.2 rounded-md font-mono font-bold border ${getRoleBadgeClasses(role)}`}>
+                  <span className="text-xs font-medium text-slate-300 truncate max-w-[85px] group-hover:text-white">
+                    ({profile.displayName.split(' ')[0]})
+                  </span>
+                  <span className={`text-[9px] px-1.5 py-0.2 rounded-md font-mono font-bold border ${getRoleBadgeClasses(role)}`}>
                     {role}
                   </span>
                 </button>
@@ -483,6 +485,7 @@ export const Header: React.FC<HeaderProps> = ({
                       ? 'px-3.5 py-1.5 text-xs' 
                       : 'px-2.5 py-1 text-[10.5px] font-bold'
                   }`}
+                  title={isAr ? 'تسجيل الدخول أو إنشاء حساب جديد' : 'Sign In or Create Account'}
                 >
                   <User className={isAr ? "w-3.5 h-3.5" : "w-3 h-3"} />
                   <span>{isAr ? 'تسجيل' : 'Sign In'}</span>

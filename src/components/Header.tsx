@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 // src/components/Header.tsx
 import React, { useState } from 'react';
 import { 
@@ -10,13 +11,29 @@ import {
   BarChart3, 
   Search, 
   User, 
-  Building2
+  Building2,
+  Bell,
+  Bookmark,
+  Crown,
+  Sparkles
 } from 'lucide-react';
 import { NavigationModals, NavModalType } from './NavigationModals';
 import { PWABar } from './pwa/PWABar';
 import { PWAInstallButton } from './pwa/PWAInstallButton';
+import { useAuth } from '../context/AuthContext';
 
-export type HeaderTab = 'home' | 'country' | 'article' | 'editorial' | 'data-journalism' | 'about' | 'privacy' | 'podcast' | 'video';
+export type HeaderTab = 
+  | 'home' 
+  | 'country' 
+  | 'article' 
+  | 'editorial' 
+  | 'data-journalism' 
+  | 'about' 
+  | 'privacy' 
+  | 'podcast' 
+  | 'video'
+  | 'profile'
+  | 'notifications';
 
 interface HeaderProps {
   currentTab: HeaderTab;
@@ -34,6 +51,7 @@ export const Header: React.FC<HeaderProps> = ({
   pendingDraftsCount
 }) => {
   const isAr = lang === 'ar';
+  const { user, profile, role, unreadCount } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [activeModal, setActiveModal] = useState<NavModalType>(null);
 
@@ -42,14 +60,27 @@ export const Header: React.FC<HeaderProps> = ({
     setIsMobileMenuOpen(false);
   };
 
+  const getRoleBadgeClasses = (userRole: string) => {
+    switch (userRole) {
+      case 'ADMIN':
+        return 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+      case 'SUPERVISOR':
+        return 'bg-purple-500/20 text-purple-300 border-purple-500/40';
+      case 'EDITOR':
+        return 'bg-blue-500/20 text-blue-300 border-blue-500/40';
+      default:
+        return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+    }
+  };
+
   return (
     <>
-      <header className="w-full bg-[#070A12]/95 backdrop-blur-md border-b border-slate-800/80">
+      <header className="w-full bg-[#070A12]/95 backdrop-blur-md border-b border-slate-800/80 sticky top-0 z-40">
         {/* =========================================================================
-            1. MOBILE HEADER BAR (شريط الهاتف المخصص: مسافة متوازنة وجميلة بين اللوغو والشعار)
+            1. MOBILE HEADER BAR (شريط الهاتف المخصص: متوازن ومرتب)
            ========================================================================= */}
         <div className="md:hidden px-3.5 py-2.5 flex items-center justify-between border-b border-slate-800/60">
-          {/* الجانب الأيمن (في العربية): اللوغو والشعار بمسافة مريحة متوازنة (لا متلاصقان ولا متباعدان) */}
+          {/* الجانب الأيمن (في العربية): اللوغو والشعار */}
           <div 
             onClick={() => handleNavClick(() => onSelectTab('home'))}
             className="flex flex-col cursor-pointer select-none group"
@@ -73,24 +104,66 @@ export const Header: React.FC<HeaderProps> = ({
             </p>
           </div>
 
-          {/* الجانب الأيسر (على جهة اليسار): شريط PWA (أيقونة التثبيت فقط في الهاتف) + زر تسجيل + أيقونة اللغة + أيقونة القائمة burger */}
+          {/* الجانب الأيسر: إشعارات + حساب / تسجيل + PWA + لغة + قائمة */}
           <div className="flex items-center gap-1 sm:gap-1.5">
+            {/* أيقونة الإشعارات مع العداد بالهاتف */}
+            <button
+              onClick={() => onSelectTab('notifications')}
+              className={`relative p-1.5 rounded-lg border transition-colors flex items-center justify-center cursor-pointer ${
+                currentTab === 'notifications'
+                  ? 'bg-amber-500/20 border-amber-500/50 text-amber-400'
+                  : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-800'
+              }`}
+              title={isAr ? 'الإشعارات والتنبيهات' : 'Notifications'}
+              aria-label="Notifications"
+            >
+              <Bell className="w-3.5 h-3.5 text-amber-400" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold flex items-center justify-center animate-pulse">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+
             {/* أدوات PWA: في الهاتف تظهر أيقونة التثبيت فقط دون العبارة النصية */}
             <PWABar lang={lang} iconOnly={true} />
 
-            {/* زر تسجيل */}
-            <button
-              onClick={() => setActiveModal('auth')}
-              className={`rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black flex items-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer ${
-                isAr 
-                  ? 'px-2.5 py-1 text-[11px]' 
-                  : 'px-1.5 py-0.5 text-[9px] font-bold'
-              }`}
-              title={isAr ? 'تسجيل الدخول / العضوية' : 'Sign In'}
-            >
-              <User className={isAr ? "w-3 h-3" : "w-2.5 h-2.5"} />
-              <span>{isAr ? 'تسجيل' : 'Sign In'}</span>
-            </button>
+            {/* زر الحساب أو التسجيل */}
+            {profile ? (
+              <button
+                onClick={() => handleNavClick(() => onSelectTab('profile'))}
+                className="flex items-center gap-1 p-1 rounded-lg bg-slate-900 border border-slate-800 hover:border-amber-500/40 transition-colors cursor-pointer"
+                title={profile.displayName}
+              >
+                {profile.photoURL ? (
+                  <img 
+                    src={profile.photoURL} 
+                    alt={profile.displayName} 
+                    className="w-5 h-5 rounded-md object-cover border border-amber-500/30" 
+                  />
+                ) : (
+                  <div className="w-5 h-5 rounded-md bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-[10px]">
+                    {profile.displayName.charAt(0)}
+                  </div>
+                )}
+                <span className="text-[10px] text-amber-300 font-bold max-w-[55px] truncate">
+                  {profile.displayName.split(' ')[0]}
+                </span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setActiveModal('auth')}
+                className={`rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black flex items-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer ${
+                  isAr 
+                    ? 'px-2 py-1 text-[10.5px]' 
+                    : 'px-1.5 py-0.5 text-[9px] font-bold'
+                }`}
+                title={isAr ? 'تسجيل الدخول / العضوية' : 'Sign In'}
+              >
+                <User className={isAr ? "w-3 h-3" : "w-2.5 h-2.5"} />
+                <span>{isAr ? 'تسجيل' : 'Sign In'}</span>
+              </button>
+            )}
 
             {/* أيقونة اللغة */}
             <button
@@ -102,7 +175,7 @@ export const Header: React.FC<HeaderProps> = ({
               <Globe2 className="w-3.5 h-3.5 text-amber-400" />
             </button>
 
-            {/* أيقونة القائمة Menu Burger الإبداعية (3 أسطر تتحول إلى X عند الضغط) */}
+            {/* أيقونة القائمة Menu Burger الإبداعية */}
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(prev => !prev)}
@@ -133,12 +206,12 @@ export const Header: React.FC<HeaderProps> = ({
            ========================================================================= */}
         {isMobileMenuOpen && (
           <div className="md:hidden bg-[#070B14]/98 backdrop-blur-2xl border-b border-slate-800/90 shadow-2xl px-4 py-4 space-y-3 animate-in slide-in-from-top-3 duration-200">
-            {/* روابط القائمة المنسدلة الـ 8 بتصميم إبداعي وخط صغير ومنسق */}
+            {/* روابط القائمة المنسدلة بتصميم إبداعي وخط صغير ومنسق */}
             <div className="grid grid-cols-2 gap-1.5 text-xs">
               {/* 1. الرئيسية */}
               <button
                 onClick={() => handleNavClick(() => onSelectTab('home'))}
-                className={`p-2.5 rounded-xl text-right flex items-center gap-2 border transition-all ${
+                className={`p-2.5 rounded-xl text-right flex items-center gap-2 border transition-all cursor-pointer ${
                   currentTab === 'home'
                     ? 'bg-amber-500/15 text-amber-400 border-amber-500/30 font-bold'
                     : 'bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white'
@@ -148,45 +221,81 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className="truncate">{isAr ? 'الرئيسية' : 'Home'}</span>
               </button>
 
-              {/* 2. من نحن */}
+              {/* 2. ملفات الدول */}
               <button
-                onClick={() => handleNavClick(() => onSelectTab('about'))}
-                className={`p-2.5 rounded-xl text-right flex items-center gap-2 border transition-all ${
-                  currentTab === 'about'
-                    ? 'bg-blue-500/15 text-blue-400 border-blue-500/30 font-bold'
+                onClick={() => handleNavClick(() => onSelectTab('country'))}
+                className={`p-2.5 rounded-xl text-right flex items-center justify-between border transition-all cursor-pointer ${
+                  currentTab === 'country'
+                    ? 'bg-amber-500/15 text-amber-400 border-amber-500/30 font-bold'
                     : 'bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white'
                 }`}
               >
-                <Building2 className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                <span className="truncate">{isAr ? 'من نحن' : 'About Us'}</span>
+                <div className="flex items-center gap-2 truncate">
+                  <Globe2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span className="truncate">{isAr ? 'ملفات الدول' : 'Countries'}</span>
+                </div>
+                <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono font-bold">
+                  55
+                </span>
               </button>
 
-              {/* 3. الشروط والخصوصية */}
+              {/* 3. صفحتي الشخصية */}
               <button
-                onClick={() => handleNavClick(() => onSelectTab('privacy'))}
-                className={`p-2.5 rounded-xl text-right flex items-center gap-2 border transition-all ${
-                  currentTab === 'privacy'
-                    ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 font-bold'
+                onClick={() => handleNavClick(() => onSelectTab('profile'))}
+                className={`p-2.5 rounded-xl text-right flex items-center justify-between border transition-all cursor-pointer ${
+                  currentTab === 'profile'
+                    ? 'bg-amber-500/15 text-amber-400 border-amber-500/30 font-bold'
                     : 'bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white'
                 }`}
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span className="truncate">{isAr ? 'الشروط والخصوصية' : 'Terms & Privacy'}</span>
+                <div className="flex items-center gap-2 truncate">
+                  <User className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span className="truncate">{isAr ? 'حسابي والملف' : 'My Profile'}</span>
+                </div>
+                {profile && (
+                  <span className="text-[9px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono">
+                    {role}
+                  </span>
+                )}
               </button>
 
-              {/* 4. كل التقارير */}
+              {/* 4. الإشعارات والتنبيهات */}
               <button
-                onClick={() => handleNavClick(() => onSelectTab('home'))}
-                className="p-2.5 rounded-xl text-right flex items-center gap-2 border bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white transition-all"
+                onClick={() => handleNavClick(() => onSelectTab('notifications'))}
+                className={`p-2.5 rounded-xl text-right flex items-center justify-between border transition-all cursor-pointer ${
+                  currentTab === 'notifications'
+                    ? 'bg-amber-500/15 text-amber-400 border-amber-500/30 font-bold'
+                    : 'bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white'
+                }`}
               >
-                <FileText className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span className="truncate">{isAr ? 'كل التقارير' : 'All Reports'}</span>
+                <div className="flex items-center gap-2 truncate">
+                  <Bell className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span className="truncate">{isAr ? 'الإشعارات' : 'Notifications'}</span>
+                </div>
+                {unreadCount > 0 && (
+                  <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono font-bold">
+                    {unreadCount}
+                  </span>
+                )}
               </button>
 
-              {/* 5. البودكاست */}
+              {/* 5. صحافة البيانات */}
+              <button
+                onClick={() => handleNavClick(() => onSelectTab('data-journalism'))}
+                className={`p-2.5 rounded-xl text-right flex items-center gap-2 border transition-all cursor-pointer ${
+                  currentTab === 'data-journalism'
+                    ? 'bg-teal-500/15 text-teal-300 border-teal-500/30 font-bold'
+                    : 'bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white'
+                }`}
+              >
+                <BarChart3 className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+                <span className="truncate">{isAr ? 'صحافة البيانات' : 'Data Journalism'}</span>
+              </button>
+
+              {/* 6. البودكاست */}
               <button
                 onClick={() => handleNavClick(() => onSelectTab('podcast'))}
-                className={`p-2.5 rounded-xl text-right flex items-center justify-between border transition-all ${
+                className={`p-2.5 rounded-xl text-right flex items-center justify-between border transition-all cursor-pointer ${
                   currentTab === 'podcast'
                     ? 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30 font-bold'
                     : 'bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white'
@@ -201,10 +310,10 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               </button>
 
-              {/* 6. التقارير المصورة */}
+              {/* 7. التقارير المصورة */}
               <button
                 onClick={() => handleNavClick(() => onSelectTab('video'))}
-                className={`p-2.5 rounded-xl text-right flex items-center justify-between border transition-all ${
+                className={`p-2.5 rounded-xl text-right flex items-center justify-between border transition-all cursor-pointer ${
                   currentTab === 'video'
                     ? 'bg-rose-500/15 text-rose-400 border-rose-500/30 font-bold'
                     : 'bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white'
@@ -215,43 +324,42 @@ export const Header: React.FC<HeaderProps> = ({
                   <span className="truncate">{isAr ? 'التقارير المصورة' : 'Video Reports'}</span>
                 </div>
                 <span className="text-[9px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 font-mono">
-                  {isAr ? 'مرئي' : 'Video'}
+                  {isAr ? 'فيديو' : 'Video'}
                 </span>
               </button>
 
-              {/* 7. صحافة البيانات */}
+              {/* 8. من نحن */}
               <button
-                onClick={() => handleNavClick(() => onSelectTab('data-journalism'))}
-                className={`p-2.5 rounded-xl text-right flex items-center gap-2 border transition-all ${
-                  currentTab === 'data-journalism'
-                    ? 'bg-teal-500/15 text-teal-300 border-teal-500/30 font-bold'
+                onClick={() => handleNavClick(() => onSelectTab('about'))}
+                className={`p-2.5 rounded-xl text-right flex items-center gap-2 border transition-all cursor-pointer ${
+                  currentTab === 'about'
+                    ? 'bg-blue-500/15 text-blue-400 border-blue-500/30 font-bold'
                     : 'bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white'
                 }`}
               >
-                <BarChart3 className="w-3.5 h-3.5 text-teal-400 shrink-0" />
-                <span className="truncate">{isAr ? 'صحافة البيانات' : 'Data Journalism'}</span>
+                <Building2 className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                <span className="truncate">{isAr ? 'من نحن' : 'About Us'}</span>
               </button>
 
-              {/* 8. استقصاء وتقصي */}
+              {/* 9. الشروط والخصوصية */}
               <button
-                onClick={() => handleNavClick(() => onSelectTab('home'))}
-                className="p-2.5 rounded-xl text-right flex items-center gap-2 border bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white transition-all"
+                onClick={() => handleNavClick(() => onSelectTab('privacy'))}
+                className={`p-2.5 rounded-xl text-right flex items-center gap-2 border transition-all cursor-pointer ${
+                  currentTab === 'privacy'
+                    ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 font-bold'
+                    : 'bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white'
+                }`}
               >
-                <Search className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span className="truncate">{isAr ? 'استقصاء وتقصي' : 'Investigations'}</span>
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span className="truncate">{isAr ? 'الشروط والخصوصية' : 'Terms & Privacy'}</span>
               </button>
             </div>
 
-            {/* زر تثبيت تطبيق الـ PWA للهاتف */}
-            <div className="pt-2 border-t border-slate-800/60">
-              <PWAInstallButton variant="full" lang={lang} />
-            </div>
-
-            {/* في الأسفل: غرفة الأخبار تقابلها التسجيل */}
+            {/* زران سفليان: غرفة الأخبار وتسجيل الدخول */}
             <div className="pt-2 border-t border-slate-800/80 flex items-center gap-2">
               <button
                 onClick={() => handleNavClick(() => onSelectTab('editorial'))}
-                className={`flex-1 p-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                className={`flex-1 p-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
                   currentTab === 'editorial'
                     ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-lg'
                     : 'bg-slate-900 hover:bg-slate-850 text-slate-200 border border-slate-800'
@@ -271,17 +379,17 @@ export const Header: React.FC<HeaderProps> = ({
                 className="flex-1 p-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-black flex items-center justify-center gap-1.5 shadow-lg transition-all cursor-pointer"
               >
                 <User className="w-4 h-4" />
-                <span>{isAr ? 'التسجيل / العضوية' : 'Sign In / Register'}</span>
+                <span>{profile ? (isAr ? 'تبديل الدور' : 'Switch Role') : (isAr ? 'التسجيل / العضوية' : 'Sign In')}</span>
               </button>
             </div>
           </div>
         )}
 
         {/* =========================================================================
-            3. DESKTOP HEADER (شاشة الحاسوب: شريطان منفصلان أنيقان)
+            3. DESKTOP HEADER (شاشة الحاسوب: شريطان أنيقان)
            ========================================================================= */}
         <div className="hidden md:block">
-          {/* الشريط العلوي (Top Bar): اللوغو يقابله تغيير اللغة، التسجيل، وغرفة الأخبار */}
+          {/* الشريط العلوي (Top Bar) */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between border-b border-slate-800/80">
             {/* اللوغو والشعار */}
             <div 
@@ -305,10 +413,28 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </div>
 
-            {/* يقابله: أدوات PWA + تغيير اللغة + التسجيل + غرفة الأخبار */}
+            {/* أدوات PWA + الإشعارات + الملف الشخصي / التسجيل + اللغة + غرفة الأخبار */}
             <div className="flex items-center gap-2 lg:gap-2.5 shrink-0">
-              {/* أدوات PWA (تثبيت، مشاركة، إشعارات) */}
+              {/* أدوات PWA */}
               <PWABar lang={lang} />
+
+              {/* زر الإشعارات والتنبيهات للحاسوب مع العداد */}
+              <button
+                onClick={() => onSelectTab('notifications')}
+                className={`relative p-2 rounded-xl border transition-all flex items-center justify-center cursor-pointer group ${
+                  currentTab === 'notifications'
+                    ? 'bg-amber-500/20 border-amber-500/50 text-amber-400 shadow-md'
+                    : 'bg-slate-900 hover:bg-slate-850 text-slate-300 border-slate-700/60'
+                }`}
+                title={isAr ? 'مركز الإشعارات والتنبيهات' : 'Notifications Center'}
+              >
+                <Bell className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white font-mono text-[10px] font-bold flex items-center justify-center animate-pulse shadow-sm">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
 
               {/* زر تغيير اللغة */}
               <button
@@ -320,18 +446,48 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>{isAr ? 'English' : 'العربية'}</span>
               </button>
 
-              {/* زر تسجيل */}
-              <button
-                onClick={() => setActiveModal('auth')}
-                className={`rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black flex items-center gap-1.5 shadow-sm transition-all whitespace-nowrap cursor-pointer active:scale-95 ${
-                  isAr 
-                    ? 'px-3.5 py-1.5 text-xs' 
-                    : 'px-2.5 py-1 text-[10.5px] font-bold'
-                }`}
-              >
-                <User className={isAr ? "w-3.5 h-3.5" : "w-3 h-3"} />
-                <span>{isAr ? 'تسجيل' : 'Sign In'}</span>
-              </button>
+              {/* الملف الشخصي أو زر تسجيل الدخول */}
+              {profile ? (
+                <button
+                  onClick={() => onSelectTab('profile')}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all cursor-pointer group shadow-sm ${
+                    currentTab === 'profile'
+                      ? 'bg-amber-500/15 border-amber-500/50 text-amber-300'
+                      : 'bg-slate-900/90 hover:bg-slate-850 border-slate-700/70 text-slate-200'
+                  }`}
+                  title={isAr ? 'الانتقال إلى صفحتي الشخصية' : 'View Profile'}
+                >
+                  {profile.photoURL ? (
+                    <img 
+                      src={profile.photoURL} 
+                      alt={profile.displayName} 
+                      className="w-6 h-6 rounded-lg object-cover border border-amber-500/30" 
+                    />
+                  ) : (
+                    <div className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs">
+                      {profile.displayName.charAt(0)}
+                    </div>
+                  )}
+                  <span className="text-xs font-bold truncate max-w-[110px] group-hover:text-amber-300">
+                    {profile.displayName}
+                  </span>
+                  <span className={`text-[9.5px] px-1.5 py-0.2 rounded-md font-mono font-bold border ${getRoleBadgeClasses(role)}`}>
+                    {role}
+                  </span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => setActiveModal('auth')}
+                  className={`rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black flex items-center gap-1.5 shadow-sm transition-all whitespace-nowrap cursor-pointer active:scale-95 ${
+                    isAr 
+                      ? 'px-3.5 py-1.5 text-xs' 
+                      : 'px-2.5 py-1 text-[10.5px] font-bold'
+                  }`}
+                >
+                  <User className={isAr ? "w-3.5 h-3.5" : "w-3 h-3"} />
+                  <span>{isAr ? 'تسجيل' : 'Sign In'}</span>
+                </button>
+              )}
 
               {/* زر غرفة الأخبار */}
               <button
@@ -353,7 +509,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* شريط القائمة تحته (Sub-Header Menu Bar): روابط القائمة بنفس التنسيق الأنيق */}
+          {/* شريط القائمة تحته (Sub-Header Menu Bar) */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-11 flex items-center justify-between text-xs">
             <nav className="flex items-center gap-1 lg:gap-1.5 overflow-x-auto no-scrollbar shrink min-w-0" aria-label="Desktop Navigation">
               {/* 1. الرئيسية */}
@@ -369,25 +525,51 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>{isAr ? 'الرئيسية' : 'Home'}</span>
               </button>
 
-              {/* 2. كل التقارير */}
+              {/* 2. ملفات الدول */}
               <button
-                onClick={() => onSelectTab('home')}
-                className="px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-850 transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer"
+                onClick={() => onSelectTab('country')}
+                className={`px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer ${
+                  currentTab === 'country'
+                    ? 'bg-amber-500/15 text-amber-400 font-bold border border-amber-500/30'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                }`}
               >
-                <FileText className="w-3.5 h-3.5 text-amber-400/80" />
-                <span>{isAr ? 'كل التقارير' : 'All Reports'}</span>
+                <Globe2 className="w-3.5 h-3.5 text-amber-400" />
+                <span>{isAr ? 'ملفات الدول (55)' : 'Countries (55)'}</span>
               </button>
 
-              {/* 3. استقصاء وتقصي */}
+              {/* 3. صفحتي الشخصية */}
               <button
-                onClick={() => onSelectTab('home')}
-                className="px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-850 transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer"
+                onClick={() => onSelectTab('profile')}
+                className={`px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer ${
+                  currentTab === 'profile'
+                    ? 'bg-amber-500/15 text-amber-400 font-bold border border-amber-500/30'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                }`}
               >
-                <Search className="w-3.5 h-3.5 text-amber-400/80" />
-                <span>{isAr ? 'استقصاء وتقصي' : 'Investigations'}</span>
+                <User className="w-3.5 h-3.5 text-amber-400" />
+                <span>{isAr ? 'حسابي والملف الشخصي' : 'My Profile'}</span>
               </button>
 
-              {/* 4. صحافة البيانات */}
+              {/* 4. الإشعارات */}
+              <button
+                onClick={() => onSelectTab('notifications')}
+                className={`px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer ${
+                  currentTab === 'notifications'
+                    ? 'bg-amber-500/15 text-amber-400 font-bold border border-amber-500/30'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                }`}
+              >
+                <Bell className="w-3.5 h-3.5 text-amber-400" />
+                <span>{isAr ? 'الإشعارات' : 'Notifications'}</span>
+                {unreadCount > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white font-mono">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {/* 5. صحافة البيانات */}
               <button
                 onClick={() => onSelectTab('data-journalism')}
                 className={`px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer ${
@@ -400,7 +582,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>{isAr ? 'صحافة البيانات' : 'Data Journalism'}</span>
               </button>
 
-              {/* 5. البودكاست */}
+              {/* 6. البودكاست */}
               <button
                 onClick={() => onSelectTab('podcast')}
                 className={`px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer ${
@@ -413,7 +595,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>{isAr ? 'البودكاست' : 'Podcasts'}</span>
               </button>
 
-              {/* 6. التقارير المصورة */}
+              {/* 7. التقارير المصورة */}
               <button
                 onClick={() => onSelectTab('video')}
                 className={`px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer ${
@@ -426,7 +608,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>{isAr ? 'التقارير المصورة' : 'Video Reports'}</span>
               </button>
 
-              {/* 7. من نحن */}
+              {/* 8. من نحن */}
               <button
                 onClick={() => onSelectTab('about')}
                 className={`px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer ${
@@ -439,7 +621,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>{isAr ? 'من نحن' : 'About Us'}</span>
               </button>
 
-              {/* 8. الشروط والخصوصية */}
+              {/* 9. الشروط والخصوصية */}
               <button
                 onClick={() => onSelectTab('privacy')}
                 className={`px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer ${
@@ -462,6 +644,7 @@ export const Header: React.FC<HeaderProps> = ({
         onClose={() => setActiveModal(null)}
         lang={lang}
         onNavigateToNewsroom={() => onSelectTab('editorial')}
+        onNavigateToProfile={() => onSelectTab('profile')}
       />
     </>
   );

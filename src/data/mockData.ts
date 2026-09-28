@@ -955,5 +955,69 @@ export const INITIAL_ARTICLES: Article[] = [
     readTimeMinutes: 3,
     featured: false,
     marketImpact: 'positive'
+  },
+  {
+    id: 'art-eh-001',
+    slug: 'western-sahara-bou-craa-phosphate-and-atlantic-fisheries',
+    title: 'احتياطيات فوسفات بوكراع ومصايد الأطلسي: رصد استقصائي للموارد الاستراتيجية والطاقة في الصحراء الغربية',
+    titleEn: 'Bou Craa Phosphate Reserves & Atlantic Marine Resources: Investigative Asset Mapping in Western Sahara',
+    summary: 'رصد اقتصادي موثق يحلل القيمة السيادية والتعدينية لمنجم فوسفات بوكراع ذي الاحتياطيات المقدرة بـ 1.7 مليار طن، إلى جانب المصايد البحرية الغنية وفرص استثمارات طاقة الرياح الساحلية.',
+    summaryEn: 'Documented economic audit examining the sovereign mineral valuation of the 1.7-billion-ton Bou Craa phosphate basin, alongside Atlantic fisheries and coastal wind power corridors.',
+    content: [
+      'يشكل منجم فوسفات بوكراع في الصحراء الغربية أحد أهم ركائز الأمن الغذائي والتعديني في العالم، حيث يحتوي الحوض التعديني على احتياطيات جيولوجية مثبتة تتجاوز 1.7 مليار طن من صخور الفوسفات عالية النقاوة، بنسبة تركيز تعد من بين الأعلى عالمياً لخام ثلاثي فوسفات الجير (TPL). وترتبط المنشأة التعدينية بأطول حزام ناقل مغطى في العالم يمتد لمسافة 100 كيلومتر عبر الكثبان الرملية إلى الميناء التصديري على شاطئ المحيط الأطلسي، ما يمنح عمليات الاستخراج والشحن كفاءة لوجستية فائقة وتكلفة نقل هامشية منخفضة.',
+      'وعلى صعيد الاقتصاد الأزرق، تمتد سواحل الصحراء الغربية على طول 1,110 كيلومترات على المحيط الأطلسي، مستفيدة من تيار الكناري المائي البارد الذي يجعل هذه المياه من أخصب البيئات البحرية الغنية بالبلانكتون في القارة الأفريقية. وتوفر هذه المصايد وفرة استثنائية من الأسماك السطحية كالسردين والإسقمري والتونة والرخويات كالأخطبوط، ما يفتح آفاقاً واعدة لإنشاء مجمعات تصنيع وتجميد بحرية تصديرية ذات قيمة مضافة عالية نحو الأسواق الأفريقية والأوروبية والآسيوية.',
+      'وفي مسار التحول الطاقوي العالمي، تؤكد الدراسات المناخية والهندسية الدولية أن الساحل الصحراوي يتمتع بواحد من أعلى معدلات سرعة الرياح المستمرة في العالم (تتجاوز 9 أمتار/ثانية على مدار 320 يوماً في السنة)، مقرونة بمستويات إشعاع شمسي تتخطى 2,300 كيلوواط ساعة لكل متر مربع. هذه المعطيات تجعل المنطقة وجهة مثالية ورائدة لمشاريع إنتاج الهيدروجين الأخضر والأمونيا النظيفة بأسعار منافسة عالمياً، لتمثل رافعة تنموية مستدامة تحول الموارد الطبيعية إلى تنمية اقتصادية متكاملة.'
+    ],
+    contentEn: [
+      'The Bou Craa deposit in Western Sahara anchors one of the planets most pivotal reserves for global agricultural fertilizer supply, boasting verified geological reserves exceeding 1.7 billion tons of high-grade phosphate rock. The mining operations are linked to the worlds longest automated enclosed conveyor belt system, traversing 100 kilometers across desert dunes directly to deepwater Atlantic export terminals, ensuring unparalleled logistical cost efficiencies.',
+      'In the domain of the blue economy, Western Saharas 1,110-kilometer Atlantic coastline is continuously nurtured by the nutrient-rich cold Canary Current, producing one of the most prolific marine biomass habitats on the African continent. The shelf yields abundant schools of pelagic fish, tuna, and prime cephalopods, offering high-value processing, freezing, and export potential for continental and global markets.',
+      'Furthermore, international renewable energy feasibility assessments identify the coastal corridor as possessing superior onshore wind capacity (averaging >9 m/s over 320 days per annum) alongside extraordinary solar photovoltaic irradiance (>2,300 kWh/m2). These attributes establish the territory as a prime candidate for cost-competitive green hydrogen and green ammonia production, transforming sovereign natural assets into future-proof economic drivers.'
+    ],
+    category: 'Mining',
+    countryCode: 'EH',
+    countryName: 'الصحراء الغربية',
+    countryNameEn: 'Western Sahara',
+    status: 'published',
+    generationType: 'manual_supervisor',
+    journalisticType: 'التحقيق الصحفي الاستقصائي',
+    sector: 'التعدين والمعادن',
+    authorType: 'AI_AGENT',
+    authorName: 'وكيل الرصد التعديني والجيوسياسي',
+    authorNameEn: 'Sovereign Mining & Geopolitical Agent',
+    readersCount: 1420,
+    imageUrl: 'https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?auto=format&fit=crop&w=800&q=80',
+    citations: [
+      {
+        id: 'cit-eh-1',
+        sourceName: 'USGS Mineral Commodity Summaries - Phosphate Rock',
+        url: 'https://pubs.usgs.gov/periodicals/mcs2024/mcs2024-phosphate.pdf',
+        publishDate: '2026-01-15',
+        verified: true,
+        credibilityScore: 99,
+        snippet: 'Bou Craa phosphate reserves contain high-grade mineral rock exceeding 1.7 billion metric tons.'
+      },
+      {
+        id: 'cit-eh-2',
+        sourceName: 'FAO Fishery and Aquaculture Country Profiles - Atlantic Coastline',
+        url: 'https://www.fao.org/fishery/en/countryprofiles',
+        publishDate: '2026-03-10',
+        verified: true,
+        credibilityScore: 98,
+        snippet: 'Canary Current maritime ecosystem supports vast pelagic fish and octopus biomass along Western Sahara shelf.'
+      }
+    ],
+    factCheck: {
+      score: 98,
+      verifiedClaimsCount: 12,
+      totalClaimsCount: 12,
+      biasRating: 'Neutral',
+      riskScore: 'Low',
+      checkedAt: '2026-09-24'
+    },
+    publishedAt: '2026-09-24 14:00',
+    createdAt: '2026-09-24 12:30',
+    readTimeMinutes: 4,
+    featured: true,
+    marketImpact: 'positive'
   }
 ];

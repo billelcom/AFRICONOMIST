@@ -466,49 +466,73 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
     switch (paperTheme) {
       case 'sepia':
         return {
-          wrapper: 'bg-[#F4EEDB] text-[#28241E]',
-          paperCanvas: 'bg-[#FAF3E0] border-[#E2D4BC] shadow-[#634832]/5 text-[#28241E]',
+          wrapper: 'bg-[#F4EEDB] text-[#28241E] lg:bg-[#070A12]',
+          paperCanvas: 'bg-[#FAF3E0] border-[#E2D4BC] shadow-lg text-[#28241E]',
           sidebarCard: 'bg-[#FAF3E0] border-[#E2D4BC] text-[#28241E] shadow-sm',
           headerBorder: 'border-[#4A3B2C]',
           subtext: 'text-[#6B5A47]',
+          title: 'text-[#28241E]',
+          bodyText: 'text-[#28241E]',
           quoteBox: 'bg-[#EDE1C8] border-[#A8642A] text-[#28241E]',
           infobox: 'bg-[#F2E7D2] border-[#D9C6A7]',
-          badge: 'bg-[#EDE1C8] text-[#594432] border-[#D9C6A7]'
+          badge: 'bg-[#EDE1C8] text-[#594432] border-[#D9C6A7]',
+          cardItem: 'bg-[#EDE1C8]/60 border-[#D9C6A7] text-[#28241E]',
+          inputBg: 'bg-[#FAF3E0] border-[#D9C6A7] text-[#28241E]',
+          sidebarNavActive: 'bg-amber-600/15 text-amber-900 border-amber-600/30 font-bold',
+          sidebarNavInactive: 'text-[#4A3B2C] hover:bg-[#EDE1C8]'
         };
       case 'white':
         return {
-          wrapper: 'bg-[#F8FAFC] text-[#0F172A]',
-          paperCanvas: 'bg-[#FFFFFF] border-slate-200 shadow-slate-200/80 text-[#0F172A]',
+          wrapper: 'bg-[#F8FAFC] text-[#0F172A] lg:bg-[#070A12]',
+          paperCanvas: 'bg-[#FFFFFF] border-slate-200 shadow-lg text-[#0F172A]',
           sidebarCard: 'bg-white border-slate-200 text-slate-900 shadow-sm',
           headerBorder: 'border-slate-800',
           subtext: 'text-slate-600',
+          title: 'text-slate-950',
+          bodyText: 'text-slate-900',
           quoteBox: 'bg-slate-50 border-amber-600 text-slate-900',
           infobox: 'bg-slate-50 border-slate-200',
-          badge: 'bg-slate-100 text-slate-800 border-slate-200'
+          badge: 'bg-slate-100 text-slate-800 border-slate-200',
+          cardItem: 'bg-slate-50 border-slate-200 text-slate-900',
+          inputBg: 'bg-white border-slate-300 text-slate-900',
+          sidebarNavActive: 'bg-amber-500/15 text-amber-900 border-amber-500/30 font-bold',
+          sidebarNavInactive: 'text-slate-700 hover:bg-slate-100'
         };
       case 'dark':
         return {
-          wrapper: 'bg-[#0B0F19] text-[#E2E8F0]',
+          wrapper: 'bg-[#0B0F19] text-[#E2E8F0] lg:bg-[#070A12]',
           paperCanvas: 'bg-[#121826] border-slate-800 shadow-black/50 text-[#E2E8F0]',
           sidebarCard: 'bg-[#121826] border-slate-800 text-slate-200 shadow-md',
           headerBorder: 'border-amber-500/60',
           subtext: 'text-slate-400',
+          title: 'text-slate-100',
+          bodyText: 'text-slate-200',
           quoteBox: 'bg-[#182236] border-amber-500 text-slate-100',
           infobox: 'bg-[#182236] border-slate-800',
-          badge: 'bg-slate-800 text-slate-200 border-slate-700'
+          badge: 'bg-slate-800 text-slate-200 border-slate-700',
+          cardItem: 'bg-[#182236] border-slate-800 text-slate-200',
+          inputBg: 'bg-slate-800 border-slate-700 text-slate-100',
+          sidebarNavActive: 'bg-amber-500/20 text-amber-300 border-amber-500/30 font-bold',
+          sidebarNavInactive: 'text-slate-300 hover:bg-slate-800/60'
         };
       case 'paper':
       default:
         return {
-          // Warm newspaper broadsheet with yellow-white tint
-          wrapper: 'bg-[#F6F2E7] text-[#1C1917]',
-          paperCanvas: 'bg-[#FAF7EE] border-[#E5DECD] shadow-[#44382A]/8 text-[#1C1917]',
+          // Warm authentic newspaper broadsheet with yellow-white paper tint
+          wrapper: 'bg-[#F6F2E7] text-[#1C1917] lg:bg-[#070A12]',
+          paperCanvas: 'bg-[#FAF7EE] border-[#E5DECD] shadow-lg text-[#1C1917]',
           sidebarCard: 'bg-[#FAF7EE] border-[#E5DECD] text-[#1C1917] shadow-sm',
           headerBorder: 'border-[#292524]',
           subtext: 'text-[#57534E]',
+          title: 'text-[#1C1917]',
+          bodyText: 'text-[#1C1917]',
           quoteBox: 'bg-[#F2EBDB] border-[#9A3412] text-[#1C1917]',
           infobox: 'bg-[#F4EEDF] border-[#E0D7C4]',
-          badge: 'bg-[#EDE5D2] text-[#44403C] border-[#DDD3BF]'
+          badge: 'bg-[#EDE5D2] text-[#44403C] border-[#DDD3BF]',
+          cardItem: 'bg-[#F2EBDB]/80 border-[#E0D7C4] text-[#1C1917]',
+          inputBg: 'bg-[#FAF7EE] border-[#DDD3BF] text-[#1C1917]',
+          sidebarNavActive: 'bg-amber-600/15 text-amber-900 border-amber-600/30 font-bold',
+          sidebarNavInactive: 'text-stone-700 hover:bg-[#F2EBDB]'
         };
     }
   }, [paperTheme]);
@@ -820,7 +844,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
             </div>
 
             {/* Headline (العنوان الرئيسي بخط عربي صحفي فخم) */}
-            <h1 className="font-newspaper-headline text-2xl sm:text-3xl md:text-4xl lg:text-[2.6rem] font-bold tracking-tight leading-[1.3] text-[#1C1917] dark:text-stone-100 mb-4">
+            <h1 className={`font-newspaper-headline text-2xl sm:text-3xl md:text-4xl lg:text-[2.6rem] font-bold tracking-tight leading-[1.3] mb-4 ${themeClasses.title}`}>
               {isAr ? article.title : article.titleEn}
             </h1>
 
@@ -831,7 +855,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                   {authorName.charAt(0)}
                 </div>
                 <div>
-                  <div className="font-bold text-stone-900 dark:text-stone-200">
+                  <div className={`font-bold ${themeClasses.title}`}>
                     {authorName}
                   </div>
                   <div className={`text-[10px] sm:text-[11px] ${themeClasses.subtext}`}>
@@ -861,8 +885,8 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
           </header>
 
           {/* Lead Summary (الاستهلال الصحفي) */}
-          <div className="w-[98%] mx-auto p-3.5 sm:p-5 rounded-xl bg-amber-500/10 border-r-4 border-amber-700 text-stone-800 dark:text-stone-200 text-base sm:text-lg font-newspaper-body font-medium leading-relaxed mb-6">
-            <p className="newspaper-lead">
+          <div className="w-[98%] mx-auto p-3.5 sm:p-5 rounded-xl bg-amber-500/10 border-r-4 border-amber-700 text-base sm:text-lg font-newspaper-body font-medium leading-relaxed mb-6">
+            <p className={`newspaper-lead ${themeClasses.title}`}>
               {isAr ? article.summary : article.summaryEn}
             </p>
           </div>
@@ -962,16 +986,16 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
             aria-label={isAr ? 'فهرس محتويات المقال' : 'Table of Contents'}
             className={`w-[98%] mx-auto mb-6 sm:mb-8 p-3.5 sm:p-5 rounded-xl border ${themeClasses.infobox} transition-all`}
           >
-            <div className="flex items-center justify-between pb-3 border-b border-stone-300/70 dark:border-stone-700">
+            <div className="flex items-center justify-between pb-3 border-b border-stone-300/70">
               <div className="flex items-center gap-2">
-                <ListOrdered className="w-4 h-4 text-amber-700 dark:text-amber-400" />
-                <h2 className="font-newspaper-headline text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100">
+                <ListOrdered className="w-4 h-4 text-amber-700" />
+                <h2 className={`font-newspaper-headline text-sm sm:text-base font-bold ${themeClasses.title}`}>
                   {isAr ? 'فهرس المحاور وعناصر التقرير' : 'Table of Contents'}
                 </h2>
               </div>
               <button
                 onClick={() => setIsTocOpen(!isTocOpen)}
-                className="text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 p-1 cursor-pointer"
+                className="text-stone-500 hover:text-stone-800 p-1 cursor-pointer"
                 title={isTocOpen ? (isAr ? 'طي الفهرس' : 'Collapse') : (isAr ? 'توسيع الفهرس' : 'Expand')}
               >
                 {isTocOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -982,7 +1006,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
               <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-newspaper-body">
                 <button
                   onClick={() => scrollToAnchor('sec-analysis')}
-                  className="text-right flex items-center gap-2 p-2 rounded-lg hover:bg-stone-500/10 transition-colors text-stone-800 dark:text-stone-300 cursor-pointer"
+                  className={`text-right flex items-center gap-2 p-2 rounded-lg hover:bg-stone-500/10 transition-colors ${themeClasses.bodyText} cursor-pointer`}
                 >
                   <span className="font-mono text-amber-700 font-bold">١.</span>
                   <span>{isAr ? 'التحليل الاقتصادي والرصد الميداني' : 'In-Depth Economic Analysis'}</span>
@@ -990,7 +1014,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
 
                 <button
                   onClick={() => scrollToAnchor('sec-infographic-inline')}
-                  className="text-right flex items-center gap-2 p-2 rounded-lg hover:bg-stone-500/10 transition-colors text-stone-800 dark:text-stone-300 cursor-pointer"
+                  className={`text-right flex items-center gap-2 p-2 rounded-lg hover:bg-stone-500/10 transition-colors ${themeClasses.bodyText} cursor-pointer`}
                 >
                   <span className="font-mono text-amber-700 font-bold">٢.</span>
                   <span>{isAr ? 'الرسوم البيانية والممرات وسط المقال (عرض 50%)' : 'Mid-Article Data & Corridors (50% Width)'}</span>
@@ -998,7 +1022,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
 
                 <button
                   onClick={() => scrollToAnchor('sec-quote')}
-                  className="text-right flex items-center gap-2 p-2 rounded-lg hover:bg-stone-500/10 transition-colors text-stone-800 dark:text-stone-300 cursor-pointer"
+                  className={`text-right flex items-center gap-2 p-2 rounded-lg hover:bg-stone-500/10 transition-colors ${themeClasses.bodyText} cursor-pointer`}
                 >
                   <span className="font-mono text-amber-700 font-bold">٣.</span>
                   <span>{isAr ? 'الرؤية والشهادات التحريرية المقتبسة' : 'Editorial Pull-Quote & Highlights'}</span>
@@ -1007,7 +1031,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                 {endGraphics.length > 0 && (
                   <button
                     onClick={() => scrollToAnchor('sec-graphic-end')}
-                    className="text-right flex items-center gap-2 p-2 rounded-lg hover:bg-stone-500/10 transition-colors text-stone-800 dark:text-stone-300 cursor-pointer"
+                    className={`text-right flex items-center gap-2 p-2 rounded-lg hover:bg-stone-500/10 transition-colors ${themeClasses.bodyText} cursor-pointer`}
                   >
                     <span className="font-mono text-amber-700 font-bold">٤.</span>
                     <span>{isAr ? 'التمثيل البياني الشامل (عرض 100%)' : 'Comprehensive Macro Chart'}</span>
@@ -1016,7 +1040,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
 
                 <button
                   onClick={() => scrollToAnchor('sec-citations')}
-                  className="text-right flex items-center gap-2 p-2 rounded-lg hover:bg-stone-500/10 transition-colors text-stone-800 dark:text-stone-300 cursor-pointer"
+                  className={`text-right flex items-center gap-2 p-2 rounded-lg hover:bg-stone-500/10 transition-colors ${themeClasses.bodyText} cursor-pointer`}
                 >
                   <span className="font-mono text-amber-700 font-bold">{endGraphics.length > 0 ? '٥.' : '٤.'}</span>
                   <span>{isAr ? 'المراجع والمصادر الرسمية الموثقة' : 'Verified Citations & References'}</span>
@@ -1024,7 +1048,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
 
                 <button
                   onClick={() => scrollToAnchor('discussion-section')}
-                  className="text-right flex items-center gap-2 p-2 rounded-lg hover:bg-stone-500/10 transition-colors text-stone-800 dark:text-stone-300 cursor-pointer"
+                  className={`text-right flex items-center gap-2 p-2 rounded-lg hover:bg-stone-500/10 transition-colors ${themeClasses.bodyText} cursor-pointer`}
                 >
                   <span className="font-mono text-amber-700 font-bold">{endGraphics.length > 0 ? '٦.' : '٥.'}</span>
                   <span>{isAr ? 'مناقشات القراء وملاحظات الخبراء' : 'Reader Discussions & Notes'}</span>
@@ -1041,7 +1065,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
             {/* الفقرة الأولى */}
             {articleParagraphs[0] && (
               <div className="mb-4 sm:mb-5">
-                <p className={`text-stone-900 dark:text-stone-100 ${
+                <p className={`${themeClasses.bodyText} ${
                   activeSpeechParagraph === 0 ? 'bg-amber-500/15 p-2 rounded-lg' : ''
                 }`}>
                   {articleParagraphs[0]}
@@ -1051,7 +1075,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                         setActiveCitationId(article.citations[0].id);
                         scrollToAnchor(`cit-${article.citations[0].id}`);
                       }}
-                      className="inline-flex items-center justify-center mx-1 px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-800 dark:text-amber-300 text-xs font-mono font-bold hover:bg-amber-500/40 border border-amber-600/30 transition-colors cursor-pointer"
+                      className="inline-flex items-center justify-center mx-1 px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-800 text-xs font-mono font-bold hover:bg-amber-500/40 border border-amber-600/30 transition-colors cursor-pointer"
                       title={isAr ? 'عرض مصدر التوثيق المعتمد #1' : 'View citation #1'}
                     >
                       [1]
@@ -1117,7 +1141,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
 
               return (
                 <div key={actualIdx} className="mb-4 sm:mb-5">
-                  <p className={`text-stone-900 dark:text-stone-100 ${
+                  <p className={`${themeClasses.bodyText} ${
                     activeSpeechParagraph === actualIdx ? 'bg-amber-500/15 p-2 rounded-lg' : ''
                   }`}>
                     {paragraph}
@@ -1127,7 +1151,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                           setActiveCitationId(hasCitation.id);
                           scrollToAnchor(`cit-${hasCitation.id}`);
                         }}
-                        className="inline-flex items-center justify-center mx-1 px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-800 dark:text-amber-300 text-xs font-mono font-bold hover:bg-amber-500/40 border border-amber-600/30 transition-colors cursor-pointer"
+                        className="inline-flex items-center justify-center mx-1 px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-800 text-xs font-mono font-bold hover:bg-amber-500/40 border border-amber-600/30 transition-colors cursor-pointer"
                         title={isAr ? `عرض مصدر التوثيق المعتمد #${actualIdx + 1}` : `View citation #${actualIdx + 1}`}
                       >
                         [{actualIdx + 1}]
@@ -1193,7 +1217,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
 
               return (
                 <div key={actualIdx} className="mb-4 sm:mb-5">
-                  <p className={`text-stone-900 dark:text-stone-100 ${
+                  <p className={`${themeClasses.bodyText} ${
                     activeSpeechParagraph === actualIdx ? 'bg-amber-500/15 p-2 rounded-lg' : ''
                   }`}>
                     {paragraph}
@@ -1203,7 +1227,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                           setActiveCitationId(hasCitation.id);
                           scrollToAnchor(`cit-${hasCitation.id}`);
                         }}
-                        className="inline-flex items-center justify-center mx-1 px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-800 dark:text-amber-300 text-xs font-mono font-bold hover:bg-amber-500/40 border border-amber-600/30 transition-colors cursor-pointer"
+                        className="inline-flex items-center justify-center mx-1 px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-800 text-xs font-mono font-bold hover:bg-amber-500/40 border border-amber-600/30 transition-colors cursor-pointer"
                         title={isAr ? `عرض مصدر التوثيق المعتمد #${actualIdx + 1}` : `View citation #${actualIdx + 1}`}
                       >
                         [{actualIdx + 1}]
@@ -1269,7 +1293,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
 
               return (
                 <div key={actualIdx} className="mb-4 sm:mb-5">
-                  <p className={`text-stone-900 dark:text-stone-100 ${
+                  <p className={`${themeClasses.bodyText} ${
                     activeSpeechParagraph === actualIdx ? 'bg-amber-500/15 p-2 rounded-lg' : ''
                   }`}>
                     {paragraph}
@@ -1279,7 +1303,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                           setActiveCitationId(hasCitation.id);
                           scrollToAnchor(`cit-${hasCitation.id}`);
                         }}
-                        className="inline-flex items-center justify-center mx-1 px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-800 dark:text-amber-300 text-xs font-mono font-bold hover:bg-amber-500/40 border border-amber-600/30 transition-colors cursor-pointer"
+                        className="inline-flex items-center justify-center mx-1 px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-800 text-xs font-mono font-bold hover:bg-amber-500/40 border border-amber-600/30 transition-colors cursor-pointer"
                         title={isAr ? `عرض مصدر التوثيق المعتمد #${actualIdx + 1}` : `View citation #${actualIdx + 1}`}
                       >
                         [{actualIdx + 1}]
@@ -1300,17 +1324,17 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
               aria-label={isAr ? 'اقتباس تحريري مميز' : 'Editorial Highlight'}
               className={`w-[98%] mx-auto my-6 sm:my-8 p-5 sm:p-7 rounded-2xl border-r-4 ${themeClasses.quoteBox} shadow-sm transition-all`}
             >
-              <div className="font-newspaper-headline text-lg sm:text-xl md:text-2xl font-bold leading-relaxed tracking-tight text-stone-950 dark:text-stone-100">
+              <div className={`font-newspaper-headline text-lg sm:text-xl md:text-2xl font-bold leading-relaxed tracking-tight ${themeClasses.title}`}>
                 {isAr
                   ? `إن التحول الهيكلي نحو الاعتماد الإقليمي المشترك في إفريقيا لا يقتصر على كونه خياراً تجارياً، بل يمثل درعاً سيادياً مباشراً لحماية استقرار العملات المحلية وتأمين سلاسل القيمة المضافة لكافة شعوب القارة.`
                   : `The structural shift toward pan-African regional integration is not merely a commercial strategy, but a direct sovereign bulwark safeguarding currency stabilization and securing high-value industrial chains.`}
               </div>
 
-              <div className="mt-3 pt-3 border-t border-amber-900/10 dark:border-stone-700 flex items-center justify-between text-xs font-newspaper-body text-stone-700 dark:text-stone-300">
+              <div className={`mt-3 pt-3 border-t border-amber-900/10 flex items-center justify-between text-xs font-newspaper-body ${themeClasses.subtext}`}>
                 <span className="font-bold">
                   {authorName}
                 </span>
-                <span className="text-[11px] font-mono text-amber-800 dark:text-amber-400">
+                <span className="text-[11px] font-mono text-amber-800">
                   {isAr ? 'رؤية تحليلية معتمدة' : 'Editorial Keynote'}
                 </span>
               </div>
@@ -1318,11 +1342,11 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
 
             {/* Additional analytical paragraph if present */}
             {article.reviewNotes && (
-              <div className="w-[98%] mx-auto p-3.5 sm:p-4 rounded-xl bg-stone-200/60 dark:bg-stone-900/70 border border-stone-300 dark:border-stone-800 text-xs font-newspaper-body mb-6">
-                <span className="font-bold text-amber-800 dark:text-amber-400 block mb-1">
+              <div className={`w-[98%] mx-auto p-3.5 sm:p-4 rounded-xl border text-xs font-newspaper-body mb-6 ${themeClasses.cardItem}`}>
+                <span className="font-bold text-amber-800 block mb-1">
                   {isAr ? 'ملاحظة التدقيق الاقتصادي المسجلة في السجل التحريري:' : 'Editorial Verification Note:'}
                 </span>
-                <p className="text-stone-700 dark:text-stone-300">
+                <p className={themeClasses.bodyText}>
                   {article.reviewNotes}
                 </p>
               </div>
@@ -1391,7 +1415,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
           </main>
 
           {/* --- CITATIONS SECTION --- */}
-          <footer className="w-[98%] mx-auto mt-8 sm:mt-12 pt-6 sm:pt-8 border-t-2 border-stone-300 dark:border-stone-700 space-y-5 sm:space-y-6">
+          <footer className="w-[98%] mx-auto mt-8 sm:mt-12 pt-6 sm:pt-8 border-t-2 border-stone-300/80 space-y-5 sm:space-y-6">
             
             {/* Citations List */}
             <section 
@@ -1399,8 +1423,8 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
               aria-label={isAr ? 'المصادر والتوثيق' : 'Citations'}
               className={`w-[98%] mx-auto p-3.5 sm:p-5 rounded-2xl border ${themeClasses.infobox}`}
             >
-              <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2 font-newspaper-headline mb-3">
-                <BookOpen className="w-4 h-4 text-amber-700 dark:text-amber-400" />
+              <h3 className={`text-sm font-bold flex items-center gap-2 font-newspaper-headline mb-3 ${themeClasses.title}`}>
+                <BookOpen className="w-4 h-4 text-amber-700" />
                 <span>{isAr ? 'المصادر والمراجع الرسمية الموثقة' : 'Verified Citations & External Sources'}</span>
               </h3>
 
@@ -1412,15 +1436,15 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                     className={`w-[98%] mx-auto p-3 sm:p-3.5 rounded-xl border text-xs transition-all ${
                       activeCitationId === cit.id
                         ? 'bg-amber-500/15 border-amber-600/50 shadow-sm'
-                        : 'bg-white/60 dark:bg-stone-900/60 border-stone-200 dark:border-stone-800'
+                        : themeClasses.cardItem
                     }`}
                   >
-                    <div className="flex items-center justify-between font-bold text-stone-900 dark:text-stone-100 mb-1">
+                    <div className={`flex items-center justify-between font-bold mb-1 ${themeClasses.title}`}>
                       <span className="flex items-center gap-1.5">
-                        <span className="font-mono text-amber-700 dark:text-amber-400">[{idx + 1}]</span>
+                        <span className="font-mono text-amber-700">[{idx + 1}]</span>
                         <span className="font-medium">{cit.sourceName}</span>
                       </span>
-                      <span className="text-emerald-600 dark:text-emerald-400 text-[11px] font-mono flex items-center gap-1">
+                      <span className="text-emerald-600 text-[11px] font-mono flex items-center gap-1">
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         {cit.credibilityScore}%
                       </span>
@@ -1430,13 +1454,13 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                       {cit.snippet}
                     </p>
 
-                    <div className="flex items-center justify-between text-[10px] pt-1.5 border-t border-stone-300/60 dark:border-stone-800">
+                    <div className="flex items-center justify-between text-[10px] pt-1.5 border-t border-stone-300/60">
                       <span className={themeClasses.subtext}>{cit.publishDate}</span>
                       <a
                         href={cit.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-amber-700 dark:text-amber-400 hover:underline flex items-center gap-1 font-semibold"
+                        className="text-amber-700 hover:underline flex items-center gap-1 font-semibold"
                       >
                         <span>{isAr ? 'الوثيقة الأصلية' : 'Source Document'}</span>
                         <ExternalLink className="w-3 h-3" />
@@ -1451,12 +1475,12 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
             <section 
               id="discussion-section"
               aria-label={isAr ? 'نقاش القراء' : 'Reader Discussions'}
-              className="no-print w-[98%] mx-auto pt-6 border-t border-stone-300 dark:border-stone-800"
+              className="no-print w-[98%] mx-auto pt-6 border-t border-stone-300/80"
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5 text-amber-700 dark:text-amber-400" />
-                  <h3 className="font-newspaper-headline text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100">
+                  <MessageSquare className="w-5 h-5 text-amber-700" />
+                  <h3 className={`font-newspaper-headline text-base sm:text-lg font-bold ${themeClasses.title}`}>
                     {isAr ? 'مناقشات القراء وآراء الخبراء' : 'Reader Discussion & Expert Notes'}
                   </h3>
                 </div>
@@ -1466,8 +1490,8 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
               </div>
 
               {/* Add Comment Form */}
-              <form onSubmit={handleAddComment} className="w-[98%] mx-auto mb-6 p-3.5 sm:p-4 rounded-xl bg-white/70 dark:bg-stone-900/80 border border-stone-300 dark:border-stone-800 space-y-3">
-                <div className="text-xs font-bold text-stone-800 dark:text-stone-200">
+              <form onSubmit={handleAddComment} className={`w-[98%] mx-auto mb-6 p-3.5 sm:p-4 rounded-xl border space-y-3 ${themeClasses.infobox}`}>
+                <div className={`text-xs font-bold ${themeClasses.title}`}>
                   {isAr ? 'أضف قراءتك أو تحليلك الاقتصادي لهذا التقرير:' : 'Add your economic note or perspective:'}
                 </div>
 
@@ -1477,7 +1501,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                     value={newCommentAuthor}
                     onChange={(e) => setNewCommentAuthor(e.target.value)}
                     placeholder={isAr ? 'اسمك أو صفتك المهنية (اختياري)' : 'Your Name / Title (optional)'}
-                    className="px-3 py-2 rounded-lg bg-stone-100 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 text-xs focus:outline-none focus:border-amber-500"
+                    className={`px-3 py-2 rounded-lg text-xs focus:outline-none focus:border-amber-500 border ${themeClasses.inputBg}`}
                   />
                 </div>
 
@@ -1487,7 +1511,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                   onChange={(e) => setNewCommentText(e.target.value)}
                   placeholder={isAr ? 'اكتب ملاحظتك التحريرية أو مناقشتك الاقتصادية...' : 'Write your economic note or response...'}
                   required
-                  className="w-full px-3 py-2 rounded-lg bg-stone-100 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 text-xs focus:outline-none focus:border-amber-500 resize-none font-newspaper-body"
+                  className={`w-full px-3 py-2 rounded-lg text-xs focus:outline-none focus:border-amber-500 resize-none font-newspaper-body border ${themeClasses.inputBg}`}
                 />
 
                 <div className="flex items-center justify-between">
@@ -1508,20 +1532,20 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
               {/* Comments List */}
               <div className="w-[98%] mx-auto space-y-3">
                 {comments.map((c) => (
-                  <div key={c.id} className="w-[98%] mx-auto p-3 sm:p-3.5 rounded-xl bg-white/50 dark:bg-stone-900/50 border border-stone-200 dark:border-stone-800/80 text-xs">
+                  <div key={c.id} className={`w-[98%] mx-auto p-3 sm:p-3.5 rounded-xl border text-xs ${themeClasses.cardItem}`}>
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-800 dark:text-amber-400 font-bold text-[10px] flex items-center justify-center">
+                        <div className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-800 font-bold text-[10px] flex items-center justify-center">
                           {c.author.charAt(0)}
                         </div>
                         <div>
-                          <span className="font-bold text-stone-900 dark:text-stone-100">{c.author}</span>
+                          <span className={`font-bold ${themeClasses.title}`}>{c.author}</span>
                           <span className={`text-[10px] mx-1.5 ${themeClasses.subtext}`}>· {c.role}</span>
                         </div>
                       </div>
                       <span className={`text-[10px] font-mono ${themeClasses.subtext}`}>{c.date}</span>
                     </div>
-                    <p className="text-stone-800 dark:text-stone-200 font-newspaper-body leading-relaxed pl-8">
+                    <p className={`${themeClasses.bodyText} font-newspaper-body leading-relaxed pl-8`}>
                       {c.content}
                     </p>
                   </div>
@@ -1536,14 +1560,14 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
           
           {/* 1. Interactive Reading Navigator (فهرس المحاور التفاعلي مع تتبع القراءة) */}
           <div className={`p-4 rounded-2xl border transition-all ${themeClasses.sidebarCard}`}>
-            <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-stone-200/80 dark:border-stone-800">
+            <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-stone-200/80">
               <div className="flex items-center gap-2">
-                <ListOrdered className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                <span className="font-newspaper-headline text-xs font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100">
+                <ListOrdered className="w-4 h-4 text-amber-600" />
+                <span className={`font-newspaper-headline text-xs font-bold uppercase tracking-wider ${themeClasses.title}`}>
                   {isAr ? 'فهرس المحاور ومسار القراءة' : 'Reading Navigator'}
                 </span>
               </div>
-              <span className="text-[10px] font-mono text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-600/20">
+              <span className="text-[10px] font-mono text-amber-700 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-600/20 font-bold">
                 {article.readTimeMinutes} {isAr ? 'د' : 'min'}
               </span>
             </div>
@@ -1564,15 +1588,15 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                     onClick={() => scrollToAnchor(item.id)}
                     className={`w-full text-right flex items-center justify-between px-3 py-2 rounded-xl transition-all cursor-pointer ${
                       isActive 
-                        ? 'bg-amber-500/20 text-amber-900 dark:text-amber-300 font-bold border border-amber-500/30 shadow-xs' 
-                        : 'text-stone-700 dark:text-stone-300 hover:bg-stone-500/10'
+                        ? themeClasses.sidebarNavActive
+                        : themeClasses.sidebarNavInactive
                     }`}
                   >
                     <div className="flex items-center gap-2 truncate">
-                      <span className={`font-mono text-xs ${isActive ? 'text-amber-600 dark:text-amber-400 font-bold' : 'text-stone-400'}`}>
+                      <span className={`font-mono text-xs ${isActive ? 'text-amber-700 font-bold' : themeClasses.subtext}`}>
                         {item.num}.
                       </span>
-                      <span className="truncate text-xs">
+                      <span className={`truncate text-xs ${isActive ? 'font-bold' : ''}`}>
                         {isAr ? item.labelAr : item.labelEn}
                       </span>
                     </div>
@@ -1587,41 +1611,41 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
 
           {/* 2. Fact-Sheet & Credibility Dossier (بطاقة الرصد والمصداقية الميدانية) */}
           <div className={`p-4 rounded-2xl border transition-all ${themeClasses.sidebarCard}`}>
-            <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-stone-200/80 dark:border-stone-800">
+            <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-stone-200/80">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <span className="font-newspaper-headline text-xs font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <span className={`font-newspaper-headline text-xs font-bold uppercase tracking-wider ${themeClasses.title}`}>
                   {isAr ? 'بيانات التوثيق والتدقيق' : 'Verification Dossier'}
                 </span>
               </div>
-              <span className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
+              <span className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
                 <CheckCircle2 className="w-3 h-3" />
                 {article.factCheck.score}%
               </span>
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="p-2.5 rounded-xl bg-stone-500/5 border border-stone-200/60 dark:border-stone-800">
-                <span className="text-[10px] text-stone-500 dark:text-stone-400 block">{isAr ? 'الإقليم الجغرافي' : 'Region'}</span>
-                <span className="font-bold text-stone-900 dark:text-stone-100 truncate block mt-0.5">
+              <div className={`p-2.5 rounded-xl border ${themeClasses.cardItem}`}>
+                <span className={`text-[10px] block ${themeClasses.subtext}`}>{isAr ? 'الإقليم الجغرافي' : 'Region'}</span>
+                <span className={`font-bold truncate block mt-0.5 ${themeClasses.title}`}>
                   {isAr ? article.countryName : article.countryNameEn}
                 </span>
               </div>
-              <div className="p-2.5 rounded-xl bg-stone-500/5 border border-stone-200/60 dark:border-stone-800">
-                <span className="text-[10px] text-stone-500 dark:text-stone-400 block">{isAr ? 'القطاع' : 'Sector'}</span>
-                <span className="font-bold text-amber-700 dark:text-amber-400 truncate block mt-0.5">
+              <div className={`p-2.5 rounded-xl border ${themeClasses.cardItem}`}>
+                <span className={`text-[10px] block ${themeClasses.subtext}`}>{isAr ? 'القطاع' : 'Sector'}</span>
+                <span className="font-bold text-amber-700 truncate block mt-0.5">
                   {article.sector || article.category}
                 </span>
               </div>
-              <div className="p-2.5 rounded-xl bg-stone-500/5 border border-stone-200/60 dark:border-stone-800">
-                <span className="text-[10px] text-stone-500 dark:text-stone-400 block">{isAr ? 'الأثر السوقي' : 'Market Impact'}</span>
-                <span className="font-bold text-stone-900 dark:text-stone-100 truncate block mt-0.5">
+              <div className={`p-2.5 rounded-xl border ${themeClasses.cardItem}`}>
+                <span className={`text-[10px] block ${themeClasses.subtext}`}>{isAr ? 'الأثر السوقي' : 'Market Impact'}</span>
+                <span className={`font-bold truncate block mt-0.5 ${themeClasses.title}`}>
                   {article.marketImpact === 'positive' ? (isAr ? 'نمو وتوسع ↗' : 'Bullish ↗') : (isAr ? 'استقرار ➔' : 'Stable ➔')}
                 </span>
               </div>
-              <div className="p-2.5 rounded-xl bg-stone-500/5 border border-stone-200/60 dark:border-stone-800">
-                <span className="text-[10px] text-stone-500 dark:text-stone-400 block">{isAr ? 'النمط الصحفي' : 'Genre'}</span>
-                <span className="font-bold text-stone-900 dark:text-stone-100 truncate block mt-0.5">
+              <div className={`p-2.5 rounded-xl border ${themeClasses.cardItem}`}>
+                <span className={`text-[10px] block ${themeClasses.subtext}`}>{isAr ? 'النمط الصحفي' : 'Genre'}</span>
+                <span className={`font-bold truncate block mt-0.5 ${themeClasses.title}`}>
                   {article.journalisticType || (isAr ? 'تقرير استقصائي' : 'Report')}
                 </span>
               </div>
@@ -1630,10 +1654,10 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
 
           {/* 3. Quick Audio Player Controller (مشغل الاستماع الصوتي المكتبي السريع) */}
           <div className={`p-4 rounded-2xl border transition-all ${themeClasses.sidebarCard}`}>
-            <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-stone-200/80 dark:border-stone-800">
+            <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-stone-200/80">
               <div className="flex items-center gap-2">
-                <Volume2 className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                <span className="font-newspaper-headline text-xs font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100">
+                <Volume2 className="w-4 h-4 text-amber-600" />
+                <span className={`font-newspaper-headline text-xs font-bold uppercase tracking-wider ${themeClasses.title}`}>
                   {isAr ? 'القارئ الصوتي التحريري' : 'Audio Brief'}
                 </span>
               </div>
@@ -1646,7 +1670,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
             </div>
 
             <div className="flex items-center justify-between gap-2 pt-1">
-              <div className="text-[11px] font-newspaper-body text-stone-600 dark:text-stone-400 leading-tight">
+              <div className={`text-[11px] font-newspaper-body leading-tight ${themeClasses.subtext}`}>
                 {isPlayingAudio 
                   ? (isAr ? 'جارٍ الاستماع للنص الصحفي' : 'Playing narrated report')
                   : isAudioPaused
@@ -1676,7 +1700,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                 {(isPlayingAudio || isAudioPaused) && (
                   <button
                     onClick={handleStopAudio}
-                    className="p-1.5 rounded-lg bg-stone-200 dark:bg-stone-800 text-rose-500 hover:bg-stone-300 dark:hover:bg-stone-700 cursor-pointer"
+                    className="p-1.5 rounded-lg bg-stone-200 text-rose-500 hover:bg-stone-300 cursor-pointer"
                     title={isAr ? 'إلغاء التشغيل' : 'Stop'}
                   >
                     <RotateCcw className="w-3 h-3" />
@@ -1686,8 +1710,8 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
             </div>
 
             {audioProgress > 0 && (
-              <div className="mt-2.5 pt-2 border-t border-stone-200/60 dark:border-stone-800 flex items-center gap-2 text-[10px] font-mono text-stone-500">
-                <div className="flex-1 bg-stone-200 dark:bg-stone-800 rounded-full h-1.5 overflow-hidden">
+              <div className="mt-2.5 pt-2 border-t border-stone-200/60 flex items-center gap-2 text-[10px] font-mono text-stone-500">
+                <div className="flex-1 bg-stone-200 rounded-full h-1.5 overflow-hidden">
                   <div className="bg-amber-500 h-full transition-all" style={{ width: `${audioProgress}%` }} />
                 </div>
                 <span>{audioProgress}%</span>
@@ -1698,10 +1722,10 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
           {/* 4. Quick Official Citations (المراجع والوثائق المعتمدة السريعة) */}
           {article.citations && article.citations.length > 0 && (
             <div className={`p-4 rounded-2xl border transition-all ${themeClasses.sidebarCard}`}>
-              <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-stone-200/80 dark:border-stone-800">
+              <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-stone-200/80">
                 <div className="flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                  <span className="font-newspaper-headline text-xs font-bold uppercase tracking-wider text-stone-900 dark:text-stone-100">
+                  <BookOpen className="w-4 h-4 text-amber-600" />
+                  <span className={`font-newspaper-headline text-xs font-bold uppercase tracking-wider ${themeClasses.title}`}>
                     {isAr ? 'المصادر والوثائق المعتمدة' : 'Official References'}
                   </span>
                 </div>
@@ -1718,18 +1742,18 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                       setActiveCitationId(cit.id);
                       scrollToAnchor(`cit-${cit.id}`);
                     }}
-                    className="p-2 rounded-xl bg-stone-500/5 hover:bg-stone-500/10 border border-stone-200/60 dark:border-stone-800 cursor-pointer transition-colors"
+                    className={`p-2 rounded-xl border cursor-pointer transition-colors ${themeClasses.cardItem} hover:opacity-80`}
                   >
-                    <div className="flex items-center justify-between font-bold text-stone-900 dark:text-stone-100">
+                    <div className={`flex items-center justify-between font-bold ${themeClasses.title}`}>
                       <span className="truncate text-xs">
-                        <span className="font-mono text-amber-600 dark:text-amber-400 mr-1">[{idx + 1}]</span>
+                        <span className="font-mono text-amber-600 mr-1">[{idx + 1}]</span>
                         {cit.sourceName}
                       </span>
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono shrink-0">
+                      <span className="text-[10px] text-emerald-600 font-mono shrink-0">
                         {cit.credibilityScore}%
                       </span>
                     </div>
-                    <div className="text-[10px] text-stone-500 truncate mt-1">
+                    <div className={`text-[10px] truncate mt-1 ${themeClasses.subtext}`}>
                       {cit.snippet}
                     </div>
                   </div>
@@ -1737,7 +1761,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                 {article.citations.length > 3 && (
                   <button
                     onClick={() => scrollToAnchor('sec-citations')}
-                    className="w-full text-center text-[11px] text-amber-700 dark:text-amber-400 hover:underline pt-1 cursor-pointer font-bold"
+                    className="w-full text-center text-[11px] text-amber-700 hover:underline pt-1 cursor-pointer font-bold"
                   >
                     {isAr ? `عرض باقي المصادر (+${article.citations.length - 3})` : `View all sources (+${article.citations.length - 3})`}
                   </button>
@@ -1748,7 +1772,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
 
           {/* 5. Quick Document Actions (أدوات سريعة للمقال) */}
           <div className={`p-4 rounded-2xl border transition-all ${themeClasses.sidebarCard}`}>
-            <div className="text-[10px] uppercase font-bold text-stone-400 tracking-wider mb-2.5">
+            <div className={`text-[10px] uppercase font-bold tracking-wider mb-2.5 ${themeClasses.subtext}`}>
               {isAr ? 'إجراءات ومشاركة' : 'Quick Actions'}
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
@@ -1756,8 +1780,8 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                 onClick={handleToggleSave}
                 className={`flex items-center justify-center gap-1.5 p-2 rounded-xl border transition-colors cursor-pointer ${
                   isSaved 
-                    ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/40 font-bold' 
-                    : 'bg-stone-500/5 hover:bg-stone-500/10 border-stone-200/80 dark:border-stone-800 text-stone-700 dark:text-stone-300'
+                    ? 'bg-amber-500/20 text-amber-700 border-amber-500/40 font-bold' 
+                    : `${themeClasses.cardItem} hover:opacity-80`
                 }`}
               >
                 {isSaved ? <BookmarkCheck className="w-3.5 h-3.5 text-amber-600" /> : <Bookmark className="w-3.5 h-3.5" />}
@@ -1766,7 +1790,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
 
               <button
                 onClick={handleShare}
-                className="flex items-center justify-center gap-1.5 p-2 rounded-xl bg-stone-500/5 hover:bg-stone-500/10 border border-stone-200/80 dark:border-stone-800 text-stone-700 dark:text-stone-300 transition-colors cursor-pointer"
+                className={`flex items-center justify-center gap-1.5 p-2 rounded-xl border transition-colors cursor-pointer ${themeClasses.cardItem} hover:opacity-80`}
               >
                 <Share2 className="w-3.5 h-3.5 text-amber-600" />
                 <span>{isAr ? 'مشاركة' : 'Share'}</span>
@@ -1774,7 +1798,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
 
               <button
                 onClick={handlePrint}
-                className="flex items-center justify-center gap-1.5 p-2 rounded-xl bg-stone-500/5 hover:bg-stone-500/10 border border-stone-200/80 dark:border-stone-800 text-stone-700 dark:text-stone-300 transition-colors cursor-pointer"
+                className={`flex items-center justify-center gap-1.5 p-2 rounded-xl border transition-colors cursor-pointer ${themeClasses.cardItem} hover:opacity-80`}
               >
                 <Printer className="w-3.5 h-3.5 text-emerald-600" />
                 <span>{isAr ? 'طباعة' : 'Print'}</span>
@@ -1782,7 +1806,7 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
 
               <button
                 onClick={handleDownload}
-                className="flex items-center justify-center gap-1.5 p-2 rounded-xl bg-stone-500/5 hover:bg-stone-500/10 border border-stone-200/80 dark:border-stone-800 text-stone-700 dark:text-stone-300 transition-colors cursor-pointer"
+                className={`flex items-center justify-center gap-1.5 p-2 rounded-xl border transition-colors cursor-pointer ${themeClasses.cardItem} hover:opacity-80`}
               >
                 <Download className="w-3.5 h-3.5 text-sky-600" />
                 <span>{isAr ? 'تحميل' : 'Export'}</span>
@@ -1793,9 +1817,9 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
       </div>
 
       {/* Newspaper Bottom Stamp */}
-      <div className="w-[98%] mx-auto mt-6 sm:mt-8 text-center text-xs font-newspaper-body text-stone-500 dark:text-stone-400 pb-12">
+      <div className={`w-[98%] mx-auto mt-6 sm:mt-8 text-center text-xs font-newspaper-body ${themeClasses.subtext} pb-12`}>
         <div>{isAr ? 'صحيفة لافريكونوميست · حرية الرصد والاستقصاء المالي المستقل' : "L'Africonomist · Independent Pan-African Financial Gazette"}</div>
-        <div className="text-[10px] text-stone-400 dark:text-stone-600 mt-1">
+        <div className={`text-[10px] ${themeClasses.subtext} mt-1 opacity-75`}>
           {isAr ? 'جميع الحقوق محفوظة للمؤسسة الناشرة © 2026' : 'All Rights Reserved © 2026'}
         </div>
       </div>

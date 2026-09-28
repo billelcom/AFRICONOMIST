@@ -324,7 +324,7 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
                 <div>
                   <h3 className="text-sm font-bold text-white flex items-center gap-2">
                     <Globe className="w-4 h-4 text-amber-400" />
-                    <span>{isAr ? 'تعيين الدولة (متاح 54 دولة أفريقية)' : 'Select Country (All 54 African Nations)'}</span>
+                    <span>{isAr ? `تعيين الدولة (متاح ${ALL_54_AFRICAN_COUNTRIES.length} دولة أفريقية)` : `Select Country (All ${ALL_54_AFRICAN_COUNTRIES.length} African Nations)`}</span>
                   </h3>
                   <p className="text-xs text-slate-400">
                     {isAr 
@@ -333,14 +333,14 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
                   </p>
                 </div>
 
-                {/* Search Bar for 54 Countries */}
+                {/* Search Bar for Countries */}
                 <div className="relative w-full sm:w-64">
                   <Search className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     value={countrySearch}
                     onChange={(e) => setCountrySearch(e.target.value)}
-                    placeholder={isAr ? 'بحث بين 54 دولة...' : 'Search 54 countries...'}
+                    placeholder={isAr ? `بحث بين ${ALL_54_AFRICAN_COUNTRIES.length} دولة...` : `Search ${ALL_54_AFRICAN_COUNTRIES.length} countries...`}
                     className="w-full bg-slate-950 border border-slate-700/80 rounded-lg pr-9 pl-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
                   />
                   {countrySearch && (
@@ -387,7 +387,7 @@ export const CreateReportModal: React.FC<CreateReportModalProps> = ({
               {/* Full 54 Countries Grid */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs text-slate-400">
-                  <span>{isAr ? 'جميع الدول الأفريقية (54 دولة مرتبة حسب الناتج)' : 'All 54 African Nations (Ranked by GDP)'}</span>
+                  <span>{isAr ? `جميع الدول الأفريقية (${ALL_54_AFRICAN_COUNTRIES.length} دولة مرتبة حسب الناتج)` : `All ${ALL_54_AFRICAN_COUNTRIES.length} African Nations (Ranked by GDP)`}</span>
                   <span className="font-mono text-[11px] text-amber-400">{filteredCountries.length} {isAr ? 'دولة متاحة' : 'countries'}</span>
                 </div>
 

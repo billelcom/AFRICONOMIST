@@ -1,0 +1,70 @@
+{
+  "entities": {
+    "users": {
+      "title": "UserProfile",
+      "description": "User profile with roles and metadata",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "format": "email", "maxLength": 200 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "photoURL": { "type": "string", "maxLength": 500 },
+        "coverURL": { "type": "string", "maxLength": 500 },
+        "bio": { "type": "string", "maxLength": 1000 },
+        "role": { "type": "string", "enum": ["ADMIN", "SUPERVISOR", "EDITOR", "READER"] },
+        "favoriteCountry": { "type": "string", "maxLength": 10 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["uid", "email", "displayName", "role"]
+    },
+    "savedArticles": {
+      "title": "SavedArticle",
+      "description": "Article bookmarked by user",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "articleId": { "type": "string", "maxLength": 128 },
+        "articleTitle": { "type": "string", "maxLength": 300 },
+        "articleTitleEn": { "type": "string", "maxLength": 300 },
+        "category": { "type": "string", "maxLength": 100 },
+        "countryCode": { "type": "string", "maxLength": 10 },
+        "countryName": { "type": "string", "maxLength": 100 },
+        "imageUrl": { "type": "string", "maxLength": 500 },
+        "summary": { "type": "string", "maxLength": 2000 },
+        "savedAt": { "type": "string" }
+      },
+      "required": ["userId", "articleId", "articleTitle"]
+    },
+    "notifications": {
+      "title": "Notification",
+      "description": "User notifications for reviews, notes, and saves",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "type": { "type": "string", "enum": ["system", "saved", "editorial_review", "revision_requested", "article_published"] },
+        "title": { "type": "string", "maxLength": 200 },
+        "message": { "type": "string", "maxLength": 1000 },
+        "read": { "type": "boolean" },
+        "articleId": { "type": "string", "maxLength": 128 },
+        "countrySlug": { "type": "string", "maxLength": 100 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["userId", "type", "title", "message", "read"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/users" },
+      "description": "Stores user profiles with RBAC roles"
+    },
+    "/savedArticles/{saveId}": {
+      "schema": { "$ref": "#/entities/savedArticles" },
+      "description": "Stores articles bookmarked by individual users"
+    },
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/notifications" },
+      "description": "Stores notification dispatches for users and editorial staff"
+    }
+  }
+}

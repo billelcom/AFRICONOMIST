@@ -22,8 +22,11 @@ import {
   ChevronUp,
   X,
   UserCheck,
-  Timer
+  Timer,
+  Bookmark,
+  BookmarkCheck
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import { ECONOMIC_SECTORS, JOURNALISTIC_GENRES } from '../../data/reportOptions';
 import { getCountryFlag } from '../../lib/africanGeoProximity';
 import { DraggableFloatingContainer } from '../DraggableFloatingContainer';
@@ -57,6 +60,8 @@ interface CreativeReportCardProps {
 }
 
 const CreativeReportCard: React.FC<CreativeReportCardProps> = ({ article, onSelect, isAr }) => {
+  const { isArticleSaved, saveArticle, unsaveArticle } = useAuth();
+  const saved = isArticleSaved(article.id);
   const flag = getCountryFlag(article.countryCode);
   
   const formattedDateTime = useMemo(() => {
@@ -95,9 +100,37 @@ const CreativeReportCard: React.FC<CreativeReportCardProps> = ({ article, onSele
             </span>
           </div>
 
-          <div className="flex items-center gap-1 font-mono text-[10px] text-emerald-400/90 shrink-0 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-            <ShieldCheck className="w-3 h-3 text-emerald-400" />
-            <span>{article.factCheck.score}% {isAr ? 'دقة' : ''}</span>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* زر حفظ المقال السريع */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (saved) {
+                  unsaveArticle(article.id);
+                } else {
+                  saveArticle(article);
+                }
+              }}
+              className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                saved
+                  ? 'bg-amber-500/25 text-amber-300 border-amber-500/50 shadow-sm'
+                  : 'bg-slate-900/90 hover:bg-slate-800 text-slate-400 hover:text-amber-400 border-slate-700/60'
+              }`}
+              title={saved ? (isAr ? 'محفوظ في حسابك (انقر للإلغاء)' : 'Saved (click to unsave)') : (isAr ? 'حفظ المقال في حسابك' : 'Save article to account')}
+              aria-label="Save Article"
+            >
+              {saved ? (
+                <BookmarkCheck className="w-3.5 h-3.5 text-amber-400 fill-amber-400/20" />
+              ) : (
+                <Bookmark className="w-3.5 h-3.5" />
+              )}
+            </button>
+
+            <div className="flex items-center gap-1 font-mono text-[10px] text-emerald-400/90 shrink-0 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+              <ShieldCheck className="w-3 h-3 text-emerald-400" />
+              <span>{article.factCheck.score}% {isAr ? 'دقة' : ''}</span>
+            </div>
           </div>
         </div>
 
@@ -319,16 +352,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </div>
 
             <div className="flex flex-wrap items-center gap-2 shrink-0">
-              {onNavigateToCountryDossier && (
-                <button
-                  onClick={() => onNavigateToCountryDossier(activeCountry.slug)}
-                  className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-colors flex items-center gap-1.5 border border-slate-700/60"
-                >
-                  <span>{isAr ? 'الملف الاقتصادي المتكامل' : 'View Full Dossier'}</span>
-                  <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
-                </button>
-              )}
-
               {onClearFilters && (
                 <button
                   onClick={onClearFilters}

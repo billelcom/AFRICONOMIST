@@ -1,0 +1,93 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'bbillel87@gmail.com' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN')
+      );
+    }
+
+    function isSupervisor() {
+      return isSignedIn() && (
+        isAdmin() ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'SUPERVISOR')
+      );
+    }
+
+    // 1. Users collection
+    match /users/{userId} {
+      allow get: if isSignedIn() && (isOwner(userId) || isSupervisor());
+      allow list: if isSignedIn() && isSupervisor();
+
+      allow create: if isSignedIn() && isOwner(userId) && isValidId(userId)
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email is string
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() <= 100
+        && request.resource.data.role in ['ADMIN', 'SUPERVISOR', 'EDITOR', 'READER'];
+
+      allow update: if isSignedIn() && isValidId(userId) && (
+        // Regular user updating their own profile without privilege escalation
+        (isOwner(userId) && request.resource.data.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'uid'])) ||
+        // Admin full permission
+        isAdmin()
+      );
+
+      allow delete: if isAdmin() && isValidId(userId);
+    }
+
+    // 2. Saved Articles collection
+    match /savedArticles/{saveId} {
+      allow get: if isSignedIn() && isValidId(saveId) && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+
+      allow create: if isSignedIn() && isValidId(saveId)
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.articleId is string
+        && request.resource.data.articleTitle is string;
+
+      allow update: if isSignedIn() && isValidId(saveId)
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid;
+
+      allow delete: if isSignedIn() && isValidId(saveId) && resource.data.userId == request.auth.uid;
+    }
+
+    // 3. Notifications collection
+    match /notifications/{notificationId} {
+      allow get: if isSignedIn() && isValidId(notificationId) && (resource.data.userId == request.auth.uid || resource.data.userId == 'ALL');
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.userId == 'ALL');
+
+      allow create: if isSignedIn() && isValidId(notificationId) && (
+        isSupervisor() || request.resource.data.userId == request.auth.uid
+      );
+
+      allow update: if isSignedIn() && isValidId(notificationId)
+        && (resource.data.userId == request.auth.uid || isSupervisor())
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+
+      allow delete: if isSignedIn() && isValidId(notificationId) && (resource.data.userId == request.auth.uid || isSupervisor());
+    }
+  }
+}

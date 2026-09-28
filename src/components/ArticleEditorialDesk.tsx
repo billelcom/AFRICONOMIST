@@ -42,8 +42,13 @@ import {
   Building2,
   Flame,
   Coins,
-  Briefcase
+  Briefcase,
+  Send,
+  AlertCircle,
+  Crown,
+  MessageSquare
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { ALL_54_AFRICAN_COUNTRIES } from '../data/africanCountries';
 import { JOURNALISTIC_GENRES, ECONOMIC_SECTORS } from '../data/reportOptions';
 
@@ -77,8 +82,8 @@ const getCountryFlagEmoji = (code: string) => {
 
 // Regions configuration for 54 African countries
 const AFRICAN_REGIONS = [
-  { id: 'all', labelAr: 'الكل (54 دولة)', labelEn: 'All (54)' },
-  { id: 'north', labelAr: 'شمال أفريقيا', labelEn: 'North', codes: ['EG', 'DZ', 'MA', 'TN', 'LY', 'SD', 'MR'] },
+  { id: 'all', labelAr: 'الكل (كافة الدول)', labelEn: 'All Countries' },
+  { id: 'north', labelAr: 'شمال أفريقيا', labelEn: 'North', codes: ['EG', 'DZ', 'MA', 'TN', 'LY', 'SD', 'MR', 'EH'] },
   { id: 'west', labelAr: 'غرب أفريقيا', labelEn: 'West', codes: ['NG', 'GH', 'CI', 'SN', 'ML', 'BF', 'NE', 'GN', 'BJ', 'TG', 'SL', 'LR', 'GM', 'GW', 'CV'] },
   { id: 'east', labelAr: 'شرق أفريقيا', labelEn: 'East', codes: ['KE', 'ET', 'TZ', 'UG', 'RW', 'BI', 'SS', 'SO', 'DJ', 'ER', 'SC', 'MU', 'KM', 'MG'] },
   { id: 'central', labelAr: 'وسط أفريقيا', labelEn: 'Central', codes: ['CD', 'CM', 'AO', 'CG', 'GA', 'TD', 'CF', 'GQ', 'ST'] },
@@ -125,6 +130,11 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
   lang
 }) => {
   const isAr = lang === 'ar';
+  const { user, profile, role, sendNotification } = useAuth();
+  const isAdmin = role === 'ADMIN';
+  const isSupervisor = role === 'SUPERVISOR' || isAdmin;
+  const isEditor = role === 'EDITOR';
+  const [submissionFeedback, setSubmissionFeedback] = useState<string | null>(null);
 
   // State for editable fields
   const [editableTitle, setEditableTitle] = useState<string>(article.title || '');
@@ -602,6 +612,49 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
               MAIN COLUMN (8 COLS): HEADLINE, SUMMARY, EXPANDING CONTENT, GRAPHICS
              ------------------------------------------------------------------- */}
           <div className="xl:col-span-8 space-y-6 w-full max-w-full">
+            {/* Feedback notification */}
+            {submissionFeedback && (
+              <div className="p-4 rounded-2xl bg-emerald-950/60 border border-emerald-500/50 text-emerald-200 text-xs font-bold flex items-center gap-2.5 shadow-lg animate-in fade-in">
+                <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>{submissionFeedback}</span>
+              </div>
+            )}
+
+            {/* بانر ملاحظات وتوجيه المشرف التحريري للتعديل */}
+            {article.reviewNotes && (
+              <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-950/40 via-purple-950/30 to-amber-950/40 border border-amber-500/40 text-amber-200 space-y-2 shadow-xl animate-in fade-in">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 font-black text-amber-300 text-xs sm:text-sm">
+                    <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>{isAr ? '📌 ملاحظات وتوجيهات المشرف التحريري للتعديل:' : 'Supervisor Revision Directive:'}</span>
+                  </div>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">
+                    {isAr ? 'مطلوب مراجعة' : 'Action Required'}
+                  </span>
+                </div>
+                <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 text-slate-200 text-xs leading-relaxed font-sans">
+                  {article.reviewNotes}
+                </div>
+              </div>
+            )}
+
+            {/* شريط توضيح الدور والصلاحيات الحالية */}
+            <div className="px-4 py-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-slate-400">{isAr ? 'الدور التحريري النشط:' : 'Active Role:'}</span>
+                <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-bold border ${
+                  isAdmin ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' :
+                  isSupervisor ? 'bg-purple-500/20 text-purple-300 border-purple-500/40' :
+                  'bg-blue-500/20 text-blue-300 border-blue-500/40'
+                }`}>
+                  {role} {isAdmin ? (isAr ? '· كامل الصلاحيات' : '· Full Access') : isSupervisor ? (isAr ? '· مراجعة ونشر' : '· Publisher') : (isAr ? '· صياغة وتوليد دون نشر' : '· Drafter')}
+                </span>
+              </div>
+              <span className="text-[10.5px] text-slate-400 font-mono">
+                {isSupervisor ? (isAr ? 'صلاحية النشر مفعلة ✅' : 'Publishing Enabled') : (isAr ? 'النشر مقيد للمشرفين 🔒' : 'Publish Restricted')}
+              </span>
+            </div>
+
             {/* Box 1: Expansive Headline */}
             <div className="p-5 sm:p-6 rounded-2xl bg-[#080C17] border border-slate-800 shadow-xl space-y-2 w-full max-w-full">
               <div className="flex items-center justify-between">
@@ -986,28 +1039,78 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
               SIDE COLUMN (4 COLS): EDITORIAL ACTIONS, METADATA, FACT-CHECK & AI
              ------------------------------------------------------------------- */}
           <div className="xl:col-span-4 space-y-6 w-full max-w-full">
-            {/* Box A: Editorial Decision Deck (المبدأ الصحفي: ينشر، يعدل، يؤرشف) */}
+            {/* Box A: Editorial Decision Deck (المبدأ الصحفي: ينشر، يعدل، يؤرشف وفق الأدوار) */}
             <div className="p-5 sm:p-6 rounded-2xl bg-[#080C17] border border-slate-800 shadow-xl space-y-4 w-full max-w-full">
-              <div className="border-b border-slate-800/80 pb-3">
+              <div className="border-b border-slate-800/80 pb-3 flex items-center justify-between">
                 <h3 className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                  <span>{isAr ? 'القرارات التحريرية للمشرف' : 'Editorial Decisions'}</span>
+                  <span>{isSupervisor ? (isAr ? 'القرارات التحريرية للمشرف' : 'Editorial Decisions') : (isAr ? 'لوحة تحرير وإرسال المسودة' : 'Editor Submission Deck')}</span>
                 </h3>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                  isAdmin ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' :
+                  isSupervisor ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' :
+                  'bg-blue-500/20 text-blue-300 border-blue-500/30'
+                }`}>
+                  {role}
+                </span>
               </div>
 
               {/* Action Buttons */}
               <div className="space-y-2.5">
-                {/* 1. نشر المقال للجمهور */}
-                <button
-                  type="button"
-                  onClick={() => onPublish(buildCurrentUpdatedArticle(), humanReviewerNote)}
-                  className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all cursor-pointer"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>{isAr ? 'نشر المقال للجمهور (Publish)' : 'Publish to Live Feed'}</span>
-                </button>
+                {/* إذا كان مشرفاً أو أدمن: يمكنه النشر المباشر للجمهور */}
+                {isSupervisor ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = buildCurrentUpdatedArticle();
+                      onPublish(updated, humanReviewerNote);
+                      sendNotification({
+                        userId: 'ALL',
+                        type: 'article_published',
+                        title: isAr ? 'تم اعتماد ونشر تقرير اقتصادي جديد' : 'New Report Published',
+                        message: isAr
+                          ? `اعتمد المشرف (${profile?.displayName || 'مشرف التحرير'}) نشر تقرير: "${updated.title.substring(0, 45)}...".`
+                          : `Supervisor published: "${updated.title.substring(0, 45)}...".`,
+                        articleId: updated.id,
+                        countrySlug: updated.countryCode.toLowerCase()
+                      });
+                      setSubmissionFeedback(isAr ? '✅ تم نشر المقال بنجاح وإتاحته للجمهور!' : '✅ Article published successfully!');
+                      setTimeout(() => setSubmissionFeedback(null), 3500);
+                    }}
+                    className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>{isAr ? 'نشر المقال للجمهور (Publish)' : 'Publish to Live Feed'}</span>
+                  </button>
+                ) : (
+                  /* إذا كان محرراً: لا ينشر مباشرة، بل يحفظ ويرسل للمشرف للاعتماد */
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = buildCurrentUpdatedArticle();
+                      updated.status = 'pending_review';
+                      onSaveDraft(updated);
+                      sendNotification({
+                        userId: 'ALL',
+                        type: 'editorial_review',
+                        title: isAr ? 'مسودة جديدة بانتظار إجازة المشرف' : 'New Draft Awaiting Review',
+                        message: isAr
+                          ? `أرسل المحرر (${profile?.displayName || 'المحرر'}) مسودة "${updated.title.substring(0, 45)}..." للاعتماد والنشر.`
+                          : `Editor submitted draft "${updated.title.substring(0, 45)}..." for review.`,
+                        articleId: updated.id,
+                        countrySlug: updated.countryCode.toLowerCase()
+                      });
+                      setSubmissionFeedback(isAr ? '📤 تم حفظ المسودة وإرسالها للمشرفين بنجاح للاعتماد!' : '📤 Draft submitted to supervisors for review!');
+                      setTimeout(() => setSubmissionFeedback(null), 4000);
+                    }}
+                    className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all cursor-pointer"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>{isAr ? 'إرسال للمشرف للاعتماد والمراجعة' : 'Submit for Supervisor Review'}</span>
+                  </button>
+                )}
 
-                {/* 2. تعديل ومحاولة بالذكاء الاصطناعي */}
+                {/* 2. تعديل ومحاولة بالذكاء الاصطناعي (متاح للمشرفين والمحررين) */}
                 <button
                   type="button"
                   disabled={isAiRefining}
@@ -1021,37 +1124,87 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
                 {/* 3. حفظ المسودة */}
                 <button
                   type="button"
-                  onClick={() => onSaveDraft(buildCurrentUpdatedArticle())}
+                  onClick={() => {
+                    onSaveDraft(buildCurrentUpdatedArticle());
+                    setSubmissionFeedback(isAr ? '💾 تم حفظ التعديلات على المسودة بنجاح.' : '💾 Draft saved.');
+                    setTimeout(() => setSubmissionFeedback(null), 3000);
+                  }}
                   className="w-full py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
                 >
                   <Check className="w-3.5 h-3.5 text-emerald-400" />
                   <span>{isAr ? 'حفظ التعديلات كمسودة' : 'Save Draft Edits'}</span>
                 </button>
 
-                {/* 4. أرشفة المقال */}
-                <button
-                  type="button"
-                  onClick={() => onArchive(buildCurrentUpdatedArticle(), humanReviewerNote)}
-                  className="w-full py-2 px-4 rounded-xl bg-slate-900 hover:bg-rose-950/40 text-slate-400 hover:text-rose-300 border border-slate-800 hover:border-rose-500/40 font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
-                >
-                  <Archive className="w-3.5 h-3.5" />
-                  <span>{isAr ? 'أرشفة التقرير (Archive)' : 'Archive Report'}</span>
-                </button>
+                {/* 4. أرشفة المقال (مخصصة للمشرفين والأدمن) */}
+                {isSupervisor && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = buildCurrentUpdatedArticle();
+                      onArchive(updated, humanReviewerNote);
+                      setSubmissionFeedback(isAr ? '📦 تم نقل المقال إلى الأرشيف بنجاح.' : '📦 Article archived.');
+                      setTimeout(() => setSubmissionFeedback(null), 3000);
+                    }}
+                    className="w-full py-2 px-4 rounded-xl bg-slate-900 hover:bg-rose-950/40 text-slate-400 hover:text-rose-300 border border-slate-800 hover:border-rose-500/40 font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                  >
+                    <Archive className="w-3.5 h-3.5" />
+                    <span>{isAr ? 'أرشفة التقرير (Archive)' : 'Archive Report'}</span>
+                  </button>
+                )}
+
+                {/* تنبيه قيود الصلاحية للمحررين */}
+                {!isSupervisor && (
+                  <p className="text-[10px] text-slate-400 p-2 rounded-lg bg-slate-950/60 border border-slate-800 leading-relaxed text-right">
+                    {isAr
+                      ? '🔒 بصفتك محرراً: يحق لك صياغة وتوليد وتعديل المقالات بالذكاء الاصطناعي، ويتم حفظها وإرسالها للمشرفين للاعتماد والنشر.'
+                      : 'Role Note: Editors draft articles and submit them to supervisors for final publication.'}
+                  </p>
+                )}
               </div>
 
-              {/* نقد المشرف البشري الموجه للوكيل */}
+              {/* نقد وتوجيه المشرف البشري الموجه للمحررين والوكيل */}
               <div className="pt-3 border-t border-slate-800/80 space-y-2">
-                <label className="text-xs font-bold text-rose-300 flex items-center gap-1.5">
-                  <Brain className="w-3.5 h-3.5 text-rose-400" />
-                  <span>{isAr ? 'ملاحظات ونقد المشرف البشري:' : 'Supervisor Critique Directive:'}</span>
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-rose-300 flex items-center gap-1.5">
+                    <Brain className="w-3.5 h-3.5 text-rose-400" />
+                    <span>{isSupervisor ? (isAr ? 'توجيه وملاحظات المشرف للمحرر:' : 'Supervisor Revision Directive:') : (isAr ? 'ملاحظات وتوجيه المشرف:' : 'Supervisor Notes:')}</span>
+                  </label>
+                </div>
                 <textarea
                   rows={2}
                   value={humanReviewerNote}
                   onChange={(e) => setHumanReviewerNote(e.target.value)}
-                  placeholder={isAr ? "اكتب توجيهك النقدي للذكاء الاصطناعي (مثال: تعميق سياق السياسة النقدية والتدفقات)..." : "Enter critique for AI prompt rewrite..."}
+                  placeholder={isAr ? "اكتب ملاحظاتك وتوجيهاتك التحريرية للمحررين لإجراء تعديلات..." : "Enter critique directive for editors..."}
                   className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-rose-500/60 leading-relaxed resize-none"
                 />
+
+                {/* زر إرسال الملاحظات للمحرر (للمشرفين والأدمن) */}
+                {isSupervisor && humanReviewerNote.trim() && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = buildCurrentUpdatedArticle();
+                      updated.reviewNotes = humanReviewerNote;
+                      onSaveDraft(updated);
+                      sendNotification({
+                        userId: 'ALL',
+                        type: 'revision_requested',
+                        title: isAr ? 'ملاحظات وتوجيهات تحريرية من المشرف' : 'Supervisor Revision Directive',
+                        message: isAr
+                          ? `طلب المشرف (${profile?.displayName || 'مشرف التحرير'}) تعديلات على مقال "${editableTitle.substring(0, 40)}...": "${humanReviewerNote}"`
+                          : `Supervisor revision note on "${editableTitle.substring(0, 40)}...": "${humanReviewerNote}"`,
+                        articleId: updated.id,
+                        countrySlug: updated.countryCode.toLowerCase()
+                      });
+                      setSubmissionFeedback(isAr ? '📝 تم إرسال الملاحظات للمحررين وتوثيقها في التقرير!' : 'Notes dispatched to editors!');
+                      setTimeout(() => setSubmissionFeedback(null), 3500);
+                    }}
+                    className="w-full py-2 px-3 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border border-rose-500/40 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5 text-rose-400" />
+                    <span>{isAr ? 'إرسال الملاحظات للمحررين وتوثيقها' : 'Send Revision Notes to Editors'}</span>
+                  </button>
+                )}
               </div>
             </div>
 

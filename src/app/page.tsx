@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import App from "../App";
+import { AuthProvider } from "../context/AuthContext";
 
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
@@ -24,5 +25,9 @@ export default function HomePage() {
     );
   }
 
-  return <App />;
+  return (
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  );
 }

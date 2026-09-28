@@ -35,6 +35,8 @@ import { AboutView } from './components/views/AboutView';
 import { PodcastView } from './components/views/PodcastView';
 import { VideoReportsView } from './components/views/VideoReportsView';
 import { PrivacyTermsView } from './components/views/PrivacyTermsView';
+import { ProfileView } from './components/views/ProfileView';
+import { NotificationsView } from './components/views/NotificationsView';
 import { InteractiveTopCard } from './components/InteractiveTopCard';
 import { Facebook, Twitter, Youtube, Instagram, Music2, MessageCircle, Linkedin, ShieldCheck, Building2, FileText } from 'lucide-react';
 
@@ -537,8 +539,17 @@ export default function App() {
             setSelectedCountrySlug(slug);
             setSelectedSectorId('all');
             setSelectedGenreId('all');
-            if (currentTab !== 'home') {
+            if (slug) {
+              setCurrentTab('country');
+              if (typeof window !== 'undefined') {
+                window.history.pushState({ tab: 'country', countrySlug: slug }, '', '#country-' + slug);
+              }
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
               setCurrentTab('home');
+              if (typeof window !== 'undefined') {
+                window.history.pushState({ tab: 'home' }, '', '#');
+              }
             }
           }}
           selectedSectorId={selectedSectorId}
@@ -561,7 +572,7 @@ export default function App() {
           currentTab === 'editorial' 
             ? 'w-full max-w-full px-0 pt-0' 
             : currentTab === 'article'
-            ? 'w-full max-w-full px-0 sm:px-6 lg:px-8 pt-1 sm:pt-4'
+            ? 'w-full max-w-full px-0 pt-0'
             : 'max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8'
         }`}
       >
@@ -582,6 +593,13 @@ export default function App() {
               setSelectedCountrySlug(countrySlug);
               setSelectedSectorId('all');
               setSelectedGenreId('all');
+              if (countrySlug) {
+                setCurrentTab('country');
+                if (typeof window !== 'undefined') {
+                  window.history.pushState({ tab: 'country', countrySlug }, '', '#country-' + countrySlug);
+                }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
             }}
             onOpenUpdater={() => setIsUpdaterModalOpen(true)}
             selectedCountrySlug={selectedCountrySlug}
@@ -614,6 +632,8 @@ export default function App() {
             onSelectArticle={handleSelectArticle}
             onOpenUpdater={() => setIsUpdaterModalOpen(true)}
             lang={lang}
+            onTriggerInstantReport={handleTriggerInstantReportForFilter}
+            onBackToHome={() => navigateToTab('home')}
           />
         )}
 
@@ -677,6 +697,28 @@ export default function App() {
           <VideoReportsView
             lang={lang}
             onNavigateHome={() => navigateToTab('home')}
+          />
+        )}
+
+        {currentTab === 'profile' && (
+          <ProfileView
+            articles={articles}
+            allCountries={countries}
+            onSelectArticle={handleSelectArticle}
+            onNavigateToNewsroom={() => navigateToTab('editorial')}
+            onNavigateToNotifications={() => navigateToTab('notifications')}
+            onBackToHome={() => navigateToTab('home')}
+            lang={lang}
+          />
+        )}
+
+        {currentTab === 'notifications' && (
+          <NotificationsView
+            articles={articles}
+            onSelectArticle={handleSelectArticle}
+            onNavigateToNewsroom={() => navigateToTab('editorial')}
+            onBackToHome={() => navigateToTab('home')}
+            lang={lang}
           />
         )}
       </main>

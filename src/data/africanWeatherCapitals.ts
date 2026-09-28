@@ -1100,7 +1100,28 @@ export const ALL_54_WEATHER_CAPITALS: WeatherCity[] = [
     tempMax: 32,
     tempMin: 22,
     pressure: 1012
+  },
+  {
+    id: 'western-sahara-aaiun',
+    nameAr: 'العيون',
+    nameEn: 'El Aaiún',
+    countryAr: 'الصحراء الغربية',
+    countryEn: 'Western Sahara',
+    countryCode: 'EH',
+    lat: 27.1536,
+    lon: -13.2033,
+    temp: 23,
+    conditionAr: 'صحراوي معتدل بحري',
+    conditionEn: 'Coastal Desert Breeze',
+    weatherCode: 1,
+    humidity: 58,
+    windSpeed: 14,
+    apparentTemp: 23,
+    tempMax: 26,
+    tempMin: 18,
+    pressure: 1016
   }
 ];
 
+export const ALL_WEATHER_CAPITALS: WeatherCity[] = ALL_54_WEATHER_CAPITALS;
 export const WEATHER_CAPITALS = ALL_54_WEATHER_CAPITALS;

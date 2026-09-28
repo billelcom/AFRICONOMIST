@@ -88,12 +88,14 @@ export interface AfricanCountryProfile {
   slug: string;
   nameAr: string;
   nameEn: string;
+  officialNameAr?: string;
+  officialNameEn?: string;
   capital: string;
   gdp: string;
   gdpNumber: number; // بالمليار دولار
   population: string;
   populationNumber: number; // بالملايين
-  rank: number; // الترتيب الاقتصادي 1-54
+  rank: number; // الترتيب الاقتصادي
   gdpGrowth: string;
   inflation: string;
   centralBankRate: string;
@@ -105,4 +107,34 @@ export interface AfricanCountryProfile {
   lastUpdated?: string;
   descriptionAr: string;
   descriptionEn: string;
+
+  // معلومات عامة وجغرافية إضافية
+  regionAr?: string; // إقليم: شمال أفريقيا، غرب، شرق، وسط، الجنوب الإفريقي
+  regionEn?: string;
+  areaKm2?: string; // المساحة الجغرافية: كم²
+  areaNumber?: number;
+  languagesAr?: string[]; // اللغات الرسمية والمتداولة
+  languagesEn?: string[];
+  locationAr?: string; // الموقع الجغرافي والحدود
+  locationEn?: string;
+  coastline?: string; // السواحل والمنافذ البحرية
+  majorCitiesAr?: string[]; // المدن الرئيسية
+  majorCitiesEn?: string[];
+  climateAr?: string; // المناخ والطبيعة
+  climateEn?: string;
+
+  // معلومات اقتصادية ومالية وقدرة شرائية تفصيلية
+  gdpPerCapita?: string; // نصيب الفرد من الناتج / متوسط الدخل
+  gdpPerCapitaNumber?: number;
+  gdpPPP?: string; // الناتج المحلي الإجمالي بتعادل القوة الشرائية
+  gdpPPPNumber?: number;
+  pppPerCapita?: string; // القدرة الشرائية للفرد
+  naturalResourcesAr?: string[]; // الموارد والثروات الطبيعية (معادن، طاقة، زراعة، صيد)
+  naturalResourcesEn?: string[];
+  majorExportsAr?: string[]; // أهم الصادرات
+  majorExportsEn?: string[];
+  tradePartnersAr?: string[]; // أبرز الشركاء التجاريين
+  tradePartnersEn?: string[];
+  sovereignReserves?: string; // الاحتياطيات النقدية السيادية
+  debtToGdp?: string; // نسبة الدين للناتج
 }

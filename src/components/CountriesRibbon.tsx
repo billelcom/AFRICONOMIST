@@ -77,10 +77,10 @@ export const CountriesRibbon: React.FC<CountriesRibbonProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-white font-extrabold text-sm sm:text-base">
-                {isAr ? 'الدول الأفريقية الـ 54' : 'All 54 African Sovereign States'}
+                {isAr ? `الدول الأفريقية (${countries.length} دولة)` : `All ${countries.length} African Sovereign States`}
               </h3>
               <span className="px-2 py-0.5 rounded-full text-[11px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                54 / 54
+                {countries.length} / {countries.length}
               </span>
               <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 animate-pulse">
                 <Sparkles className="w-3 h-3" />
@@ -104,7 +104,7 @@ export const CountriesRibbon: React.FC<CountriesRibbonProps> = ({
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder={isAr ? 'ابحث عن أي دولة...' : 'Search 54 countries...'}
+              placeholder={isAr ? `ابحث عن أي دولة (${countries.length})...` : `Search ${countries.length} countries...`}
               className="bg-slate-900 border border-slate-800 text-xs text-slate-200 rounded-lg py-1.5 px-8 focus:outline-none focus:border-amber-500 transition-colors w-36 sm:w-44"
             />
           </div>

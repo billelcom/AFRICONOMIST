@@ -10,7 +10,8 @@ export interface CountryGeoCoord {
 }
 
 export const AFRICAN_GEO_DATA: Record<string, CountryGeoCoord> = {
-  DZ: { lat: 28.0339, lng: 1.6596, neighbors: ['TN', 'LY', 'NE', 'ML', 'MR', 'MA'], flag: '🇩🇿' },
+  EH: { lat: 24.2155, lng: -12.8858, neighbors: ['DZ', 'MR', 'MA'], flag: '🇪🇭' },
+  DZ: { lat: 28.0339, lng: 1.6596, neighbors: ['TN', 'LY', 'NE', 'ML', 'MR', 'MA', 'EH'], flag: '🇩🇿' },
   TN: { lat: 33.8869, lng: 9.5375, neighbors: ['DZ', 'LY'], flag: '🇹🇳' },
   LY: { lat: 26.3351, lng: 17.2283, neighbors: ['TN', 'DZ', 'NE', 'TD', 'SD', 'EG'], flag: '🇱🇾' },
   EG: { lat: 26.8206, lng: 30.8025, neighbors: ['LY', 'SD'], flag: '🇪🇬' },
@@ -40,8 +41,8 @@ export const AFRICAN_GEO_DATA: Record<string, CountryGeoCoord> = {
   CI: { lat: 7.5400, lng: -5.5471, neighbors: ['LR', 'GN', 'ML', 'BF', 'GH'], flag: '🇨🇮' },
   BF: { lat: 12.2383, lng: -1.5616, neighbors: ['ML', 'NE', 'BJ', 'TG', 'GH', 'CI'], flag: '🇧🇫' },
   ML: { lat: 17.5707, lng: -3.9962, neighbors: ['DZ', 'NE', 'BF', 'CI', 'GN', 'SN', 'MR'], flag: '🇲🇱' },
-  MR: { lat: 21.0079, lng: -10.9408, neighbors: ['DZ', 'ML', 'SN', 'MA'], flag: '🇲🇷' },
-  MA: { lat: 31.7917, lng: -7.0926, neighbors: ['DZ', 'MR'], flag: '🇲🇦' },
+  MR: { lat: 21.0079, lng: -10.9408, neighbors: ['DZ', 'ML', 'SN', 'MA', 'EH'], flag: '🇲🇷' },
+  MA: { lat: 31.7917, lng: -7.0926, neighbors: ['DZ', 'MR', 'EH'], flag: '🇲🇦' },
   SN: { lat: 14.4974, lng: -14.4524, neighbors: ['MR', 'ML', 'GN', 'GW', 'GM'], flag: '🇸🇳' },
   GM: { lat: 13.4432, lng: -15.3101, neighbors: ['SN'], flag: '🇬🇲' },
   GW: { lat: 11.8037, lng: -15.1804, neighbors: ['SN', 'GN'], flag: '🇬🇼' },

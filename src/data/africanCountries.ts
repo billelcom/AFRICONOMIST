@@ -1,6 +1,7 @@
 import { AfricanCountryProfile } from '../types';
+import { enrichCountryProfile } from './countryDetailedData';
 
-export const ALL_54_AFRICAN_COUNTRIES: AfricanCountryProfile[] = [
+const BASE_AFRICAN_COUNTRIES: AfricanCountryProfile[] = [
   {
     code: 'ZA',
     slug: 'south-africa',
@@ -1062,9 +1063,37 @@ export const ALL_54_AFRICAN_COUNTRIES: AfricanCountryProfile[] = [
     descriptionEn: 'The perfume islands: supplying over 70% of the world’s ylang-ylang fragrance oil alongside vanilla and cloves.'
   },
   {
+    code: 'EH',
+    slug: 'western-sahara',
+    rank: 54,
+    nameAr: 'الصحراء الغربية',
+    nameEn: 'Western Sahara',
+    officialNameAr: 'الجمهورية العربية الصحراوية الديمقراطية',
+    officialNameEn: 'Saharawi Arab Democratic Republic',
+    capital: 'العيون',
+    gdp: '$1.15B',
+    gdpNumber: 1.15,
+    population: '0.62 مليون نسمة',
+    populationNumber: 0.62,
+    gdpGrowth: '+3.2%',
+    inflation: '3.4%',
+    centralBankRate: '3.00%',
+    currency: 'بيزيتا صحراوية / درهم',
+    currencySymbol: 'EHP / MAD',
+    keySectors: [
+      'فوسفات بوكراع (أحد أكبر احتياطيات الفوسفات بالعالم)',
+      'الصيد البحري والثروة السمكية الأطلسية الغنية',
+      'طاقة الرياح والطاقة الشمسية الكهروضوئية',
+      'الثروة الحيوانية والإبل وتجارة الترانزيت',
+      'المعادن ورواسب الرمال الثقيلة والملح'
+    ],
+    descriptionAr: 'إقليم استراتيجي يقع شمال غرب أفريقيا على الساحل الأطلسي، يمتلك أحد أكبر احتياطيات الفوسفات في العالم في منجم بوكراع، ومصايد أسماك غنية، وإمكانيات هائلة للطاقات المتجددة.',
+    descriptionEn: 'Strategic northwest African territory on the Atlantic coast possessing one of the world’s richest phosphate deposits at Bou Craa, rich offshore fisheries, and massive solar and wind energy capacity.'
+  },
+  {
     code: 'ST',
     slug: 'sao-tome-and-principe',
-    rank: 54,
+    rank: 55,
     nameAr: 'ساو تومي وبرينسيب',
     nameEn: 'Sao Tome and Principe',
     capital: 'ساو تومي',
@@ -1082,3 +1111,7 @@ export const ALL_54_AFRICAN_COUNTRIES: AfricanCountryProfile[] = [
     descriptionEn: 'Boutique producer of world-acclaimed organic cocoa, co-developing maritime petroleum blocks with Nigeria in the Gulf of Guinea.'
   }
 ];
+
+// تصدير القائمة الكاملة مع إثراء كافة المعطيات الاقتصادية والجغرافية العامة
+export const ALL_AFRICAN_COUNTRIES: AfricanCountryProfile[] = BASE_AFRICAN_COUNTRIES.map(enrichCountryProfile);
+export const ALL_54_AFRICAN_COUNTRIES: AfricanCountryProfile[] = ALL_AFRICAN_COUNTRIES;

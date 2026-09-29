@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
   User, 
   signInWithPopup, 
+  GoogleAuthProvider,
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   sendPasswordResetEmail,
@@ -127,10 +128,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             await setDoc(userDocRef, {
               ...newProfile,
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp()
+              createdAt: new Date(),
+              updatedAt: new Date()
             });
             setProfile(newProfile);
+
+            // حفظ نشاط إنشاء الحساب في تفرع الأنشطة
+            try {
+              const actRef = doc(collection(db, 'users', currentUser.uid, 'activities'));
+              await setDoc(actRef, {
+                id: actRef.id,
+                userId: currentUser.uid,
+                type: 'account_created',
+                title: 'إنشاء وتفعيل الحساب',
+                description: `تم إنشاء مستند الحساب بنجاح باسم (${newProfile.displayName}) بدور [${newProfile.role}].`,
+                timestamp: serverTimestamp(),
+                metadata: {
+                  email: currentUser.email
+                }
+              });
+            } catch {}
           }
         } catch (err) {
           console.warn('Firestore user fetch error (fallback to local profile):', err);
@@ -300,12 +317,89 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user]);
 
-  // تسجيل الدخول بواسطة Google
+  // تسجيل الدخول بواسطة Google - إنشاء مستند المستخدم في قاعدة البيانات وحفظ كافة نشاطاته وفق الكود المرجعي
   const signInWithGoogle = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      // التحقق مما إذا كان ملف المستخدم موجوداً مسبقاً في Firestore
+      const userDocRef = doc(db, "users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      const isDefaultAdmin = user.email ? ADMIN_EMAILS.includes(user.email.toLowerCase()) : false;
+      const assignedRole: UserRole = isDefaultAdmin ? "ADMIN" : "READER";
+
+      if (!userDocSnap.exists()) {
+        // إذا كان حساباً جديداً، يتم حفظ بياناته
+        const newUserData = {
+          uid: user.uid,
+          email: user.email || '',
+          displayName: user.displayName || user.email?.split('@')[0] || 'مستخدم المنصة',
+          role: assignedRole,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          photoURL: user.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.displayName || user.email || 'AF')}`,
+          coverURL: 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=1200&q=80',
+          bio: assignedRole === 'ADMIN'
+            ? 'المدير العام ورئيس التحرير التنفيذي لمنصة لافريكونوميست.'
+            : 'متابع ومحلل للشؤون الاقتصادية وأسواق المال الإفريقية.',
+          favoriteCountry: 'DZ',
+          savedArticlesCount: 0,
+          publishedArticlesCount: 0,
+          status: 'active'
+        };
+
+        await setDoc(userDocRef, newUserData);
+
+        // يتم حفظ فيه جميع نشاطات المستخدم
+        try {
+          const actRef = doc(collection(db, 'users', user.uid, 'activities'));
+          await setDoc(actRef, {
+            id: actRef.id,
+            userId: user.uid,
+            type: 'account_created',
+            title: 'إنشاء الحساب عبر جوجل',
+            description: `تم إنشاء حساب جديد بنجاح عبر جوجل باسم (${user.displayName || 'مستخدم جديد'}).`,
+            timestamp: serverTimestamp(),
+            metadata: {
+              provider: 'google.com',
+              email: user.email
+            }
+          });
+        } catch (actErr) {
+          console.warn('Initial activity log error:', actErr);
+        }
+
+        setProfile({
+          ...newUserData,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        } as unknown as UserProfile);
+      } else {
+        const existingData = userDocSnap.data() as UserProfile;
+        if (isDefaultAdmin && existingData.role !== 'ADMIN') {
+          await updateDoc(userDocRef, { role: 'ADMIN', updatedAt: serverTimestamp() });
+          existingData.role = 'ADMIN';
+        }
+        setProfile(existingData);
+
+        // حفظ نشاط تسجيل الدخول للمستخدم
+        try {
+          const loginActRef = doc(collection(db, 'users', user.uid, 'activities'));
+          await setDoc(loginActRef, {
+            id: loginActRef.id,
+            userId: user.uid,
+            type: 'login',
+            title: 'تسجيل دخول عبر جوجل',
+            description: 'تم تسجيل الدخول إلى المنصة بنجاح عبر جوجل.',
+            timestamp: serverTimestamp()
+          });
+        } catch {}
+      }
     } catch (error: any) {
-      console.error('Google sign-in error:', error);
+      console.error("خطأ في تسجيل الدخول عبر جوجل: ", error.message || error);
       throw error;
     }
   };

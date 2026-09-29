@@ -109,7 +109,7 @@ export const NavigationModals: React.FC<NavigationModalsProps> = ({
         if (onNavigateToProfile) onNavigateToProfile();
       }, 1200);
     } catch (err: any) {
-      console.warn('Google sign-in error:', err);
+      console.error("خطأ في تسجيل الدخول عبر جوجل: ", err.message || err);
       setAuthError(isAr ? 'تعذر تسجيل الدخول عبر Google. يمكنك استخدام البريد الإلكتروني أو الدخول السريع.' : 'Google sign-in was canceled or failed.');
     } finally {
       setAuthLoading(false);

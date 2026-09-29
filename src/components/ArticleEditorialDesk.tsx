@@ -1185,6 +1185,7 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
                     onClick={() => {
                       const updated = buildCurrentUpdatedArticle();
                       updated.reviewNotes = humanReviewerNote;
+                      updated.status = 'revision_requested';
                       onSaveDraft(updated);
                       sendNotification({
                         userId: 'ALL',

@@ -721,6 +721,8 @@ export default function App() {
             onNavigateToNotifications={() => navigateToTab('notifications')}
             onBackToHome={() => navigateToTab('home')}
             lang={lang}
+            onUpdateArticleStatus={handleUpdateArticleStatus}
+            onSaveArticle={handleSaveArticle}
           />
         )}
 

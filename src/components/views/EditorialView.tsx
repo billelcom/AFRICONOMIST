@@ -1,6 +1,7 @@
 // src/components/views/EditorialView.tsx
 import React, { useState, useEffect, useMemo } from 'react';
 import { Article, UserRole } from '../../types';
+import { useAuth } from '../../context/AuthContext';
 import { 
   ShieldCheck, 
   Sparkles, 
@@ -28,7 +29,13 @@ import {
   Coins,
   Briefcase,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
+  Send,
+  MessageSquare,
+  AlertCircle,
+  Crown,
+  User,
+  X
 } from 'lucide-react';
 import { CommissionWizard } from '../CommissionWizard';
 import { ArticleEditorialDesk } from '../ArticleEditorialDesk';
@@ -130,10 +137,19 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
 }) => {
   const isAr = lang === 'ar';
 
+  const { user, profile, role, sendNotification } = useAuth();
+  const isAdmin = role === 'ADMIN';
+  const isSupervisor = role === 'SUPERVISOR' || isAdmin;
+  const isEditor = role === 'EDITOR';
+
   // Navigation tab within Newsroom
   const [activeTab, setActiveTab] = useState<NewsroomTab>('overview');
-  const [activeRole] = useState<UserRole>('HUMAN_EDITOR');
   const [selectedArticleId, setSelectedArticleId] = useState<string | null>(articles[0]?.id || null);
+
+  // Sub-filter for pending articles: All vs AI-Generated vs Human Editor Submissions
+  const [pendingSubFilter, setPendingSubFilter] = useState<'all' | 'ai' | 'editor'>('all');
+  const [revisionModalArticle, setRevisionModalArticle] = useState<Article | null>(null);
+  const [revisionDirectiveNote, setRevisionDirectiveNote] = useState<string>('');
 
   // Editing state for direct editor
   const [editableTitle, setEditableTitle] = useState<string>('');
@@ -214,8 +230,25 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
     }
   }, [currentActiveArticle]);
 
-  // Counts
-  const pendingArticles = useMemo(() => articles.filter(a => a.status === 'pending_review'), [articles]);
+  // Counts & Categories (نوعي المقالات عند المشرف)
+  const pendingArticles = useMemo(() => articles.filter(a => a.status === 'pending_review' || a.status === 'revision_requested'), [articles]);
+
+  // 1. النوع الأول عند المشرف: مقالات الذكاء الاصطناعي والتوليد الفوري والمباشر
+  const aiGeneratedArticles = useMemo(() => {
+    return articles.filter(a => 
+      (a.status === 'pending_review') &&
+      (a.authorType === 'AI_AGENT' || a.generationType === 'automated_periodic' || (!a.editorSubmission && a.authorType !== 'HUMAN_JOURNALIST'))
+    );
+  }, [articles]);
+
+  // 2. النوع الثاني عند المشرف: مقالات ومسودات المحررين البشريين (المرسلة للاعتماد والمراجعة)
+  const editorArticles = useMemo(() => {
+    return articles.filter(a => 
+      (a.status === 'pending_review' || a.status === 'revision_requested') &&
+      (a.editorSubmission || a.authorType === 'HUMAN_JOURNALIST' || a.authorType === 'HYBRID')
+    );
+  }, [articles]);
+
   const publishedArticles = useMemo(() => articles.filter(a => a.status === 'published'), [articles]);
   const archivedArticles = useMemo(() => articles.filter(a => a.status === 'rejected'), [articles]);
 
@@ -226,19 +259,100 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // 1. المبدأ: إما ينشر
-  const handlePublish = (articleId: string) => {
+  // 1. اعتماد ونشر المقال (من قِبل المشرف) مع إشعار فوري
+  const handlePublish = (articleId: string, note?: string) => {
+    const art = articles.find(a => a.id === articleId);
+    const revNote = note || humanReviewerNote || (isAr ? 'تمت المصادقة التحريرية ومطابقة المصادر الرسمية والأرقام.' : 'Approved and verified against official sources.');
     onUpdateArticleStatus(
       articleId, 
       'published', 
-      'المشرف البشري (رئيس التحرير)', 
-      humanReviewerNote || (isAr ? 'تمت المصادقة التحريرية ومطابقة المصادر الرسمية والأرقام.' : 'Approved and verified against official sources.')
+      profile?.displayName || (isAr ? 'المشرف البشري (رئيس التحرير)' : 'Editorial Supervisor'), 
+      revNote
     );
-    setSaveSuccessNotice(isAr ? '✅ تم نشر المقال بنجاح وإتاحته للجمهور!' : '✅ Article published successfully to live feed!');
+
+    // إرسال إشعار فوري للجميع وللمحرر
+    sendNotification({
+      userId: 'ALL',
+      type: 'article_published',
+      title: isAr ? 'تم اعتماد ونشر تقرير اقتصادي للجمهور' : 'New Report Approved & Published',
+      message: isAr
+        ? `اعتمد المشرف (${profile?.displayName || 'مشرف التحرير'}) نشر تقرير: "${(art?.title || 'مقال اقتصادي').substring(0, 45)}...".`
+        : `Supervisor published: "${(art?.title || 'Economic Report').substring(0, 45)}...".`,
+      articleId: articleId,
+      countrySlug: art?.countryCode?.toLowerCase() || 'dz'
+    });
+
+    setSaveSuccessNotice(isAr ? '✅ تم اعتماد ونشر المقال بنجاح وإتاحته للجمهور!' : '✅ Article published successfully to live feed!');
     setTimeout(() => setSaveSuccessNotice(null), 3000);
   };
 
-  // 2. المبدأ: إما يؤرشف
+  // 2. طلب إعادة التعديل من المحرر مع الملاحظات (من قِبل المشرف) مع إشعار
+  const handleRequestEditorRevision = (articleId: string, directiveNote: string) => {
+    const art = articles.find(a => a.id === articleId);
+    onUpdateArticleStatus(
+      articleId,
+      'revision_requested',
+      profile?.displayName || (isAr ? 'المشرف البشري' : 'Supervisor'),
+      directiveNote
+    );
+
+    // إرسال إشعار فوري للمحررين
+    sendNotification({
+      userId: 'ALL',
+      type: 'revision_requested',
+      title: isAr ? 'ملاحظات وتوجيهات تحريرية من المشرف' : 'Supervisor Revision Directive',
+      message: isAr
+        ? `طلب المشرف (${profile?.displayName || 'مشرف التحرير'}) تعديل مقال "${(art?.title || 'المقال').substring(0, 40)}...": "${directiveNote}"`
+        : `Supervisor revision note on "${(art?.title || 'Article').substring(0, 40)}...": "${directiveNote}"`,
+      articleId: articleId,
+      countrySlug: art?.countryCode?.toLowerCase() || 'dz'
+    });
+
+    setRevisionModalArticle(null);
+    setRevisionDirectiveNote('');
+    setSaveSuccessNotice(isAr ? '📝 تم إرسال توجيهات الملاحظات للمحررين بنجاح!' : '📝 Revision directive dispatched to editors!');
+    setTimeout(() => setSaveSuccessNotice(null), 3500);
+  };
+
+  // 3. إرسال المحرر المقال للمشرف للاعتماد والمراجعة مع إشعار
+  const handleEditorSubmitToSupervisor = (article: Article) => {
+    const updated = {
+      ...article,
+      status: 'pending_review' as const,
+      authorType: 'HUMAN_JOURNALIST' as const,
+      authorName: profile?.displayName || (isAr ? 'محرر اقتصادي' : 'Economic Editor'),
+      editorSubmission: {
+        editorId: profile?.uid || user?.uid || 'editor-1',
+        editorName: profile?.displayName || (isAr ? 'محرر اقتصادي' : 'Economic Editor'),
+        submittedAt: new Date().toISOString()
+      }
+    };
+
+    if (onSaveArticle) onSaveArticle(updated);
+    onUpdateArticleStatus(
+      article.id,
+      'pending_review',
+      profile?.displayName || (isAr ? 'محرر اقتصادي' : 'Editor'),
+      isAr ? 'مسودة مرسلة من المحرر بانتظار قراءة وإجازة المشرف' : 'Submitted by Editor for Supervisor Review'
+    );
+
+    // إرسال إشعار فوري للمشرفين
+    sendNotification({
+      userId: 'ALL',
+      type: 'editorial_review',
+      title: isAr ? 'مسودة جديدة مرسلة من المحرر بانتظار إجازة المشرف' : 'New Draft Awaiting Supervisor Approval',
+      message: isAr
+        ? `أرسل المحرر (${profile?.displayName || 'المحرر'}) مسودة "${article.title.substring(0, 45)}..." للاعتماد والنشر.`
+        : `Editor (${profile?.displayName || 'Editor'}) submitted draft "${article.title.substring(0, 45)}..." for review.`,
+      articleId: article.id,
+      countrySlug: article.countryCode.toLowerCase()
+    });
+
+    setSaveSuccessNotice(isAr ? '📤 تم حفظ التعديلات وإرسال المسودة للمشرف بنجاح!' : '📤 Draft submitted to supervisor!');
+    setTimeout(() => setSaveSuccessNotice(null), 3500);
+  };
+
+  // 4. أرشفة المقال
   const handleArchive = (articleId: string) => {
     onUpdateArticleStatus(
       articleId, 
@@ -1107,19 +1221,32 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
               onBackToOverview={() => setActiveTab('overview')}
               onPublish={(updated, note) => {
                 if (onSaveArticle) onSaveArticle(updated);
-                onUpdateArticleStatus(updated.id, 'published', 'المشرف البشري (رئيس التحرير)', note);
+                onUpdateArticleStatus(updated.id, 'published', profile?.displayName || 'المشرف البشري (رئيس التحرير)', note);
+                sendNotification({
+                  userId: 'ALL',
+                  type: 'article_published',
+                  title: isAr ? 'تم اعتماد ونشر تقرير اقتصادي للجمهور' : 'New Report Approved & Published',
+                  message: isAr
+                    ? `اعتمد المشرف (${profile?.displayName || 'مشرف التحرير'}) نشر تقرير: "${(updated.title).substring(0, 45)}...".`
+                    : `Supervisor published: "${(updated.title).substring(0, 45)}...".`,
+                  articleId: updated.id,
+                  countrySlug: updated.countryCode?.toLowerCase() || 'dz'
+                });
                 setSaveSuccessNotice(isAr ? '✅ تم نشر المقال بنجاح وإتاحته للجمهور!' : '✅ Article published successfully!');
                 setTimeout(() => setSaveSuccessNotice(null), 3000);
               }}
               onArchive={(updated, note) => {
                 if (onSaveArticle) onSaveArticle(updated);
-                onUpdateArticleStatus(updated.id, 'rejected', 'المشرف البشري (الرقابة التحريرية)', note);
+                onUpdateArticleStatus(updated.id, 'rejected', profile?.displayName || 'المشرف البشري (الرقابة التحريرية)', note);
                 setSaveSuccessNotice(isAr ? '📦 تم نقل المقال إلى الأرشيف بنجاح.' : '📦 Article archived.');
                 setTimeout(() => setSaveSuccessNotice(null), 3000);
               }}
               onSaveDraft={(updated) => {
                 if (onSaveArticle) onSaveArticle(updated);
-                setSaveSuccessNotice(isAr ? '💾 تم حفظ التعديلات اليدوية على المسودة بنجاح.' : '💾 Manual edits saved.');
+                if (updated.status) {
+                  onUpdateArticleStatus(updated.id, updated.status, profile?.displayName || 'المحرر الاقتصادي', updated.reviewNotes);
+                }
+                setSaveSuccessNotice(isAr ? '💾 تم حفظ التعديلات على المسودة بنجاح.' : '💾 Manual edits saved.');
                 setTimeout(() => setSaveSuccessNotice(null), 3000);
               }}
               onAiRefine={async (customNotes, promptHeadline) => {
@@ -1171,64 +1298,251 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
           )}
 
           {/* =====================================================================
-              VIEW 3: PENDING QUEUE (المقالات التي تحتاج إلى معالجة)
+              VIEW 3: PENDING QUEUE (المقالات التي تحتاج إلى معالجة: نوعان منفصلان للمشرف)
              ===================================================================== */}
           {activeTab === 'pending' && (
-            <div className="space-y-5 animate-in fade-in duration-200 w-full max-w-full mx-auto">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div className="space-y-6 animate-in fade-in duration-200 w-full max-w-full mx-auto">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
                 <div>
                   <h2 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5 text-rose-500" />
-                    <span>{isAr ? 'المقالات المولدة التي تحتاج إلى معالجة' : 'Pending Ingestion Desk'}</span>
+                    <span>{isAr ? 'منصة مراجعة واعتماد المقالات (غرفة إشراف المحررين والذكاء الاصطناعي)' : 'Pending Ingestion & Editorial Desk'}</span>
                   </h2>
                   <p className="text-xs text-slate-600">
-                    {isAr ? 'مسودات وكلاء الذكاء الاصطناعي بانتظار قراءة المشرف البشري ونقده وإجازته.' : 'Agent-generated drafts awaiting human editorial review.'}
+                    {isAr 
+                      ? 'يظهر للمشرف نوعان: مقالات مولدة بالذكاء الاصطناعي، ومقالات مرسلة من المحررين البشريين للاعتماد أو لإعادة التعديل.' 
+                      : 'Dual streams: Autonomous AI agent pipeline and Human Editor draft submissions awaiting review.'}
                   </p>
                 </div>
-                <span className="px-3 py-1 rounded-full bg-rose-500/15 text-rose-700 text-xs font-bold border border-rose-500/30">
-                  {pendingArticles.length} {isAr ? 'مسودات معلقة' : 'pending'}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 rounded-full bg-rose-500/15 text-rose-700 text-xs font-bold border border-rose-500/30">
+                    {pendingArticles.length} {isAr ? 'إجمالي بانتظار الإجراء' : 'pending total'}
+                  </span>
+                </div>
               </div>
 
-              {pendingArticles.length === 0 ? (
-                <div className="p-12 text-center rounded-2xl bg-slate-50 border border-slate-200 space-y-3 w-full max-w-full">
-                  <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
-                  <h3 className="text-base font-bold text-slate-900">{isAr ? 'لا توجد مقالات معلقة حالياً' : 'All drafts processed'}</h3>
-                  <p className="text-xs text-slate-600">{isAr ? 'كافة التقارير تمت معالجتها ومراجعتها. يمكنك استخدام "توليد فوري عشوائي" لإنشاء مسودة جديدة فوراً.' : 'Queue clear. Commission a new draft using instant generation.'}</p>
+              {/* أزرار التبديل بين نوعي المقالات عند المشرف */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar scroll-smooth">
+                <button
+                  type="button"
+                  onClick={() => setPendingSubFilter('all')}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
+                    pendingSubFilter === 'all'
+                      ? 'bg-slate-900 text-white shadow-md ring-1 ring-slate-700'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300'
+                  }`}
+                >
+                  <span>{isAr ? 'كافة المقالات المعلقة' : 'All Pending'}</span>
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20 font-mono font-bold">
+                    {pendingArticles.length}
+                  </span>
+                </button>
+
+                {/* 1. النوع الأول: مقالات الذكاء الاصطناعي والتوليد المباشر */}
+                <button
+                  type="button"
+                  onClick={() => setPendingSubFilter('ai')}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
+                    pendingSubFilter === 'ai'
+                      ? 'bg-amber-500 text-slate-950 shadow-md ring-2 ring-amber-400 font-black'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300'
+                  }`}
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  <span>{isAr ? '1. مقالات الذكاء الاصطناعي والتوليد المباشر' : '1. AI Generated & Direct Ingestion'}</span>
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-950/20 font-mono font-bold">
+                    {aiGeneratedArticles.length}
+                  </span>
+                </button>
+
+                {/* 2. النوع الثاني: مقالات المحررين البشريين */}
+                <button
+                  type="button"
+                  onClick={() => setPendingSubFilter('editor')}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
+                    pendingSubFilter === 'editor'
+                      ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-400 font-black'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300'
+                  }`}
+                >
+                  <Edit3 className="w-3.5 h-3.5 text-blue-400" />
+                  <span>{isAr ? '2. مقالات ومسودات المحررين (للاعتماد أو التعديل)' : '2. Editor Submissions & Revisions'}</span>
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20 font-mono font-bold">
+                    {editorArticles.length}
+                  </span>
+                </button>
+              </div>
+
+              {/* بطاقة توضيحية للمحرر والمشرف */}
+              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-blue-950/40 via-slate-900 to-amber-950/30 border border-slate-800 text-xs text-slate-300 flex items-center justify-between gap-3 shadow-sm">
+                <div className="flex items-center gap-2.5">
+                  <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>
+                    {isSupervisor 
+                      ? (isAr ? 'صلاحيات المشرف: قراءة كامل المسودة، اعتماد النشر المباشر للجمهور، أو إعادة طلب التعديل من المحررين مع كتابة الملاحظات وتوثيقها بالإشعارات.' : 'Supervisor Privileges: Read drafts, approve live publication, or request editorial revisions with feedback.')
+                      : (isAr ? 'صلاحيات المحرر: صياغة وتعديل التقارير، وإرسالها للمشرف للاعتماد والمصادقة، ومتابعة الملاحظات المطلوبة.' : 'Editor Privileges: Draft & modify articles, submit to supervisor for review, and iterate on critiques.')}
+                  </span>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-full">
-                  {pendingArticles.map((art) => (
-                    <div
-                      key={art.id}
-                      onClick={() => handleOpenInEditor(art)}
-                      className="p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-all cursor-pointer space-y-3 shadow-md group"
-                    >
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="px-2 py-0.5 rounded bg-slate-800 text-amber-300 font-bold">
-                          {art.countryName} · {art.sector || art.category}
-                        </span>
-                        <span className="text-[10px] text-rose-400 font-mono px-2 py-0.5 rounded bg-rose-950/40 border border-rose-500/30">
-                          {isAr ? 'بانتظار المشرف' : 'Review Needed'}
-                        </span>
-                      </div>
-                      <h4 className="text-base sm:text-lg font-bold text-white group-hover:text-amber-400 transition-colors line-clamp-2">
-                        {art.title}
-                      </h4>
-                      <p className="text-xs text-slate-400 line-clamp-2">
-                        {art.summary}
+              </div>
+
+              {/* قائمة المقالات وفق التصفية المحددة */}
+              {(() => {
+                const listToDisplay = pendingSubFilter === 'ai' 
+                  ? aiGeneratedArticles 
+                  : pendingSubFilter === 'editor' 
+                  ? editorArticles 
+                  : pendingArticles;
+
+                if (listToDisplay.length === 0) {
+                  return (
+                    <div className="p-12 text-center rounded-2xl bg-slate-50 border border-slate-200 space-y-3 w-full max-w-full">
+                      <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
+                      <h3 className="text-base font-bold text-slate-900">
+                        {isAr ? 'لا توجد مقالات معلقة في هذا القسم حالياً' : 'No pending articles in this section'}
+                      </h3>
+                      <p className="text-xs text-slate-600">
+                        {isAr 
+                          ? 'كافة المقالات تمت معالجتها. يمكنك استخدام "توليد فوري عشوائي" أو قيام المحررين بإرسال مسودات جديدة.' 
+                          : 'Queue clear. Commission a new report or submit an editor draft.'}
                       </p>
-                      <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
-                        <span className="text-slate-500 font-mono">{art.createdAt}</span>
-                        <span className="text-amber-400 font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                          <span>{isAr ? 'فتح للتحرير والمصادقة' : 'Open in Editor'}</span>
-                          <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-0 ltr:rotate-180" />
-                        </span>
-                      </div>
                     </div>
-                  ))}
-                </div>
-              )}
+                  );
+                }
+
+                return (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-full">
+                    {listToDisplay.map((art) => {
+                      const isHumanEditorSubmission = art.editorSubmission || art.authorType === 'HUMAN_JOURNALIST' || art.authorType === 'HYBRID';
+                      const isRevisionRequested = art.status === 'revision_requested';
+
+                      return (
+                        <div
+                          key={art.id}
+                          className={`p-4 sm:p-5 rounded-2xl border transition-all space-y-3 shadow-md ${
+                            isHumanEditorSubmission
+                              ? 'bg-[#0B1220] border-blue-500/40 hover:border-blue-400'
+                              : 'bg-slate-900 border-slate-800 hover:border-amber-500/50'
+                          }`}
+                        >
+                          {/* الهيدر: نوع المقال + الدولة والقطاع */}
+                          <div className="flex items-center justify-between text-xs gap-2">
+                            <span className="px-2 py-0.5 rounded bg-slate-800 text-amber-300 font-bold truncate">
+                              {art.countryName} · {art.sector || art.category}
+                            </span>
+
+                            {/* شارة تمييز نوع المقال */}
+                            {isHumanEditorSubmission ? (
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 border ${
+                                isRevisionRequested 
+                                  ? 'bg-rose-950/60 text-rose-300 border-rose-500/50' 
+                                  : 'bg-blue-950/60 text-blue-300 border-blue-500/50'
+                              }`}>
+                                <Edit3 className="w-3 h-3" />
+                                <span>{isRevisionRequested ? (isAr ? 'مطلوب تعديل من المحرر' : 'Revision Pending') : (isAr ? 'مرسل من محرر اقتصادي' : 'Editor Submission')}</span>
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-950/50 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                                <Sparkles className="w-3 h-3 text-amber-400" />
+                                <span>{isAr ? 'وكيل الذكاء الاصطناعي (AI)' : 'AI Autonomous'}</span>
+                              </span>
+                            )}
+                          </div>
+
+                          {/* اسم الكاتب وتاريخ التقديم */}
+                          <div className="text-[11px] text-slate-400 flex items-center justify-between border-b border-slate-800/80 pb-2">
+                            <div className="flex items-center gap-1.5 text-slate-300">
+                              <User className="w-3 h-3 text-amber-400" />
+                              <span className="font-semibold">
+                                {isHumanEditorSubmission 
+                                  ? (art.authorName || art.editorSubmission?.editorName || (isAr ? 'المحرر الاقتصادي' : 'Economic Editor'))
+                                  : (isAr ? 'وكيل الذكاء الاصطناعي Gemini 3.6' : 'Autonomous Agent')}
+                              </span>
+                            </div>
+                            <span className="font-mono text-slate-500 text-[10px]">{art.createdAt}</span>
+                          </div>
+
+                          {/* العنوان والملخص */}
+                          <h4 
+                            onClick={() => handleOpenInEditor(art)}
+                            className="text-sm sm:text-base font-bold text-white hover:text-amber-400 transition-colors cursor-pointer line-clamp-2"
+                          >
+                            {art.title}
+                          </h4>
+                          <p className="text-xs text-slate-400 line-clamp-2">
+                            {art.summary}
+                          </p>
+
+                          {/* إذا كان هناك ملاحظات وتوجيهات سابقة من المشرف */}
+                          {art.reviewNotes && (
+                            <div className="p-2.5 rounded-xl bg-rose-950/40 border border-rose-500/40 text-[11px] space-y-1">
+                              <span className="font-bold text-rose-300 flex items-center gap-1">
+                                <MessageSquare className="w-3 h-3" />
+                                <span>{isAr ? 'ملاحظات وتوجيهات المشرف للمحرر:' : 'Supervisor Revision Directive:'}</span>
+                              </span>
+                              <p className="text-rose-200 leading-snug line-clamp-2">
+                                {art.reviewNotes}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* شريط الإجراءات المباشرة للمشرف أو المحرر */}
+                          <div className="pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-xs">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenInEditor(art)}
+                              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                            >
+                              <FileEdit className="w-3.5 h-3.5 text-amber-400" />
+                              <span>{isAr ? 'فتح في محرر الأخبار' : 'Open in Editor'}</span>
+                            </button>
+
+                            {/* أزرار المشرف: اعتماد ونشر أو طلب إعادة تعديل */}
+                            {isSupervisor ? (
+                              <div className="flex items-center gap-1.5">
+                                {/* زر طلب إعادة التعديل مع كتابة الملاحظات */}
+                                {isHumanEditorSubmission && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setRevisionModalArticle(art);
+                                      setRevisionDirectiveNote(art.reviewNotes || '');
+                                    }}
+                                    className="px-2.5 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold border border-rose-500/40 flex items-center gap-1 cursor-pointer transition-colors"
+                                    title={isAr ? 'إعادة طلب التعديل من المحرر مع كتابة الملاحظات' : 'Request Revision with Directive'}
+                                  >
+                                    <RotateCcw className="w-3.5 h-3.5" />
+                                    <span>{isAr ? 'طلب تعديل' : 'Revise'}</span>
+                                  </button>
+                                )}
+
+                                {/* زر اعتماد ونشر المقال للجمهور */}
+                                <button
+                                  type="button"
+                                  onClick={() => handlePublish(art.id)}
+                                  className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black flex items-center gap-1 shadow-md cursor-pointer transition-all active:scale-95"
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  <span>{isAr ? 'اعتماد ونشر' : 'Publish'}</span>
+                                </button>
+                              </div>
+                            ) : (
+                              /* إجراءات المحرر: إذا كان المقال مرجعاً للمراجعة، زر إرسال للمشرف */
+                              <button
+                                type="button"
+                                onClick={() => handleEditorSubmitToSupervisor(art)}
+                                className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black flex items-center gap-1 shadow-md cursor-pointer transition-all active:scale-95"
+                              >
+                                <Send className="w-3.5 h-3.5" />
+                                <span>{isAr ? 'إرسال للمشرف للاعتماد' : 'Submit to Supervisor'}</span>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
           )}
 
@@ -1447,6 +1761,79 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                   ))}
                 </div>
               )}
+            </div>
+          )}
+          {/* نافذة توجيه ملاحظات المشرف للمحرر لإعادة التعديل */}
+          {revisionModalArticle && (
+            <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150">
+              <div className="w-full max-w-lg bg-[#0e172a] border border-rose-500/40 rounded-3xl p-6 shadow-2xl space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4 text-rose-400" />
+                    <span>{isAr ? 'طلب إعادة التعديل من المحرر مع كتابة الملاحظات' : 'Request Revision with Directive'}</span>
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setRevisionModalArticle(null)}
+                    className="p-1 rounded-lg text-slate-400 hover:text-white bg-slate-800/80 cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="space-y-1">
+                  <span className="text-[11px] text-slate-400 block">{isAr ? 'المقال المستهدف:' : 'Target Article:'}</span>
+                  <p className="text-xs font-bold text-amber-300 line-clamp-2">
+                    {revisionModalArticle.title}
+                  </p>
+                  <p className="text-[11px] text-slate-400">
+                    {isAr ? 'المحرر الكاتب:' : 'Author/Editor:'}{' '}
+                    <span className="text-white font-semibold">
+                      {revisionModalArticle.authorName || revisionModalArticle.editorSubmission?.editorName || (isAr ? 'محرر اقتصادي' : 'Economic Editor')}
+                    </span>
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-white block">
+                    {isAr ? 'ملاحظات ونقد وتوجيهات المشرف للمحرر:' : 'Supervisor Critique Directive:'}
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={revisionDirectiveNote}
+                    onChange={(e) => setRevisionDirectiveNote(e.target.value)}
+                    placeholder={isAr 
+                      ? "اكتب توجيهاتك التحريرية المحددة (مثال: تدقيق أرقام البنك المركزي، تعديل صياغة المقدمة، تعميق فقرة السيولة النقدية، أو إضافة مصادر رسمية)..."
+                      : "Enter critique notes for the editor..."}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-rose-500/70 leading-relaxed"
+                  />
+                  <p className="text-[10px] text-slate-400">
+                    {isAr 
+                      ? 'سيتم إشعار المحرر فوراً بملاحظاتك وتثبيت التوجيهات في سجل المقال ليقوم بتعديله وإعادة إرساله.'
+                      : 'The editor will receive an immediate notification with these notes.'}
+                  </p>
+                </div>
+
+                <div className="pt-2 border-t border-slate-800 flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRevisionModalArticle(null)}
+                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold cursor-pointer"
+                  >
+                    {isAr ? 'إلغاء' : 'Cancel'}
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={!revisionDirectiveNote.trim()}
+                    onClick={() => handleRequestEditorRevision(revisionModalArticle.id, revisionDirectiveNote)}
+                    className="px-5 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-lg disabled:opacity-50 cursor-pointer"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>{isAr ? 'إرسال الملاحظات للمحرر وتوثيقها' : 'Dispatch Directive to Editor'}</span>
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>

@@ -64,6 +64,12 @@ export interface Article {
   aiModel?: string;
   reviewedBy?: string;
   reviewNotes?: string;
+  editorSubmission?: {
+    editorId?: string;
+    editorName?: string;
+    submittedAt?: string;
+    editorNotes?: string;
+  };
   citations: Citation[];
   factCheck: FactCheckReport;
   publishedAt?: string;

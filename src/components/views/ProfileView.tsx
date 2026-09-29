@@ -34,9 +34,35 @@ import {
   Globe,
   RefreshCw,
   CheckCircle2,
-  Clock
+  Clock,
+  Send,
+  AlertTriangle,
+  MessageSquare,
+  AlertCircle,
+  Home
 } from 'lucide-react';
 import { getCountryFlag } from '../../lib/africanGeoProximity';
+
+const safeFormatDate = (val: any): string => {
+  if (!val) return new Date().toISOString().substring(0, 10);
+  if (typeof val === 'string') return val.substring(0, 10);
+  if (typeof val === 'object') {
+    if (typeof val.toDate === 'function') {
+      try {
+        return val.toDate().toISOString().substring(0, 10);
+      } catch {}
+    }
+    if (val.seconds) {
+      try {
+        return new Date(val.seconds * 1000).toISOString().substring(0, 10);
+      } catch {}
+    }
+    if (val instanceof Date) {
+      return val.toISOString().substring(0, 10);
+    }
+  }
+  return String(val).substring(0, 10);
+};
 
 interface ProfileViewProps {
   articles: Article[];
@@ -46,6 +72,8 @@ interface ProfileViewProps {
   onNavigateToNotifications: () => void;
   onBackToHome: () => void;
   lang: 'ar' | 'en';
+  onUpdateArticleStatus?: (articleId: string, status: Article['status'], reviewer: string, notes?: string) => void;
+  onSaveArticle?: (article: Article) => void;
 }
 
 const COVER_PRESETS = [
@@ -97,6 +125,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [userRoleErrorMsg, setUserRoleErrorMsg] = useState<string | null>(null);
   const [updatingUserUid, setUpdatingUserUid] = useState<string | null>(null);
   const [userSearchQuery, setUserSearchQuery] = useState<string>('');
+
+  // إعدادات وتفضيلات الحساب والتنبيهات
+  const [breakingNewsAlerts, setBreakingNewsAlerts] = useState<boolean>(true);
+  const [editorialReviewAlerts, setEditorialReviewAlerts] = useState<boolean>(true);
+  const [marketPulseAlerts, setMarketPulseAlerts] = useState<boolean>(true);
+  const [settingsSavedMessage, setSettingsSavedMessage] = useState<string | null>(null);
 
   const isSupervisorOrAdmin = role === 'SUPERVISOR' || role === 'ADMIN';
 
@@ -197,42 +231,43 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
   return (
     <div className="space-y-6 pb-20 animate-in fade-in-50 duration-200">
-      {/* 1. شريط التنقل الفرعي */}
-      <div className="flex items-center justify-between text-xs bg-slate-900/60 border border-slate-800/80 px-4 py-2.5 rounded-2xl">
-        <div className="flex items-center gap-2 text-slate-400">
-          <button
-            onClick={onBackToHome}
-            className="text-slate-300 hover:text-amber-400 transition-colors flex items-center gap-1 font-semibold"
-          >
-            {isAr ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
-            <span>{isAr ? 'الرئيسية' : 'Home'}</span>
-          </button>
-          <span>/</span>
-          <span className="text-amber-400 font-bold">{isAr ? 'حسابي والملف الشخصي' : 'My Account'}</span>
-        </div>
+      {/* 1. الإطار في الأعلى: الرئيسية / الإشعارات / الخروج */}
+      <div className="flex items-center justify-between text-xs bg-slate-900/80 border border-slate-800/80 px-4 py-2.5 rounded-2xl shadow-lg">
+        {/* زر الرئيسية */}
+        <button
+          onClick={onBackToHome}
+          className="text-slate-300 hover:text-amber-400 transition-colors flex items-center gap-1.5 font-bold cursor-pointer"
+        >
+          <Home className="w-3.5 h-3.5 text-amber-400" />
+          <span>{isAr ? 'الرئيسية' : 'Home'}</span>
+        </button>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onNavigateToNotifications}
-            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-colors relative"
-          >
-            <Bell className="w-3.5 h-3.5 text-amber-400" />
-            <span>{isAr ? 'الإشعارات' : 'Notifications'}</span>
-            {unreadCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white font-mono">
-                {unreadCount}
-              </span>
-            )}
-          </button>
+        <span className="text-slate-700">/</span>
 
-          <button
-            onClick={handleSignOut}
-            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-950/40 hover:text-rose-300 text-slate-400 text-xs font-semibold flex items-center gap-1.5 transition-colors border border-slate-700/60"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>{isAr ? 'خروج' : 'Sign Out'}</span>
-          </button>
-        </div>
+        {/* زر الإشعارات */}
+        <button
+          onClick={onNavigateToNotifications}
+          className="px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors relative cursor-pointer"
+        >
+          <Bell className="w-3.5 h-3.5 text-amber-400" />
+          <span>{isAr ? 'الإشعارات' : 'Notifications'}</span>
+          {unreadCount > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white font-mono">
+              {unreadCount}
+            </span>
+          )}
+        </button>
+
+        <span className="text-slate-700">/</span>
+
+        {/* زر الخروج */}
+        <button
+          onClick={handleSignOut}
+          className="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-rose-950/40 hover:text-rose-300 text-slate-300 text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-700/60 cursor-pointer"
+        >
+          <LogOut className="w-3.5 h-3.5 text-rose-400" />
+          <span>{isAr ? 'الخروج' : 'Sign Out'}</span>
+        </button>
       </div>
 
       {saveSuccessMessage && (
@@ -445,15 +480,15 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         </div>
       )}
 
-      {/* 3. تبويبات الحساب: المقالات المحفوظة + الصلاحيات وتحديد الأدوار + الإعدادات */}
+      {/* 3. تبويبات الحساب: المقالات المحفوظة + المنشورة + عمليات الحساب + الصلاحيات + الإعدادات (قائمة تنسحب أفقياً بسلاسة) */}
       <div className="space-y-4">
-        <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 pb-2">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2.5 border-b border-slate-800 no-scrollbar scroll-smooth whitespace-nowrap">
           {/* 1. المقالات المحفوظة */}
           <button
             onClick={() => setActiveTab('saved')}
-            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
               activeTab === 'saved'
-                ? 'bg-amber-500 text-slate-950 shadow-md'
+                ? 'bg-amber-500 text-slate-950 shadow-md ring-1 ring-amber-400'
                 : 'bg-slate-900 text-slate-300 hover:text-white border border-slate-800'
             }`}
           >
@@ -467,9 +502,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           {/* 2. المنشورات والمسودات */}
           <button
             onClick={() => setActiveTab('published')}
-            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
               activeTab === 'published'
-                ? 'bg-amber-500 text-slate-950 shadow-md'
+                ? 'bg-amber-500 text-slate-950 shadow-md ring-1 ring-amber-400'
                 : 'bg-slate-900 text-slate-300 hover:text-white border border-slate-800'
             }`}
           >
@@ -483,9 +518,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           {/* 3. سجل عمليات ونشاط الحساب */}
           <button
             onClick={() => setActiveTab('activities')}
-            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
               activeTab === 'activities'
-                ? 'bg-amber-500 text-slate-950 shadow-md'
+                ? 'bg-amber-500 text-slate-950 shadow-md ring-1 ring-amber-400'
                 : 'bg-slate-900 text-slate-300 hover:text-white border border-slate-800'
             }`}
           >
@@ -499,9 +534,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           {/* 4. الصلاحيات وإدارة الأدوار من قِبل المشرف */}
           <button
             onClick={() => setActiveTab('roles')}
-            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
               activeTab === 'roles'
-                ? 'bg-amber-500 text-slate-950 shadow-md'
+                ? 'bg-amber-500 text-slate-950 shadow-md ring-1 ring-amber-400'
                 : 'bg-slate-900 text-slate-300 hover:text-white border border-slate-800'
             }`}
           >
@@ -512,9 +547,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           {/* 5. إعدادات الحساب */}
           <button
             onClick={() => setActiveTab('settings')}
-            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
               activeTab === 'settings'
-                ? 'bg-amber-500 text-slate-950 shadow-md'
+                ? 'bg-amber-500 text-slate-950 shadow-md ring-1 ring-amber-400'
                 : 'bg-slate-900 text-slate-300 hover:text-white border border-slate-800'
             }`}
           >
@@ -598,7 +633,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
                       <div className="pt-3 border-t border-slate-800/70 flex items-center justify-between text-[11px]">
                         <span className="text-slate-500 font-mono text-[10px]">
-                          {saved.savedAt.substring(0, 10)}
+                          {safeFormatDate(saved.savedAt)}
                         </span>
 
                         {fullArticle ? (
@@ -687,22 +722,34 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
                       <div className="pt-3 border-t border-slate-800/70 flex items-center justify-between text-[11px]">
                         <span className="text-slate-500 font-mono text-[10px]">
-                          {pub.publishedAt.substring(0, 10)}
+                          {safeFormatDate(pub.publishedAt)}
                         </span>
 
-                        {matchingArticle ? (
-                          <button
-                            onClick={() => onSelectArticle(matchingArticle)}
-                            className="text-purple-400 hover:text-purple-300 font-bold flex items-center gap-1 cursor-pointer"
-                          >
-                            <span>{isAr ? 'عرض المقال' : 'View Article'}</span>
-                            {isAr ? <ChevronLeft className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-                          </button>
-                        ) : (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/20 text-emerald-300">
-                            {pub.status}
-                          </span>
-                        )}
+                        <div className="flex items-center gap-1.5">
+                          {(role === 'EDITOR' || role === 'SUPERVISOR' || role === 'ADMIN') && (
+                            <button
+                              onClick={() => onNavigateToNewsroom()}
+                              className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-[10px] border border-amber-500/40 flex items-center gap-1 cursor-pointer transition-colors"
+                              title={isAr ? 'تعديل في غرفة الأخبار وإرساله للمشرف' : 'Edit in Newsroom & Submit'}
+                            >
+                              <Edit3 className="w-3 h-3" />
+                              <span>{isAr ? 'تعديل وإرسال للمشرف' : 'Edit & Submit'}</span>
+                            </button>
+                          )}
+                          {matchingArticle ? (
+                            <button
+                              onClick={() => onSelectArticle(matchingArticle)}
+                              className="text-purple-400 hover:text-purple-300 font-bold flex items-center gap-1 cursor-pointer"
+                            >
+                              <span>{isAr ? 'عرض المقال' : 'View'}</span>
+                              {isAr ? <ChevronLeft className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                            </button>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/20 text-emerald-300">
+                              {pub.status}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
@@ -1164,31 +1211,141 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             التبويب 3: إعدادات الحساب (Account Settings)
            ========================================================================= */}
         {activeTab === 'settings' && (
-          <div className="p-6 rounded-3xl bg-[#0c1322] border border-slate-800 space-y-5 animate-in fade-in-50">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <Settings className="w-4 h-4 text-amber-400" />
-              <span>{isAr ? 'إعدادات الحساب وتخصيص التجربة' : 'Preferences & Security'}</span>
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1">
-                <span className="text-xs text-slate-400 block">{isAr ? 'معرّف الحساب في Firebase (UID)' : 'Firebase UID'}</span>
-                <span className="text-xs font-mono text-slate-300 truncate block">{profile?.uid || user?.uid || 'guest-session'}</span>
+          <div className="p-5 sm:p-6 rounded-3xl bg-[#0c1322] border border-slate-800 space-y-6 animate-in fade-in-50">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-4">
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                  <Settings className="w-4 h-4 text-amber-400" />
+                  <span>{isAr ? 'إعدادات الحساب وتفضيلات النظام' : 'Account Preferences & Security'}</span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  {isAr 
+                    ? 'إدارة بيانات الهوية، تفضيلات التنبيهات الإخبارية اللحظية، وتأمين الجلسة.'
+                    : 'Manage identity metadata, instant news alerts, and session security.'}
+                </p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1">
-                <span className="text-xs text-slate-400 block">{isAr ? 'تاريخ إنشاء الحساب' : 'Member Since'}</span>
-                <span className="text-xs font-mono text-slate-300 block">{profile?.createdAt?.substring(0, 10) || new Date().toISOString().substring(0, 10)}</span>
+              {settingsSavedMessage && (
+                <div className="px-3 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center gap-1.5 animate-in fade-in">
+                  <Check className="w-3.5 h-3.5" />
+                  <span>{settingsSavedMessage}</span>
+                </div>
+              )}
+            </div>
+
+            {/* بطاقات معلومات الحساب الأساسية */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-1">
+                <span className="text-[11px] text-slate-400 block">{isAr ? 'اسم المستخدم المسجل' : 'Display Name'}</span>
+                <span className="text-xs font-bold text-white block truncate">{profile?.displayName || user?.displayName || 'مستخدم المنصة'}</span>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-1">
+                <span className="text-[11px] text-slate-400 block">{isAr ? 'البريد الإلكتروني المعتمد' : 'Account Email'}</span>
+                <span className="text-xs font-bold text-slate-300 block truncate">{profile?.email || user?.email || 'N/A'}</span>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-1">
+                <span className="text-[11px] text-slate-400 block">{isAr ? 'تاريخ الانضمام للمنصة' : 'Member Since'}</span>
+                <span className="text-xs font-mono font-bold text-amber-400 block">{safeFormatDate(profile?.createdAt)}</span>
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
-              <span className="text-xs text-slate-400">
-                {isAr ? 'البيانات محمية بواسطة Firebase Authentication و قواعد Firestore' : 'Secured via Firebase Authentication and Firestore'}
-              </span>
+            {/* تفضيلات التنبيهات والإشعارات اللحظية */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-4">
+              <h4 className="text-xs font-bold text-amber-300 flex items-center gap-2">
+                <Bell className="w-4 h-4 text-amber-400" />
+                <span>{isAr ? 'تفضيلات الإشعارات والتنبيهات المباشرة:' : 'Instant Alerts & Notifications:'}</span>
+              </h4>
+
+              <div className="space-y-3">
+                <label className="flex items-center justify-between p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 cursor-pointer transition-all">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-white block">
+                      {isAr ? 'تنبيهات التقارير والتحقيقات العاجلة' : 'Breaking Economic Dispatches'}
+                    </span>
+                    <span className="text-[11px] text-slate-400 block">
+                      {isAr ? 'إشعار فوري عند صدور تقارير استقصائية عاجلة أو تغيرات في أسعار الفائدة.' : 'Instant notification on sovereign macro dispatches.'}
+                    </span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={breakingNewsAlerts}
+                    onChange={(e) => setBreakingNewsAlerts(e.target.checked)}
+                    className="w-4 h-4 accent-amber-500 cursor-pointer shrink-0"
+                  />
+                </label>
+
+                <label className="flex items-center justify-between p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 cursor-pointer transition-all">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-white block">
+                      {isAr ? 'إشعارات دورة التحرير والمراجعة وملاحظات المشرف' : 'Editorial Review & Supervisor Notes'}
+                    </span>
+                    <span className="text-[11px] text-slate-400 block">
+                      {isAr ? 'تنبيه فوري للمحررين عند اعتماد مقالاتهم أو طلب تعديلات مع ملاحظات.' : 'Alerts for editor submissions and supervisor revision critiques.'}
+                    </span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={editorialReviewAlerts}
+                    onChange={(e) => setEditorialReviewAlerts(e.target.checked)}
+                    className="w-4 h-4 accent-amber-500 cursor-pointer shrink-0"
+                  />
+                </label>
+
+                <label className="flex items-center justify-between p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 cursor-pointer transition-all">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-white block">
+                      {isAr ? 'تحديثات أسواق المال والمؤشرات اللحظية' : 'African Market Tickers Pulse'}
+                    </span>
+                    <span className="text-[11px] text-slate-400 block">
+                      {isAr ? 'موجز مؤشرات أسعار العملات الإفريقية والمعادن الاستراتيجية كل 30 دقيقة.' : 'Bourse movements and strategic commodities price updates.'}
+                    </span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={marketPulseAlerts}
+                    onChange={(e) => setMarketPulseAlerts(e.target.checked)}
+                    className="w-4 h-4 accent-amber-500 cursor-pointer shrink-0"
+                  />
+                </label>
+              </div>
+            </div>
+
+            {/* أمان الحساب ومعرف Firebase */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1">
+                <span className="text-[11px] text-slate-400 block">{isAr ? 'معرّف الحساب في Firebase (UID)' : 'Firebase UID'}</span>
+                <span className="text-xs font-mono text-slate-300 truncate block select-all">{profile?.uid || user?.uid || 'guest-session'}</span>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1">
+                <span className="text-[11px] text-slate-400 block">{isAr ? 'بروتوكول الأمان وتشفير الجلسة' : 'Security Layer'}</span>
+                <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>{isAr ? 'محمي بواسطة Firebase Auth & قواعد Firestore' : 'Firebase Auth & Rules Active'}</span>
+                </span>
+              </div>
+            </div>
+
+            {/* حفظ الإعدادات وتسجيل الخروج */}
+            <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
               <button
+                type="button"
+                onClick={() => {
+                  setSettingsSavedMessage(isAr ? '✅ تم حفظ تفضيلاتك بنجاح!' : '✅ Preferences saved successfully!');
+                  setTimeout(() => setSettingsSavedMessage(null), 3000);
+                }}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition-all active:scale-95"
+              >
+                <Check className="w-4 h-4" />
+                <span>{isAr ? 'حفظ إعدادات الحساب' : 'Save Preferences'}</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={handleSignOut}
-                className="px-4 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-xs font-bold border border-rose-500/40 flex items-center gap-1.5 transition-colors"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 text-xs font-bold border border-rose-500/40 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>{isAr ? 'تسجيل الخروج من الحساب' : 'Sign Out'}</span>

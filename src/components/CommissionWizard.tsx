@@ -213,9 +213,9 @@ export const CommissionWizard: React.FC<CommissionWizardProps> = ({
   };
 
   const stepsList = [
-    { num: 1, titleAr: '1. الدولة المستهدفة (54)', titleEn: '1. Target Country (54)', icon: Globe },
+    { num: 1, titleAr: '1. الدولة (55)', titleEn: '1. Country (55)', icon: Globe },
     { num: 2, titleAr: '2. النوع الصحفي (18)', titleEn: '2. Journalistic Genre (18)', icon: FileText },
-    { num: 3, titleAr: '3. القطاع الاقتصادي (28)', titleEn: '3. Economic Sector (28)', icon: Briefcase },
+    { num: 3, titleAr: '3. القطاع (28)', titleEn: '3. Economic Sector (28)', icon: Briefcase },
     { num: 4, titleAr: '4. المراجعة والإطلاق', titleEn: '4. Review & Dispatch', icon: ShieldCheck }
   ];
 
@@ -282,8 +282,8 @@ export const CommissionWizard: React.FC<CommissionWizardProps> = ({
         </div>
       </div>
 
-      {/* Progress Steps Bar (انتقال سلس ومتين من الحالية للتالي للتالي والسابق) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      {/* Progress Steps Bar (تنسيق فائق الوضوح والتباين والجاذبية للبطاقات الأربع قبل وبعد النقر) */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
         {stepsList.map(step => {
           const isActive = currentStep === step.num;
           const isDone = currentStep > step.num;
@@ -294,24 +294,42 @@ export const CommissionWizard: React.FC<CommissionWizardProps> = ({
               key={step.num}
               type="button"
               onClick={() => setCurrentStep(step.num)}
-              className={`p-2.5 sm:p-3 rounded-xl border text-right transition-all flex items-center justify-between gap-2 cursor-pointer ${
+              className={`p-3.5 rounded-2xl border-2 text-right transition-all flex items-center justify-between gap-2.5 cursor-pointer shadow-md ${
                 isActive 
-                  ? 'bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-transparent border-amber-500 text-amber-300 shadow-md font-bold' 
+                  ? 'bg-gradient-to-r from-amber-500/30 via-amber-500/20 to-slate-900 border-amber-400 text-white shadow-xl shadow-amber-500/25 font-black ring-2 ring-amber-400/40 scale-[1.02]' 
                   : isDone
-                  ? 'bg-slate-900/80 border-emerald-500/40 text-emerald-400'
-                  : 'bg-slate-900/40 border-slate-800/80 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                  ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-200 font-bold'
+                  : 'bg-[#131d33] hover:bg-[#1a2744] border-slate-700 hover:border-amber-400/70 text-white font-black'
               }`}
             >
-              <div className="flex items-center gap-2 min-w-0">
-                <StepIcon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-amber-400' : isDone ? 'text-emerald-400' : 'text-slate-500'}`} />
-                <span className="text-xs truncate">{isAr ? step.titleAr : step.titleEn}</span>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                  isActive 
+                    ? 'bg-amber-400 text-slate-950 shadow-md font-bold' 
+                    : isDone 
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                    : 'bg-slate-800 text-amber-300 border border-slate-600'
+                }`}>
+                  <StepIcon className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 text-right">
+                  <span className={`text-xs sm:text-sm font-black truncate block ${isActive ? 'text-amber-300' : isDone ? 'text-emerald-300' : 'text-white'}`}>
+                    {isAr ? step.titleAr : step.titleEn}
+                  </span>
+                  <span className="text-[10px] text-slate-400 block font-medium truncate">
+                    {step.num === 1 ? (isAr ? 'تحديد من 55 دولة' : '55 nations') :
+                     step.num === 2 ? (isAr ? '18 قالباً صحفياً' : '18 genres') :
+                     step.num === 3 ? (isAr ? '28 قطاعاً اقتصادياً' : '28 sectors') :
+                     (isAr ? 'المراجعة والإطلاق' : 'Review & Push')}
+                  </span>
+                </div>
               </div>
 
               {isDone ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
               ) : (
-                <span className={`w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-mono font-bold shrink-0 ${
-                  isActive ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-400'
+                <span className={`w-6 h-6 rounded-full text-[11px] flex items-center justify-center font-mono font-black shrink-0 ${
+                  isActive ? 'bg-amber-400 text-slate-950' : 'bg-slate-800 border border-slate-600 text-amber-200'
                 }`}>
                   {step.num}
                 </span>
@@ -332,24 +350,12 @@ export const CommissionWizard: React.FC<CommissionWizardProps> = ({
               <div>
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <Globe className="w-4 h-4 text-amber-400" />
-                  <span>{isAr ? 'الخطوة 1: حدد الدولة المستهدفة (من بين 54 دولة)' : 'Step 1: Target Country (54 Nations)'}</span>
+                  <span>{isAr ? 'الخطوة 1: حدد الدولة المستهدفة (من بين 55 دولة)' : 'Step 1: Target Country (55 Nations)'}</span>
                 </h3>
                 <p className="text-xs text-slate-400">
                   {isAr ? 'الدولة المحددة حالياً:' : 'Current Selection:'}{' '}
                   <span className="font-bold text-amber-400">🌍 {currentCountry.nameAr} ({currentCountry.code})</span> · {currentCountry.capital} · {currentCountry.currency}
                 </p>
-              </div>
-
-              {/* Search input */}
-              <div className="relative w-full sm:w-64">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3" />
-                <input
-                  type="text"
-                  value={countrySearch}
-                  onChange={(e) => setCountrySearch(e.target.value)}
-                  placeholder={isAr ? 'ابحث عن دولة، عاصمة، كود...' : 'Search 54 countries...'}
-                  className="w-full pr-9 pl-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-amber-500/60"
-                />
               </div>
             </div>
 
@@ -366,10 +372,10 @@ export const CommissionWizard: React.FC<CommissionWizardProps> = ({
                       key={code}
                       type="button"
                       onClick={() => setSelectedCountryCode(code)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                         isSel 
-                          ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold shadow-md' 
-                          : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700'
+                          ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md scale-105' 
+                          : 'bg-slate-900 text-slate-200 border-slate-700/80 hover:border-slate-600 hover:bg-slate-850'
                       }`}
                     >
                       {c.nameAr}
@@ -379,35 +385,82 @@ export const CommissionWizard: React.FC<CommissionWizardProps> = ({
               </div>
             </div>
 
-            {/* Grid of all filtered countries (smooth layout without nested scrollbar) */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 pt-2 max-h-[380px] overflow-y-auto no-scrollbar">
-              {filteredCountries.map(c => {
-                const isSelected = selectedCountryCode === c.code;
-                return (
+            {/* إطار البحث عن الدولة بين الاختيار السريع وبطاقات الـ 55 دولة */}
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 border border-amber-500/40 shadow-lg space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                  <Search className="w-3.5 h-3.5 text-amber-400" />
+                  <span>{isAr ? 'البحث الفوري عن الدولة (لتجنب التمرير اليدوي):' : 'Instant Country Search:'}</span>
+                </label>
+                <span className="text-[11px] font-mono text-slate-400">
+                  {isAr ? `عرض ${filteredCountries.length} دولة` : `Showing ${filteredCountries.length} countries`}
+                </span>
+              </div>
+              <div className="relative w-full">
+                <Search className="w-4 h-4 text-amber-400/80 absolute right-3.5 top-3 rtl:right-3.5 rtl:left-auto ltr:left-3.5 ltr:right-auto" />
+                <input
+                  type="text"
+                  value={countrySearch}
+                  onChange={(e) => setCountrySearch(e.target.value)}
+                  placeholder={isAr ? 'اكتب اسم الدولة، العاصمة، أو الرمز (مثال: الجزائر، نيجيريا، كينيا، مصر، DZ)...' : 'Type country name, capital, or code (e.g. Algeria, Nigeria, Kenya, DZ)...'}
+                  className="w-full pr-10 pl-10 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 transition-all shadow-inner"
+                />
+                {countrySearch && (
                   <button
-                    key={c.code}
                     type="button"
-                    onClick={() => setSelectedCountryCode(c.code)}
-                    className={`p-2.5 sm:p-3 rounded-xl border text-right transition-all flex flex-col justify-between cursor-pointer ${
-                      isSelected
-                        ? 'bg-gradient-to-br from-amber-500/25 to-amber-600/10 border-amber-500 text-white shadow-md'
-                        : 'bg-slate-950/70 hover:bg-slate-900 border-slate-800/80 hover:border-slate-700 text-slate-300'
-                    }`}
+                    onClick={() => setCountrySearch('')}
+                    className="absolute left-3 top-2.5 rtl:left-3 rtl:right-auto ltr:right-3 ltr:left-auto text-slate-400 hover:text-white p-0.5 rounded-md cursor-pointer"
                   >
-                    <div className="flex items-center justify-between w-full">
-                      <span className="font-mono text-[10px] text-slate-400">{c.code}</span>
-                      {isSelected ? (
-                        <Check className="w-3.5 h-3.5 text-amber-400" />
-                      ) : (
-                        <span className="text-[10px] text-slate-600 font-mono">#{c.slug.substring(0, 3)}</span>
-                      )}
-                    </div>
-                    <div className="font-bold text-xs text-white mt-1">{c.nameAr}</div>
-                    <div className="text-[10px] text-slate-400 truncate">{c.capital} · {c.currency}</div>
+                    <X className="w-4 h-4" />
                   </button>
-                );
-              })}
+                )}
+              </div>
             </div>
+
+            {/* Grid of all filtered countries (smooth layout without nested scrollbar) */}
+            {filteredCountries.length === 0 ? (
+              <div className="p-8 text-center rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
+                <p className="text-xs text-slate-400">
+                  {isAr ? `لا توجد دولة مطابقة للبحث: "${countrySearch}"` : `No countries match "${countrySearch}"`}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setCountrySearch('')}
+                  className="px-3 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold text-xs cursor-pointer"
+                >
+                  {isAr ? 'إعادة تعيين البحث' : 'Clear search'}
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 pt-1 max-h-[380px] overflow-y-auto no-scrollbar">
+                {filteredCountries.map(c => {
+                  const isSelected = selectedCountryCode === c.code;
+                  return (
+                    <button
+                      key={c.code}
+                      type="button"
+                      onClick={() => setSelectedCountryCode(c.code)}
+                      className={`p-2.5 sm:p-3 rounded-xl border text-right transition-all flex flex-col justify-between cursor-pointer ${
+                        isSelected
+                          ? 'bg-gradient-to-br from-amber-500/25 to-amber-600/10 border-amber-500 text-white shadow-md ring-1 ring-amber-500/30'
+                          : 'bg-slate-950/70 hover:bg-slate-900 border-slate-800/80 hover:border-slate-700 text-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span className="font-mono text-[10px] text-slate-400">{c.code}</span>
+                        {isSelected ? (
+                          <Check className="w-3.5 h-3.5 text-amber-400" />
+                        ) : (
+                          <span className="text-[10px] text-slate-600 font-mono">#{c.slug.substring(0, 3)}</span>
+                        )}
+                      </div>
+                      <div className="font-bold text-xs text-white mt-1">{c.nameAr}</div>
+                      <div className="text-[10px] text-slate-400 truncate">{c.capital} · {c.currency}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 

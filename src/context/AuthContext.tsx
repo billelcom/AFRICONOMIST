@@ -6,6 +6,7 @@ import {
   signInWithPopup, 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
+  sendPasswordResetEmail,
   signOut as firebaseSignOut, 
   onAuthStateChanged,
   updateProfile as updateFirebaseProfile
@@ -13,18 +14,28 @@ import {
 import { 
   doc, 
   getDoc, 
+  getDocs,
   setDoc, 
   updateDoc, 
   collection, 
   query, 
   where, 
+  orderBy,
+  limit,
   onSnapshot, 
   deleteDoc, 
   serverTimestamp 
 } from 'firebase/firestore';
 import { auth, googleProvider, db } from '../lib/firebase';
-import { UserProfile, UserRole, SavedArticle, AppNotification } from '../types/auth';
+import { UserProfile, UserRole, SavedArticle, PublishedArticle, AccountActivity, AppNotification } from '../types/auth';
 import { Article } from '../types';
+
+export interface SignUpExtraData {
+  firstName?: string;
+  lastName?: string;
+  whatsapp?: string;
+  country?: string;
+}
 
 interface AuthContextType {
   user: User | null;
@@ -33,7 +44,8 @@ interface AuthContextType {
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, pass: string) => Promise<void>;
-  signUpWithEmail: (email: string, pass: string, name: string, preferredRole?: UserRole) => Promise<void>;
+  signUpWithEmail: (email: string, pass: string, name: string, extra?: SignUpExtraData | UserRole) => Promise<void>;
+  sendPasswordReset: (email: string) => Promise<void>;
   loginAsDemoRole: (role: UserRole) => Promise<void>;
   signOut: () => Promise<void>;
   updateUserProfile: (data: Partial<UserProfile>) => Promise<void>;
@@ -43,6 +55,18 @@ interface AuthContextType {
   saveArticle: (article: Article) => Promise<void>;
   unsaveArticle: (articleId: string) => Promise<void>;
   isArticleSaved: (articleId: string) => boolean;
+
+  // المقالات المنشورة (للمحررين والمشرفين)
+  publishedArticles: PublishedArticle[];
+  publishUserArticle: (article: Article) => Promise<void>;
+
+  // سجل عمليات الحساب
+  activities: AccountActivity[];
+  logAccountActivity: (type: AccountActivity['type'], title: string, description: string, metadata?: any) => Promise<void>;
+
+  // إدارة المشرف للأدوار والمستخدمين
+  updateUserRoleBySupervisor: (targetUserId: string, newRole: UserRole) => Promise<void>;
+  fetchAllUsers: () => Promise<UserProfile[]>;
   
   // الإشعارات
   notifications: AppNotification[];
@@ -61,6 +85,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [savedArticles, setSavedArticles] = useState<SavedArticle[]>([]);
+  const [publishedArticles, setPublishedArticles] = useState<PublishedArticle[]>([]);
+  const [activities, setActivities] = useState<AccountActivity[]>([]);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
   // تحميل واستماع حالة تسجيل الدخول
@@ -81,19 +107,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
             setProfile(data);
           } else {
-            // إنشاء بروفايل جديد
+            // إنشاء بروفايل جديد تلقائي كـ READER أو ADMIN
             const isDefaultAdmin = currentUser.email ? ADMIN_EMAILS.includes(currentUser.email.toLowerCase()) : false;
             const newProfile: UserProfile = {
               uid: currentUser.uid,
               email: currentUser.email || '',
-              displayName: currentUser.displayName || currentUser.email?.split('@')[0] || 'محرر اقتصادي',
+              displayName: currentUser.displayName || currentUser.email?.split('@')[0] || 'مستخدم المنصة',
+              role: isDefaultAdmin ? 'ADMIN' : 'READER',
               photoURL: currentUser.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(currentUser.displayName || currentUser.email || 'AF')}`,
               coverURL: 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=1200&q=80',
               bio: isDefaultAdmin 
                 ? 'المدير العام ورئيس التحرير التنفيذي لمنصة لافريكونوميست.' 
                 : 'متابع ومحلل للشؤون الاقتصادية وأسواق المال الإفريقية.',
-              role: isDefaultAdmin ? 'ADMIN' : 'READER',
               favoriteCountry: 'DZ',
+              savedArticlesCount: 0,
+              publishedArticlesCount: 0,
               createdAt: new Date().toISOString()
             };
 
@@ -135,10 +163,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
-  // الاستماع للمقالات المحفوظة في Firestore
+  // الاستماع للمقالات المحفوظة في Firestore تحت users/{uid}/savedArticles وبشكل متوافق
   useEffect(() => {
     if (!user) {
-      // قراءة من localStorage عند عدم تسجيل الدخول
       if (typeof window !== 'undefined') {
         const localSaved = localStorage.getItem('africonomist_saved_articles');
         if (localSaved) {
@@ -149,22 +176,90 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      const q = query(collection(db, 'savedArticles'), where('userId', '==', user.uid));
-      const unsub = onSnapshot(q, (snapshot) => {
-        const list: SavedArticle[] = [];
+      // 1. الاستماع للمجموعة الفرعية الخاصة بالمستخدم: users/{userId}/savedArticles
+      const userSavedRef = collection(db, 'users', user.uid, 'savedArticles');
+      const unsubUserSub = onSnapshot(userSavedRef, (snapshot) => {
+        const subList: SavedArticle[] = [];
         snapshot.forEach((d) => {
-          list.push({ id: d.id, ...(d.data() as Omit<SavedArticle, 'id'>) });
+          subList.push({ id: d.id, ...(d.data() as Omit<SavedArticle, 'id'>) });
         });
-        setSavedArticles(list);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('africonomist_saved_articles', JSON.stringify(list));
+        
+        if (subList.length > 0) {
+          setSavedArticles(subList);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('africonomist_saved_articles', JSON.stringify(subList));
+          }
+        } else {
+          // وإلا نقرأ من المجموعة العامة المتوافقة savedArticles
+          const legacyQuery = query(collection(db, 'savedArticles'), where('userId', '==', user.uid));
+          getDocs(legacyQuery).then((snap) => {
+            const legList: SavedArticle[] = [];
+            snap.forEach(d => legList.push({ id: d.id, ...(d.data() as Omit<SavedArticle, 'id'>) }));
+            if (legList.length > 0) {
+              setSavedArticles(legList);
+              // مزامنتها تلقائياً إلى المجموعة الفرعية الجديدة
+              legList.forEach(item => {
+                setDoc(doc(db, 'users', user.uid, 'savedArticles', item.articleId || item.id), item, { merge: true }).catch(() => {});
+              });
+            }
+          }).catch(() => {});
         }
       }, (err) => {
-        console.warn('Saved articles snapshot error:', err);
+        console.warn('Saved articles subcollection snapshot error:', err);
       });
-      return () => unsub();
+
+      return () => unsubUserSub();
     } catch (e) {
       console.warn('Saved articles init error:', e);
+    }
+  }, [user]);
+
+  // الاستماع للمقالات المنشورة الخاصة بالمحرر تحت users/{uid}/publishedArticles
+  useEffect(() => {
+    if (!user) {
+      setPublishedArticles([]);
+      return;
+    }
+
+    try {
+      const pubRef = collection(db, 'users', user.uid, 'publishedArticles');
+      const unsubPub = onSnapshot(pubRef, (snapshot) => {
+        const list: PublishedArticle[] = [];
+        snapshot.forEach((d) => {
+          list.push({ id: d.id, ...(d.data() as Omit<PublishedArticle, 'id'>) });
+        });
+        setPublishedArticles(list);
+      }, (err) => {
+        console.warn('Published articles listener error:', err);
+      });
+      return () => unsubPub();
+    } catch (e) {
+      console.warn('Published articles listener error:', e);
+    }
+  }, [user]);
+
+  // الاستماع لعمليات ونشاطات الحساب تحت users/{uid}/activities
+  useEffect(() => {
+    if (!user) {
+      setActivities([]);
+      return;
+    }
+
+    try {
+      const actRef = collection(db, 'users', user.uid, 'activities');
+      const unsubAct = onSnapshot(actRef, (snapshot) => {
+        const list: AccountActivity[] = [];
+        snapshot.forEach((d) => {
+          list.push({ id: d.id, ...(d.data() as Omit<AccountActivity, 'id'>) });
+        });
+        list.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        setActivities(list);
+      }, (err) => {
+        console.warn('Activities listener error:', err);
+      });
+      return () => unsubAct();
+    } catch (e) {
+      console.warn('Activities listener error:', e);
     }
   }, [user]);
 
@@ -252,6 +347,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
           setProfile(newProfile);
         }
+        // تسجيل نشاط تسجيل الدخول
+        try {
+          const loginActRef = doc(collection(db, 'users', res.user.uid, 'activities'));
+          await setDoc(loginActRef, {
+            id: loginActRef.id,
+            userId: res.user.uid,
+            type: 'login',
+            title: 'تسجيل دخول ناجح',
+            description: 'تم تسجيل الدخول إلى المنصة بنجاح.',
+            timestamp: serverTimestamp()
+          });
+        } catch {}
       } catch (docErr) {
         console.warn('Doc check on signin warning:', docErr);
       }
@@ -261,48 +368,126 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // إنشاء حساب جديد
-  const signUpWithEmail = async (email: string, pass: string, name: string, preferredRole: UserRole = 'READER') => {
+  // إنشاء حساب جديد - إلغاء تحديد الأدوار من بطاقة التسجيل وإسناد الدور تلقائياً كـ READER (أو ADMIN لحساب المدير الرئيسي)
+  const signUpWithEmail = async (
+    email: string, 
+    pass: string, 
+    name: string, 
+    extra?: SignUpExtraData | UserRole
+  ) => {
     const trimmedEmail = email.trim().toLowerCase();
     const isDefaultAdmin = ADMIN_EMAILS.includes(trimmedEmail);
-    const assignedRole: UserRole = isDefaultAdmin ? 'ADMIN' : preferredRole;
+    // الدور دائماً قارئ عند إنشاء الحساب، وتحديد الأدوار يكون عن طريق المشرف لاحقاً
+    const assignedRole: UserRole = isDefaultAdmin ? 'ADMIN' : 'READER';
+
+    let firstName = '';
+    let lastName = '';
+    let whatsapp = '';
+    let country = 'DZ';
+
+    if (extra && typeof extra === 'object') {
+      firstName = extra.firstName?.trim() || '';
+      lastName = extra.lastName?.trim() || '';
+      whatsapp = extra.whatsapp?.trim() || '';
+      country = extra.country?.trim() || 'DZ';
+    }
+
+    if (!firstName && name) {
+      const parts = name.trim().split(/\s+/);
+      firstName = parts[0] || '';
+      lastName = parts.slice(1).join(' ') || '';
+    }
+
+    const finalDisplayName = (name && name.trim()) || `${firstName} ${lastName}`.trim() || 'مستخدم المنصة';
 
     try {
       // 1. إنشاء الحساب الفعلي في Firebase Authentication
-      const res = await createUserWithEmailAndPassword(auth, trimmedEmail, pass);
-      await updateFirebaseProfile(res.user, { displayName: name });
+      let targetUid = '';
+      let targetDisplayName = finalDisplayName;
+      let targetPhotoURL = '';
+
+      try {
+        const res = await createUserWithEmailAndPassword(auth, trimmedEmail, pass);
+        targetUid = res.user.uid;
+        targetPhotoURL = res.user.photoURL || '';
+        await updateFirebaseProfile(res.user, { displayName: finalDisplayName });
+      } catch (createErr: any) {
+        // إذا كان البريد مسجلاً مسبقاً، نحاول تسجيل الدخول بكلمة المرور المدخلة مباشرة وتأكيد الحساب
+        if (createErr.code === 'auth/email-already-in-use') {
+          try {
+            const loginRes = await signInWithEmailAndPassword(auth, trimmedEmail, pass);
+            targetUid = loginRes.user.uid;
+            targetDisplayName = loginRes.user.displayName || finalDisplayName;
+            targetPhotoURL = loginRes.user.photoURL || '';
+          } catch {
+            throw createErr;
+          }
+        } else {
+          throw createErr;
+        }
+      }
       
       const newProfile: UserProfile = {
-        uid: res.user.uid,
+        uid: targetUid,
         email: trimmedEmail,
-        displayName: name,
+        displayName: targetDisplayName,
+        firstName,
+        lastName,
+        whatsapp,
+        country,
         role: assignedRole,
-        photoURL: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`,
+        status: 'active',
+        photoURL: targetPhotoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(targetDisplayName)}`,
         coverURL: 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=1200&q=80',
         bio: assignedRole === 'ADMIN'
           ? 'المدير العام ورئيس التحرير التنفيذي لمنصة لافريكونوميست.'
-          : assignedRole === 'SUPERVISOR'
-          ? 'مشرف على التدقيق الاستقصائي واعتماد ونشر التقارير.'
-          : assignedRole === 'EDITOR'
-          ? 'محرر ومحلل اقتصادي متخصص في مسودات وتقارير القارة.'
           : 'متابع ومحلل للشؤون الاقتصادية وأسواق المال الإفريقية.',
-        favoriteCountry: 'DZ',
+        favoriteCountry: country || 'DZ',
+        savedArticlesCount: 0,
+        publishedArticlesCount: 0,
         createdAt: new Date().toISOString()
       };
 
-      // 2. كتابة مستند المستخدم مباشرة وبشكل حقيقي في Firestore users collection
-      const userDocRef = doc(db, 'users', res.user.uid);
+      // 2. كتابة مستند المستخدم الرئيسي: users/{targetUid}
+      const userDocRef = doc(db, 'users', targetUid);
       await setDoc(userDocRef, {
         ...newProfile,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
-      });
+      }, { merge: true });
+
+      // 3. كتابة أول عملية في تفرع عمليات ونشاطات الحساب: users/{targetUid}/activities
+      try {
+        const initialActivityRef = doc(collection(db, 'users', targetUid, 'activities'));
+        await setDoc(initialActivityRef, {
+          id: initialActivityRef.id,
+          userId: targetUid,
+          type: 'account_created',
+          title: 'إنشاء الحساب وتفعيله',
+          description: `تم إنشاء حساب جديد بنجاح باسم (${targetDisplayName}) بصلاحية قارئ ومستثمر.`,
+          timestamp: serverTimestamp(),
+          metadata: {
+            country,
+            whatsapp,
+            email: trimmedEmail
+          }
+        });
+      } catch (e) {
+        console.warn('Initial activity log error:', e);
+      }
 
       setProfile(newProfile);
     } catch (error: any) {
       console.error('Firebase createUserWithEmailAndPassword error:', error);
       throw error;
     }
+  };
+
+  // إرسال رابط إعادة تعيين كلمة المرور عبر البريد
+  const sendPasswordReset = async (email: string) => {
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail) throw new Error('يرجى كتابة البريد الإلكتروني');
+    await sendPasswordResetEmail(auth, trimmedEmail);
   };
 
   // تسجيل الدخول التجريبي السريع لاختبار مختلف الأدوار (Admin, Supervisor, Editor, Reader)
@@ -434,9 +619,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (activeAuthUser) {
       try {
+        // 1. التفرع الخاص بالمستخدم في Firestore: users/{userId}/savedArticles/{articleId}
+        const userSaveDocRef = doc(db, 'users', currentUserId, 'savedArticles', article.id);
+        await setDoc(userSaveDocRef, {
+          ...newSave,
+          savedAt: serverTimestamp()
+        });
+
+        // 2. المجموعة المتوافقة العامة savedArticles
         await setDoc(doc(db, 'savedArticles', saveId), {
           ...newSave,
           savedAt: serverTimestamp()
+        });
+
+        // 3. تحديث عداد المقالات المحفوظة في مستند المستخدم الرئيسي
+        const userRef = doc(db, 'users', currentUserId);
+        await updateDoc(userRef, {
+          savedArticlesCount: (profile?.savedArticlesCount || 0) + 1,
+          updatedAt: serverTimestamp()
+        }).catch(() => {});
+
+        // 4. تسجيل العملية في تفرع عمليات ونشاطات الحساب: users/{userId}/activities
+        const actRef = doc(collection(db, 'users', currentUserId, 'activities'));
+        await setDoc(actRef, {
+          id: actRef.id,
+          userId: currentUserId,
+          type: 'article_saved',
+          title: 'حفظ مقال للقراءة',
+          description: `تم حفظ مقال: "${article.title.substring(0, 45)}..." في قائمة المقالات المحفوظة لحسابك.`,
+          timestamp: serverTimestamp(),
+          metadata: { articleId: article.id }
         });
       } catch (e) {
         console.warn('Firestore save article error:', e);
@@ -473,10 +685,168 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (activeAuthUser) {
       try {
+        await deleteDoc(doc(db, 'users', currentUserId, 'savedArticles', articleId));
         await deleteDoc(doc(db, 'savedArticles', saveId));
+
+        // تسجيل العملية في سجل أنشطة الحساب
+        const actRef = doc(collection(db, 'users', currentUserId, 'activities'));
+        await setDoc(actRef, {
+          id: actRef.id,
+          userId: currentUserId,
+          type: 'article_unsaved',
+          title: 'إلغاء حفظ مقال',
+          description: `تم حذف المقال من المقالات المحفوظة في حسابك.`,
+          timestamp: serverTimestamp(),
+          metadata: { articleId }
+        });
       } catch (e) {
         console.warn('Firestore delete saved article error:', e);
       }
+    }
+  };
+
+  // نشر مقال خاص بالمحرر أو المشرف في تفرع: users/{userId}/publishedArticles
+  const publishUserArticle = async (article: Article) => {
+    const activeAuthUser = auth.currentUser || user;
+    const currentUserId = activeAuthUser?.uid || profile?.uid || 'guest';
+
+    const pubItem: PublishedArticle = {
+      id: article.id,
+      articleId: article.id,
+      authorId: currentUserId,
+      authorName: profile?.displayName || article.authorName || 'محرر اقتصادي',
+      title: article.title,
+      titleEn: article.titleEn,
+      slug: article.slug,
+      summary: article.summary,
+      category: article.category,
+      countryCode: article.countryCode,
+      countryName: article.countryName,
+      status: article.status,
+      publishedAt: new Date().toISOString(),
+      imageUrl: article.imageUrl,
+      viewsCount: 1
+    };
+
+    setPublishedArticles(prev => [pubItem, ...prev.filter(p => p.articleId !== article.id)]);
+
+    if (activeAuthUser) {
+      try {
+        await setDoc(doc(db, 'users', currentUserId, 'publishedArticles', article.id), {
+          ...pubItem,
+          publishedAt: serverTimestamp()
+        });
+
+        // تحديث عداد المنشورات
+        const userRef = doc(db, 'users', currentUserId);
+        await updateDoc(userRef, {
+          publishedArticlesCount: (profile?.publishedArticlesCount || 0) + 1,
+          updatedAt: serverTimestamp()
+        }).catch(() => {});
+
+        // تسجيل العملية في تفرع الأنشطة
+        const actRef = doc(collection(db, 'users', currentUserId, 'activities'));
+        await setDoc(actRef, {
+          id: actRef.id,
+          userId: currentUserId,
+          type: 'article_published',
+          title: 'نشر مقال في المنصة',
+          description: `تم إيداع مقال "${article.title.substring(0, 45)}..." في رصيد منشوراتك كمحرر.`,
+          timestamp: serverTimestamp(),
+          metadata: { articleId: article.id }
+        });
+      } catch (e) {
+        console.warn('Publish user article error:', e);
+      }
+    }
+  };
+
+  // تسجيل عملية مخصصة في سجل الحساب
+  const logAccountActivity = async (type: AccountActivity['type'], title: string, description: string, metadata?: any) => {
+    const activeAuthUser = auth.currentUser || user;
+    const currentUserId = activeAuthUser?.uid || profile?.uid;
+    if (!currentUserId) return;
+
+    const newAct: AccountActivity = {
+      id: `act-${Date.now()}`,
+      userId: currentUserId,
+      type,
+      title,
+      description,
+      timestamp: new Date().toISOString(),
+      metadata
+    };
+
+    setActivities(prev => [newAct, ...prev]);
+
+    if (activeAuthUser) {
+      try {
+        const actRef = doc(collection(db, 'users', currentUserId, 'activities'));
+        await setDoc(actRef, {
+          id: actRef.id,
+          userId: currentUserId,
+          type,
+          title,
+          description,
+          timestamp: serverTimestamp(),
+          metadata: metadata || null
+        });
+      } catch (e) {
+        console.warn('logAccountActivity error:', e);
+      }
+    }
+  };
+
+  // تعديل وتحديد أدوار المستخدمين بواسطة المشرف (تحديد الأدوار يكون عن طريق المشرف فيما بعد)
+  const updateUserRoleBySupervisor = async (targetUserId: string, newRole: UserRole) => {
+    const activeRole = profile?.role || (user?.email && ADMIN_EMAILS.includes(user.email) ? 'ADMIN' : 'READER');
+    if (activeRole !== 'ADMIN' && activeRole !== 'SUPERVISOR') {
+      throw new Error('فقط المشرف أو مدير النظام يملك صلاحية تعديل وتحديد أدوار المستخدمين.');
+    }
+
+    const userDocRef = doc(db, 'users', targetUserId);
+    await updateDoc(userDocRef, {
+      role: newRole,
+      roleAssignedBy: profile?.displayName || 'المشرف',
+      roleAssignedAt: new Date().toISOString(),
+      updatedAt: serverTimestamp()
+    });
+
+    // تسجيل العملية في تفرع نشاطات المستخدم
+    try {
+      const actRef = doc(collection(db, 'users', targetUserId, 'activities'));
+      await setDoc(actRef, {
+        id: actRef.id,
+        userId: targetUserId,
+        type: 'role_changed',
+        title: 'تحديد وتعديل الصلاحيات',
+        description: `قام المشرف (${profile?.displayName || 'المشرف'}) باعتماد وتحديد دور الحساب إلى [${newRole}].`,
+        timestamp: serverTimestamp(),
+        metadata: { newRole, assignedBy: profile?.displayName }
+      });
+    } catch {}
+
+    // إرسال إشعار للمستخدم
+    await sendNotification({
+      userId: targetUserId,
+      type: 'system',
+      title: `اعتماد الصلاحيات: تم تحديد دورك كـ [${newRole}]`,
+      message: `تم اعتماد وتحديد صلاحيات حسابك كـ [${newRole}] بواسطة المشرف ${profile?.displayName || ''}. يمكنك استخدام كافة الميزات المتاحة لهذا الدور.`
+    });
+  };
+
+  // جلب كافة المستخدمين المسجلين في Firebase (للمشرفين)
+  const fetchAllUsers = async (): Promise<UserProfile[]> => {
+    try {
+      const snap = await getDocs(collection(db, 'users'));
+      const list: UserProfile[] = [];
+      snap.forEach((d) => {
+        list.push(d.data() as UserProfile);
+      });
+      return list;
+    } catch (err) {
+      console.warn('fetchAllUsers error:', err);
+      return [];
     }
   };
 
@@ -544,6 +914,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signInWithGoogle,
         signInWithEmail,
         signUpWithEmail,
+        sendPasswordReset,
         loginAsDemoRole,
         signOut,
         updateUserProfile,
@@ -551,6 +922,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         saveArticle,
         unsaveArticle,
         isArticleSaved,
+        publishedArticles,
+        publishUserArticle,
+        activities,
+        logAccountActivity,
+        updateUserRoleBySupervisor,
+        fetchAllUsers,
         notifications,
         unreadCount,
         markNotificationAsRead,

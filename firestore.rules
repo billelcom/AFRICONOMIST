@@ -35,24 +35,49 @@ service cloud.firestore {
       );
     }
 
-    // 1. Users collection
+    // 1. Users collection and subcollections
     match /users/{userId} {
       allow get: if isSignedIn();
-      allow list: if isSignedIn() && isSupervisor();
+      allow list: if isSignedIn();
 
       allow create: if isSignedIn() && isValidId(userId)
         && (isOwner(userId) || isAdmin())
         && request.resource.data.uid == userId
         && request.resource.data.email is string
-        && request.resource.data.displayName is string
-        && request.resource.data.role in ['ADMIN', 'SUPERVISOR', 'EDITOR', 'READER'];
+        && (request.resource.data.role == 'READER' || isAdmin());
 
       allow update: if isSignedIn() && isValidId(userId) && (
-        isOwner(userId) ||
-        isAdmin()
+        isAdmin() ||
+        isSupervisor() ||
+        (isOwner(userId) && request.resource.data.role == resource.data.role)
       );
 
       allow delete: if isAdmin() && isValidId(userId);
+
+      // Subcollection: Saved Articles
+      match /savedArticles/{saveId} {
+        allow get, list: if isSignedIn() && (isOwner(userId) || isSupervisor());
+        allow create, update, delete: if isSignedIn() && (isOwner(userId) || isAdmin());
+      }
+
+      // Subcollection: Published Articles (for Editors, Supervisors, Admins)
+      match /publishedArticles/{articleId} {
+        allow get, list: if true;
+        allow create, update, delete: if isSignedIn() && (isOwner(userId) || isSupervisor() || isAdmin());
+      }
+
+      // Subcollection: Account Operations & Activities
+      match /activities/{activityId} {
+        allow get, list: if isSignedIn() && (isOwner(userId) || isSupervisor());
+        allow create: if isSignedIn() && (isOwner(userId) || isSupervisor() || isAdmin());
+        allow update, delete: if isAdmin();
+      }
+
+      // Subcollection: User Notifications
+      match /notifications/{notifId} {
+        allow get, list: if isSignedIn() && (isOwner(userId) || isSupervisor());
+        allow create, update, delete: if isSignedIn() && (isOwner(userId) || isSupervisor());
+      }
     }
 
     // 2. Saved Articles collection

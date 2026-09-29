@@ -15,7 +15,9 @@ import {
   Bell,
   Bookmark,
   Crown,
-  Sparkles
+  Sparkles,
+  LogIn,
+  UserPlus
 } from 'lucide-react';
 import { NavigationModals, NavModalType } from './NavigationModals';
 import { PWABar } from './pwa/PWABar';
@@ -54,6 +56,7 @@ export const Header: React.FC<HeaderProps> = ({
   const { user, profile, role, unreadCount } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [activeModal, setActiveModal] = useState<NavModalType>(null);
+  const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
 
   const handleNavClick = (action: () => void) => {
     action();
@@ -149,18 +152,28 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               </button>
             ) : (
-              <button
-                onClick={() => setActiveModal('auth')}
-                className={`rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black flex items-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer ${
-                  isAr 
-                    ? 'px-2 py-1 text-[10.5px]' 
-                    : 'px-1.5 py-0.5 text-[9px] font-bold'
-                }`}
-                title={isAr ? 'تسجيل الدخول / إنشاء حساب' : 'Sign In'}
-              >
-                <User className={isAr ? "w-3 h-3" : "w-2.5 h-2.5"} />
-                <span>{isAr ? 'تسجيل' : 'Sign In'}</span>
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => {
+                    setAuthModalMode('signin');
+                    setActiveModal('auth');
+                  }}
+                  className="px-2 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700/60 text-[10px] font-bold transition-all active:scale-95 cursor-pointer"
+                  title={isAr ? 'تسجيل الدخول' : 'Sign In'}
+                >
+                  <span>{isAr ? 'دخول' : 'Sign In'}</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setAuthModalMode('signup');
+                    setActiveModal('auth');
+                  }}
+                  className="px-2 py-1 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 text-[10px] font-black shadow-sm transition-all active:scale-95 cursor-pointer"
+                  title={isAr ? 'إنشاء حساب جديد' : 'Register'}
+                >
+                  <span>{isAr ? 'تسجيل' : 'Register'}</span>
+                </button>
+              </div>
             )}
 
             {/* أيقونة اللغة */}
@@ -478,18 +491,31 @@ export const Header: React.FC<HeaderProps> = ({
                   </span>
                 </button>
               ) : (
-                <button
-                  onClick={() => setActiveModal('auth')}
-                  className={`rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black flex items-center gap-1.5 shadow-sm transition-all whitespace-nowrap cursor-pointer active:scale-95 ${
-                    isAr 
-                      ? 'px-3.5 py-1.5 text-xs' 
-                      : 'px-2.5 py-1 text-[10.5px] font-bold'
-                  }`}
-                  title={isAr ? 'تسجيل الدخول أو إنشاء حساب جديد' : 'Sign In or Create Account'}
-                >
-                  <User className={isAr ? "w-3.5 h-3.5" : "w-3 h-3"} />
-                  <span>{isAr ? 'تسجيل' : 'Sign In'}</span>
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => {
+                      setAuthModalMode('signin');
+                      setActiveModal('auth');
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-850 border border-slate-700/80 text-slate-200 hover:text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95"
+                    title={isAr ? 'تسجيل الدخول إلى حسابك' : 'Sign In'}
+                  >
+                    <LogIn className="w-3.5 h-3.5 text-amber-400" />
+                    <span>{isAr ? 'تسجيل الدخول' : 'Sign In'}</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setAuthModalMode('signup');
+                      setActiveModal('auth');
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer active:scale-95"
+                    title={isAr ? 'إنشاء حساب جديد وتفعيله' : 'Create Account'}
+                  >
+                    <UserPlus className="w-3.5 h-3.5" />
+                    <span>{isAr ? 'إنشاء حساب' : 'Create Account'}</span>
+                  </button>
+                </div>
               )}
 
               {/* زر غرفة الأخبار */}
@@ -646,8 +672,10 @@ export const Header: React.FC<HeaderProps> = ({
         activeModal={activeModal}
         onClose={() => setActiveModal(null)}
         lang={lang}
+        initialAuthMode={authModalMode}
         onNavigateToNewsroom={() => onSelectTab('editorial')}
         onNavigateToProfile={() => onSelectTab('profile')}
+        onBackToHome={() => onSelectTab('home')}
       />
     </>
   );

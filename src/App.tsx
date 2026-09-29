@@ -39,6 +39,7 @@ import { ProfileView } from './components/views/ProfileView';
 import { NotificationsView } from './components/views/NotificationsView';
 import { InteractiveTopCard } from './components/InteractiveTopCard';
 import { Facebook, Twitter, Youtube, Instagram, Music2, MessageCircle, Linkedin, ShieldCheck, Building2, FileText } from 'lucide-react';
+import { useAuth } from './context/AuthContext';
 
 const STORAGE_KEY = 'africonomist_custom_articles_v1';
 
@@ -59,8 +60,19 @@ export default function App() {
   const [selectedSectorId, setSelectedSectorId] = useState<string>('all');
   const [selectedGenreId, setSelectedGenreId] = useState<string>('all');
   const [selectedArticle, setSelectedArticle] = useState<Article>(INITIAL_ARTICLES[0]);
+  const { user, profile } = useAuth();
 
   const isAr = lang === 'ar';
+
+  // عند تسجيل الخروج، إذا كان المستخدم في صفحة الحساب الشخصي يتم إرجاعه تلقائياً للصفحة الرئيسية
+  useEffect(() => {
+    if (currentTab === 'profile' && !user && !profile) {
+      setCurrentTab('home');
+      if (typeof window !== 'undefined') {
+        window.history.pushState({ tab: 'home' }, '', '#');
+      }
+    }
+  }, [user, profile, currentTab]);
 
   // حفظ تلقائي فوري لأي تغيير في المقالات داخل localStorage
   const saveArticlesToLocal = (updatedArticles: Article[]) => {

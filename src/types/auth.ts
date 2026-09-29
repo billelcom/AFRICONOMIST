@@ -4,11 +4,20 @@ export interface UserProfile {
   uid: string;
   email: string;
   displayName: string;
+  firstName?: string;
+  lastName?: string;
+  whatsapp?: string;
+  country?: string;
   photoURL?: string;
   coverURL?: string;
   bio?: string;
   role: UserRole;
+  status?: 'active' | 'suspended' | 'pending';
   favoriteCountry?: string;
+  savedArticlesCount?: number;
+  publishedArticlesCount?: number;
+  roleAssignedBy?: string;
+  roleAssignedAt?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -27,6 +36,34 @@ export interface SavedArticle {
   savedAt: string;
 }
 
+export interface PublishedArticle {
+  id: string;
+  articleId: string;
+  authorId: string;
+  authorName: string;
+  title: string;
+  titleEn?: string;
+  slug?: string;
+  summary: string;
+  category: string;
+  countryCode: string;
+  countryName: string;
+  status: 'draft' | 'pending_review' | 'published';
+  publishedAt: string;
+  imageUrl?: string;
+  viewsCount?: number;
+}
+
+export interface AccountActivity {
+  id: string;
+  userId: string;
+  type: 'account_created' | 'login' | 'profile_update' | 'article_saved' | 'article_unsaved' | 'article_published' | 'role_changed';
+  title: string;
+  description: string;
+  timestamp: string;
+  metadata?: Record<string, any>;
+}
+
 export interface AppNotification {
   id: string;
   userId: string;
@@ -38,3 +75,4 @@ export interface AppNotification {
   countrySlug?: string;
   createdAt: string;
 }
+

@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
  * Rates are modeled from official Central Bank references and Afreximbank / IMF bulletins.
  */
 
-export interface CurrencyInfo {
+interface CurrencyInfo {
   code: string;
   nameAr: string;
   nameEn: string;
@@ -18,7 +18,7 @@ export interface CurrencyInfo {
   change24h: number; // percentage change in 24h
 }
 
-export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
+const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
   // === العملات الأفريقية (African Currencies) ===
   DZD: { code: 'DZD', nameAr: 'دينار جزائري', nameEn: 'Algerian Dinar', symbol: 'د.ج', flag: '🇩🇿', country: 'الجزائر', category: 'african', rateToUsd: 133.45, change24h: -0.12 },
   EGP: { code: 'EGP', nameAr: 'جنيه مصري', nameEn: 'Egyptian Pound', symbol: 'ج.م', flag: '🇪🇬', country: 'مصر', category: 'african', rateToUsd: 48.45, change24h: -0.15 },
@@ -86,7 +86,7 @@ export const ALL_CURRENCIES: Record<string, CurrencyInfo> = {
  * Calculate cross exchange rate between any two currencies A and B
  * rate(A -> B) = rateToUsd(B) / rateToUsd(A)
  */
-export function calculateCrossRate(fromCode: string, toCode: string): number {
+function calculateCrossRate(fromCode: string, toCode: string): number {
   const from = ALL_CURRENCIES[fromCode.toUpperCase()];
   const to = ALL_CURRENCIES[toCode.toUpperCase()];
 

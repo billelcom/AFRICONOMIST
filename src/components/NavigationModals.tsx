@@ -81,6 +81,13 @@ export const NavigationModals: React.FC<NavigationModalsProps> = ({
   const [isResetMode, setIsResetMode] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  // ميثاق أمني صارم: غرفة الأخبار تظهر فقط بعد تسجيل الدخول للادمن، المشرفين، والمحررين
+  const canAccessNewsroom = Boolean(
+    user && 
+    (role === 'ADMIN' || role === 'SUPERVISOR' || role === 'EDITOR' ||
+     profile?.role === 'ADMIN' || profile?.role === 'SUPERVISOR' || profile?.role === 'EDITOR')
+  );
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -919,7 +926,7 @@ export const NavigationModals: React.FC<NavigationModalsProps> = ({
         {/* Modal Footer */}
         <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500">
           <span>{isAr ? 'لافريكونوميست © 2026' : 'L’Africonomist © 2026'}</span>
-          {onNavigateToNewsroom && (
+          {canAccessNewsroom && onNavigateToNewsroom && (
             <button
               onClick={() => {
                 onClose();

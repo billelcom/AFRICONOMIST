@@ -58,6 +58,14 @@ export const Header: React.FC<HeaderProps> = ({
   const [activeModal, setActiveModal] = useState<NavModalType>(null);
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
 
+  // ميثاق أمني صارم: غرفة الأخبار تظهر فقط بعد تسجيل الدخول للأدمن، المشرفين، والمحررين
+  // القراء لا تظهر لهم غرفة الأخبار إطلاقاً لا قبل التسجيل ولا بعد التسجيل
+  const canAccessNewsroom = Boolean(
+    user && 
+    (role === 'ADMIN' || role === 'SUPERVISOR' || role === 'EDITOR' ||
+     profile?.role === 'ADMIN' || profile?.role === 'SUPERVISOR' || profile?.role === 'EDITOR')
+  );
+
   const handleNavClick = (action: () => void) => {
     action();
     setIsMobileMenuOpen(false);
@@ -366,28 +374,30 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             </div>
 
-            {/* زران سفليان: غرفة الأخبار وتسجيل الدخول */}
+            {/* زر الحساب، مع زر غرفة الأخبار حصرياً للأدمن والمشرفين والمحررين فقط بعد تسجيل الدخول */}
             <div className="pt-2 border-t border-slate-800/80 flex items-center gap-2">
-              <button
-                onClick={() => handleNavClick(() => onSelectTab('editorial'))}
-                className={`flex-1 p-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                  currentTab === 'editorial'
-                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-lg'
-                    : 'bg-slate-900 hover:bg-slate-850 text-slate-200 border border-slate-800'
-                }`}
-              >
-                <ShieldCheck className="w-4 h-4 text-rose-400" />
-                <span>{isAr ? 'غرفة الأخبار' : 'Newsroom Desk'}</span>
-                {pendingDraftsCount > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white font-mono">
-                    {pendingDraftsCount}
-                  </span>
-                )}
-              </button>
+              {canAccessNewsroom && (
+                <button
+                  onClick={() => handleNavClick(() => onSelectTab('editorial'))}
+                  className={`flex-1 p-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                    currentTab === 'editorial'
+                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-lg'
+                      : 'bg-slate-900 hover:bg-slate-850 text-slate-200 border border-slate-800'
+                  }`}
+                >
+                  <ShieldCheck className="w-4 h-4 text-rose-400" />
+                  <span>{isAr ? 'غرفة الأخبار' : 'Newsroom Desk'}</span>
+                  {pendingDraftsCount > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white font-mono">
+                      {pendingDraftsCount}
+                    </span>
+                  )}
+                </button>
+              )}
 
               <button
                 onClick={() => handleNavClick(() => setActiveModal('auth'))}
-                className="flex-1 p-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-black flex items-center justify-center gap-1.5 shadow-lg transition-all cursor-pointer"
+                className={`${canAccessNewsroom ? 'flex-1' : 'w-full'} p-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-black flex items-center justify-center gap-1.5 shadow-lg transition-all cursor-pointer`}
               >
                 <User className="w-4 h-4" />
                 <span>{profile ? (isAr ? 'تبديل الدور' : 'Switch Role') : (isAr ? 'التسجيل / العضوية' : 'Sign In')}</span>
@@ -518,23 +528,25 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
               )}
 
-              {/* زر غرفة الأخبار */}
-              <button
-                onClick={() => onSelectTab('editorial')}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
-                  currentTab === 'editorial'
-                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-sm'
-                    : 'bg-slate-900 hover:bg-rose-950/20 text-slate-300 hover:text-rose-300 border border-slate-800'
-                }`}
-              >
-                <ShieldCheck className="w-4 h-4 text-rose-400" />
-                <span>{isAr ? 'غرفة الأخبار' : 'Newsroom'}</span>
-                {pendingDraftsCount > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white font-mono">
-                    {pendingDraftsCount}
-                  </span>
-                )}
-              </button>
+              {/* زر غرفة الأخبار - يظهر فقط بعد تسجيل الدخول للادمن، المشرفين، والمحررين */}
+              {canAccessNewsroom && (
+                <button
+                  onClick={() => onSelectTab('editorial')}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                    currentTab === 'editorial'
+                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-sm'
+                      : 'bg-slate-900 hover:bg-rose-950/20 text-slate-300 hover:text-rose-300 border border-slate-800'
+                  }`}
+                >
+                  <ShieldCheck className="w-4 h-4 text-rose-400" />
+                  <span>{isAr ? 'غرفة الأخبار' : 'Newsroom'}</span>
+                  {pendingDraftsCount > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white font-mono">
+                      {pendingDraftsCount}
+                    </span>
+                  )}
+                </button>
+              )}
             </div>
           </div>
 
@@ -673,7 +685,7 @@ export const Header: React.FC<HeaderProps> = ({
         onClose={() => setActiveModal(null)}
         lang={lang}
         initialAuthMode={authModalMode}
-        onNavigateToNewsroom={() => onSelectTab('editorial')}
+        onNavigateToNewsroom={canAccessNewsroom ? () => onSelectTab('editorial') : undefined}
         onNavigateToProfile={() => onSelectTab('profile')}
         onBackToHome={() => onSelectTab('home')}
       />

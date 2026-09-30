@@ -60,9 +60,17 @@ export default function App() {
   const [selectedSectorId, setSelectedSectorId] = useState<string>('all');
   const [selectedGenreId, setSelectedGenreId] = useState<string>('all');
   const [selectedArticle, setSelectedArticle] = useState<Article>(INITIAL_ARTICLES[0]);
-  const { user, profile } = useAuth();
+  const { user, profile, role } = useAuth();
 
   const isAr = lang === 'ar';
+
+  // ميثاق أمني صارم: غرفة الأخبار تظهر فقط بعد تسجيل الدخول للادمن، المشرفين، والمحررين
+  // القراء لا تظهر لهم غرفة الأخبار إطلاقاً لا قبل التسجيل ولا بعد التسجيل
+  const canAccessNewsroom = Boolean(
+    user && 
+    (role === 'ADMIN' || role === 'SUPERVISOR' || role === 'EDITOR' ||
+     profile?.role === 'ADMIN' || profile?.role === 'SUPERVISOR' || profile?.role === 'EDITOR')
+  );
 
   // عند تسجيل الخروج، إذا كان المستخدم في صفحة الحساب الشخصي يتم إرجاعه تلقائياً للصفحة الرئيسية
   useEffect(() => {
@@ -73,6 +81,16 @@ export default function App() {
       }
     }
   }, [user, profile, currentTab]);
+
+  // حماية فورية لغرفة الأخبار: لا يُسمح للقراء أو غير المسجلين بالدخول إليها نهائياً
+  useEffect(() => {
+    if (currentTab === 'editorial' && !canAccessNewsroom) {
+      setCurrentTab('home');
+      if (typeof window !== 'undefined') {
+        window.history.replaceState({ tab: 'home' }, '', '#home');
+      }
+    }
+  }, [currentTab, canAccessNewsroom]);
 
   // حفظ تلقائي فوري لأي تغيير في المقالات داخل localStorage
   const saveArticlesToLocal = (updatedArticles: Article[]) => {
@@ -294,6 +312,16 @@ export default function App() {
 
   // إدارة التنقل ومزامنة سجل التصفح لدعم زر الرجوع في الهاتف (Mobile Back Button)
   const navigateToTab = (tab: HeaderTab, pushHistory = true) => {
+    // منع القراء والزوار من التوجه لغرفة الأخبار نهائياً
+    if (tab === 'editorial' && !canAccessNewsroom) {
+      setCurrentTab('home');
+      if (pushHistory && typeof window !== 'undefined') {
+        window.history.pushState({ tab: 'home' }, '', '#home');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     setCurrentTab(tab);
     if (pushHistory && typeof window !== 'undefined') {
       window.history.pushState({ tab }, '', '#' + tab);
@@ -311,7 +339,12 @@ export default function App() {
 
     const handlePopState = (event: PopStateEvent) => {
       if (event.state && event.state.tab) {
-        setCurrentTab(event.state.tab as HeaderTab);
+        const targetTab = event.state.tab as HeaderTab;
+        if (targetTab === 'editorial' && !canAccessNewsroom) {
+          setCurrentTab('home');
+          return;
+        }
+        setCurrentTab(targetTab);
         if (event.state.articleId) {
           const found = articles.find(a => a.id === event.state.articleId);
           if (found) setSelectedArticle(found);
@@ -326,7 +359,7 @@ export default function App() {
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [articles]);
+  }, [articles, canAccessNewsroom]);
 
   const handleSelectArticle = (article: Article) => {
     setSelectedArticle(article);
@@ -658,7 +691,7 @@ export default function App() {
           />
         )}
 
-        {currentTab === 'editorial' && (
+        {currentTab === 'editorial' && canAccessNewsroom && (
           <EditorialView
             articles={articles}
             onUpdateArticleStatus={handleUpdateArticleStatus}
@@ -687,7 +720,7 @@ export default function App() {
           <AboutView
             lang={lang}
             onNavigateHome={() => navigateToTab('home')}
-            onNavigateToNewsroom={() => navigateToTab('editorial')}
+            onNavigateToNewsroom={canAccessNewsroom ? () => navigateToTab('editorial') : undefined}
           />
         )}
 
@@ -717,7 +750,7 @@ export default function App() {
             articles={articles}
             allCountries={countries}
             onSelectArticle={handleSelectArticle}
-            onNavigateToNewsroom={() => navigateToTab('editorial')}
+            onNavigateToNewsroom={canAccessNewsroom ? () => navigateToTab('editorial') : undefined}
             onNavigateToNotifications={() => navigateToTab('notifications')}
             onBackToHome={() => navigateToTab('home')}
             lang={lang}
@@ -730,7 +763,7 @@ export default function App() {
           <NotificationsView
             articles={articles}
             onSelectArticle={handleSelectArticle}
-            onNavigateToNewsroom={() => navigateToTab('editorial')}
+            onNavigateToNewsroom={canAccessNewsroom ? () => navigateToTab('editorial') : undefined}
             onBackToHome={() => navigateToTab('home')}
             lang={lang}
           />
@@ -882,15 +915,17 @@ export default function App() {
                       <span>{isAr ? 'صحافة البيانات والمؤشرات' : 'Data Journalism & Visuals'}</span>
                     </button>
                   </li>
-                  <li>
-                    <button 
-                      onClick={() => navigateToTab('editorial')}
-                      className="hover:text-amber-400 transition-colors text-slate-300 cursor-pointer text-right rtl:text-right ltr:text-left flex items-center gap-1.5"
-                    >
-                      <span>·</span>
-                      <span>{isAr ? 'غرفة الأخبار والتحرير' : 'Newsroom Desk'}</span>
-                    </button>
-                  </li>
+                  {canAccessNewsroom && (
+                    <li>
+                      <button 
+                        onClick={() => navigateToTab('editorial')}
+                        className="hover:text-amber-400 transition-colors text-slate-300 cursor-pointer text-right rtl:text-right ltr:text-left flex items-center gap-1.5"
+                      >
+                        <span>·</span>
+                        <span>{isAr ? 'غرفة الأخبار والتحرير' : 'Newsroom Desk'}</span>
+                      </button>
+                    </li>
+                  )}
                   <li>
                     <button 
                       onClick={() => navigateToTab('podcast')}
@@ -980,13 +1015,17 @@ export default function App() {
               >
                 {isAr ? 'من نحن وهيئة التحرير' : 'About Us'}
               </button>
-              <span className="text-slate-600">·</span>
-              <button 
-                onClick={() => navigateToTab('editorial')}
-                className="hover:text-amber-400 transition-colors cursor-pointer"
-              >
-                {isAr ? 'غرفة الأخبار والرقابة' : 'Newsroom'}
-              </button>
+              {canAccessNewsroom && (
+                <>
+                  <span className="text-slate-600">·</span>
+                  <button 
+                    onClick={() => navigateToTab('editorial')}
+                    className="hover:text-amber-400 transition-colors cursor-pointer"
+                  >
+                    {isAr ? 'غرفة الأخبار والرقابة' : 'Newsroom'}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -14,15 +14,24 @@ export const VAPID_SUBJECT =
   process.env.VAPID_SUBJECT || 
   'mailto:editorial@africonomist.com';
 
-// Initialize web-push details
-try {
-  webpush.setVapidDetails(
-    VAPID_SUBJECT,
-    VAPID_PUBLIC_KEY,
-    VAPID_PRIVATE_KEY
-  );
-} catch (err) {
-  console.warn('[PWA] VAPID configuration warning:', err);
+let vapidInitialized = false;
+
+function ensureVapidInitialized() {
+  if (vapidInitialized) return true;
+  try {
+    if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+      webpush.setVapidDetails(
+        VAPID_SUBJECT,
+        VAPID_PUBLIC_KEY,
+        VAPID_PRIVATE_KEY
+      );
+      vapidInitialized = true;
+      return true;
+    }
+  } catch (err) {
+    console.warn('[PWA] VAPID configuration warning:', err);
+  }
+  return false;
 }
 
 // In-memory subscription store for immediate demo/runtime delivery
@@ -51,6 +60,7 @@ export async function sendNotificationToAll(payload: {
   url?: string;
   icon?: string;
 }) {
+  ensureVapidInitialized();
   const message = JSON.stringify({
     title: payload.title,
     body: payload.body,

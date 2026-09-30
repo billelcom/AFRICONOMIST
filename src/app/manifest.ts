@@ -37,10 +37,10 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       {
-        name: 'غرفة الأخبار والرقابة',
-        short_name: 'غرفة الأخبار',
-        description: 'متابعة تقارير الذكاء الاصطناعي والمصادقة التحريرية',
-        url: '/?tab=editorial',
+        name: 'صحافة البيانات والمؤشرات',
+        short_name: 'صحافة البيانات',
+        description: 'رصد مؤشرات التضخم والديون والتجارة البينية لـ 54 دولة',
+        url: '/?tab=data-journalism',
         icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }]
       },
       {

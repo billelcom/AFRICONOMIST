@@ -23,7 +23,7 @@ import {
 interface NotificationsViewProps {
   articles: Article[];
   onSelectArticle: (article: Article) => void;
-  onNavigateToNewsroom: () => void;
+  onNavigateToNewsroom?: () => void;
   onBackToHome: () => void;
   lang: 'ar' | 'en';
 }
@@ -36,8 +36,15 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
   lang
 }) => {
   const isAr = lang === 'ar';
-  const { notifications, markNotificationAsRead, markAllNotificationsAsRead, unreadCount } = useAuth();
+  const { user, profile, role, notifications, markNotificationAsRead, markAllNotificationsAsRead, unreadCount } = useAuth();
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
+
+  // ميثاق أمني صارم: غرفة الأخبار تظهر فقط بعد تسجيل الدخول للادمن، المشرفين، والمحررين
+  const canAccessNewsroom = Boolean(
+    user && 
+    (role === 'ADMIN' || role === 'SUPERVISOR' || role === 'EDITOR' ||
+     profile?.role === 'ADMIN' || profile?.role === 'SUPERVISOR' || profile?.role === 'EDITOR')
+  );
 
   const filteredNotifications = notifications.filter(n => {
     if (filter === 'unread') return !n.read;
@@ -200,13 +207,13 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
                       </span>
                     )}
 
-                    {(n.type === 'editorial_review' || n.type === 'revision_requested') && (
+                    {canAccessNewsroom && onNavigateToNewsroom && (n.type === 'editorial_review' || n.type === 'revision_requested') && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onNavigateToNewsroom();
                         }}
-                        className="text-purple-400 hover:text-purple-300 font-bold flex items-center gap-1"
+                        className="text-purple-400 hover:text-purple-300 font-bold flex items-center gap-1 cursor-pointer transition-colors"
                       >
                         <ShieldCheck className="w-3 h-3" />
                         <span>{isAr ? 'الانتقال لغرفة الأخبار' : 'Go to Newsroom'}</span>

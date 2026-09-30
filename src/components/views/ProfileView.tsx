@@ -68,7 +68,7 @@ interface ProfileViewProps {
   articles: Article[];
   allCountries: AfricanCountryProfile[];
   onSelectArticle: (article: Article) => void;
-  onNavigateToNewsroom: () => void;
+  onNavigateToNewsroom?: () => void;
   onNavigateToNotifications: () => void;
   onBackToHome: () => void;
   lang: 'ar' | 'en';
@@ -133,6 +133,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [settingsSavedMessage, setSettingsSavedMessage] = useState<string | null>(null);
 
   const isSupervisorOrAdmin = role === 'SUPERVISOR' || role === 'ADMIN';
+
+  // ميثاق أمني صارم: غرفة الأخبار تظهر فقط بعد تسجيل الدخول للادمن، المشرفين، والمحررين
+  // القراء لا تظهر لهم غرفة الأخبار إطلاقاً لا قبل التسجيل ولا بعد التسجيل
+  const canAccessNewsroom = Boolean(
+    user && 
+    (role === 'ADMIN' || role === 'SUPERVISOR' || role === 'EDITOR' ||
+     profile?.role === 'ADMIN' || profile?.role === 'SUPERVISOR' || profile?.role === 'EDITOR')
+  );
 
   const loadAllUsers = useCallback(async () => {
     setLoadingUsers(true);
@@ -678,7 +686,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                         ? 'يمكنك التوجه لغرفة الأخبار لتوليد وصياغة تقارير جديدة وتوثيقها في ملفك الصحفي.'
                         : 'Navigate to the newsroom desk to commission and draft in-depth African economic analyses.')}
                 </p>
-                {(role === 'EDITOR' || role === 'SUPERVISOR' || role === 'ADMIN') && (
+                {canAccessNewsroom && onNavigateToNewsroom && (
                   <button
                     onClick={onNavigateToNewsroom}
                     className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs inline-flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
@@ -726,7 +734,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                         </span>
 
                         <div className="flex items-center gap-1.5">
-                          {(role === 'EDITOR' || role === 'SUPERVISOR' || role === 'ADMIN') && (
+                          {canAccessNewsroom && onNavigateToNewsroom && (
                             <button
                               onClick={() => onNavigateToNewsroom()}
                               className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-[10px] border border-amber-500/40 flex items-center gap-1 cursor-pointer transition-colors"
@@ -1189,14 +1197,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 ))}
               </div>
 
-              {(role === 'ADMIN' || role === 'SUPERVISOR') && (
+              {canAccessNewsroom && onNavigateToNewsroom && (
                 <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
                   <span className="text-slate-400">
                     {isAr ? 'لديك صلاحية دخول غرفة الأخبار وإدارة ونشر المقالات:' : 'You have access to the newsroom desk:'}
                   </span>
                   <button
                     onClick={onNavigateToNewsroom}
-                    className="px-4 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold border border-rose-500/40 flex items-center gap-1.5"
+                    className="px-4 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold border border-rose-500/40 flex items-center gap-1.5 cursor-pointer transition-colors"
                   >
                     <ShieldCheck className="w-3.5 h-3.5" />
                     <span>{isAr ? 'الدخول لغرفة الأخبار' : 'Enter Newsroom'}</span>

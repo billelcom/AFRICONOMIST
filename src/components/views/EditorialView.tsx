@@ -35,7 +35,8 @@ import {
   AlertCircle,
   Crown,
   User,
-  X
+  X,
+  Lock
 } from 'lucide-react';
 import { CommissionWizard } from '../CommissionWizard';
 import { ArticleEditorialDesk } from '../ArticleEditorialDesk';
@@ -138,6 +139,15 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
   const isAr = lang === 'ar';
 
   const { user, profile, role, sendNotification } = useAuth();
+
+  // ميثاق أمني صارم: غرفة الأخبار تظهر فقط بعد تسجيل الدخول للادمن، المشرفين، والمحررين
+  // القراء لا تظهر لهم غرفة الأخبار إطلاقاً لا قبل التسجيل ولا بعد التسجيل
+  const canAccessNewsroom = Boolean(
+    user && 
+    (role === 'ADMIN' || role === 'SUPERVISOR' || role === 'EDITOR' ||
+     profile?.role === 'ADMIN' || profile?.role === 'SUPERVISOR' || profile?.role === 'EDITOR')
+  );
+
   const isAdmin = role === 'ADMIN';
   const isSupervisor = role === 'SUPERVISOR' || isAdmin;
   const isEditor = role === 'EDITOR';
@@ -657,6 +667,27 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
       el.scrollBy({ left: factor, behavior: 'smooth' });
     }
   };
+
+  // حظر الوصول المباشر لغير المعتمدين (Zero-Trust Guard)
+  if (!canAccessNewsroom) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center p-6 bg-[#080C14]">
+        <div className="max-w-md w-full p-8 rounded-3xl bg-[#0c1322] border border-rose-500/30 text-center space-y-4 shadow-2xl">
+          <div className="w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center mx-auto">
+            <Lock className="w-7 h-7" />
+          </div>
+          <h3 className="text-lg font-bold text-white">
+            {isAr ? 'منطقة محظورة | غرفة الأخبار التحريرية' : 'Restricted Area | Newsroom Desk'}
+          </h3>
+          <p className="text-xs text-slate-300 leading-relaxed">
+            {isAr 
+              ? 'غرفة الأخبار والرقابة مخصصة حصرياً للأدمن، المشرفين، والمحررين بعد تسجيل الدخول. القراء لا تظهر لهم غرفة الأخبار إطلاقاً.'
+              : 'The editorial newsroom is strictly reserved for authenticated Admins, Supervisors, and Editors. Readers do not have access to this environment.'}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-full mx-auto min-h-screen bg-white text-slate-900 flex flex-col">

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { 
   Building2, 
   ShieldCheck, 
@@ -30,7 +31,14 @@ export const AboutView: React.FC<AboutViewProps> = ({
   onNavigateToNewsroom
 }) => {
   const isAr = lang === 'ar';
+  const { user, profile, role } = useAuth();
   const ArrowIcon = isAr ? ArrowLeft : ArrowRight;
+
+  const canAccessNewsroom = Boolean(
+    user && 
+    (role === 'ADMIN' || role === 'SUPERVISOR' || role === 'EDITOR' ||
+     profile?.role === 'ADMIN' || profile?.role === 'SUPERVISOR' || profile?.role === 'EDITOR')
+  );
 
   return (
     <div className="space-y-10 pb-16 animate-in fade-in duration-300">
@@ -61,10 +69,10 @@ export const AboutView: React.FC<AboutViewProps> = ({
               <span>{isAr ? 'العودة للرئيسية والأسواق' : 'Return to Markets'}</span>
               <ArrowIcon className="w-3.5 h-3.5" />
             </button>
-            {onNavigateToNewsroom && (
+            {canAccessNewsroom && onNavigateToNewsroom && (
               <button
                 onClick={onNavigateToNewsroom}
-                className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 font-medium text-xs transition-colors"
+                className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 font-medium text-xs transition-colors cursor-pointer"
               >
                 {isAr ? 'غرفة الأخبار والتدقيق' : 'Newsroom Desk'}
               </button>

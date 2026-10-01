@@ -572,6 +572,15 @@ export default function App() {
           lang={lang}
           onToggleLang={() => setLang(prev => prev === 'ar' ? 'en' : 'ar')}
           pendingDraftsCount={pendingDraftsCount}
+          articles={articles}
+          countries={countries}
+          onSelectCountry={handleSelectCountry}
+          onSelectSector={(sectorId) => {
+            setSelectedSectorId(sectorId);
+            setSelectedGenreId('all');
+            navigateToTab('home');
+          }}
+          onSelectArticle={handleSelectArticle}
         />
 
         {/* Continuous Live Market Ticker */}

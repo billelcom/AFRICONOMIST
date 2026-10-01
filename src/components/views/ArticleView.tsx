@@ -89,11 +89,34 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [activeCitationId, setActiveCitationId] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<string>('sec-analysis');
+  const [readingProgress, setReadingProgress] = useState<number>(0);
+  const articleWrapperRef = useRef<HTMLDivElement>(null);
 
-  // Track active section for desktop reading navigation
+  // Track active section and visual reading progress as user scrolls through article
   useEffect(() => {
     const sectionIds = ['sec-analysis', 'sec-infographic-inline', 'sec-quote', 'sec-graphic-end', 'sec-citations', 'discussion-section'];
     const handleScroll = () => {
+      // 1. Calculate reading progress percentage
+      const wrapper = articleWrapperRef.current;
+      if (wrapper) {
+        const rect = wrapper.getBoundingClientRect();
+        const totalHeight = wrapper.offsetHeight - window.innerHeight;
+        if (totalHeight > 0) {
+          const scrolled = -rect.top;
+          const pct = Math.min(100, Math.max(0, (scrolled / totalHeight) * 100));
+          setReadingProgress(pct);
+        } else {
+          setReadingProgress(rect.top <= 0 ? 100 : 0);
+        }
+      } else {
+        const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
+        if (totalScroll > 0) {
+          const pct = Math.min(100, Math.max(0, (window.scrollY / totalScroll) * 100));
+          setReadingProgress(pct);
+        }
+      }
+
+      // 2. Track active section
       const scrollY = window.scrollY;
       for (let i = sectionIds.length - 1; i >= 0; i--) {
         const el = document.getElementById(sectionIds[i]);
@@ -106,9 +129,17 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
         }
       }
     };
+
+    // Calculate initial reading progress
+    handleScroll();
+
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    window.addEventListener('resize', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, [article.id]);
 
   // --- Dynamic Graphics List for Article ---
   const articleGraphics = useMemo<ArticleGraphicItem[]>(() => {
@@ -588,7 +619,22 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
   };
 
   return (
-    <div className={`w-full min-h-screen py-2 sm:py-8 transition-colors duration-200 ${themeClasses.wrapper}`}>
+    <div ref={articleWrapperRef} className={`w-full min-h-screen py-2 sm:py-8 transition-colors duration-200 ${themeClasses.wrapper}`}>
+      {/* Visual Reading Progress Bar at the Top of Viewport */}
+      <div 
+        className="fixed top-0 start-0 end-0 z-50 h-1 sm:h-1.5 bg-stone-950/70 backdrop-blur-xs no-print pointer-events-none"
+        role="progressbar"
+        aria-valuenow={Math.round(readingProgress)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={isAr ? 'مؤشر تقدم قراءة المقال' : 'Article reading progress'}
+      >
+        <div 
+          className="h-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.7)] transition-[width] duration-150 ease-out"
+          style={{ width: `${readingProgress}%` }}
+        />
+      </div>
+
       {/* Structured SEO Data */}
       <script
         type="application/ld+json"
@@ -612,17 +658,28 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
         {/* --- Top Sticky Reader Toolbar (تحميل، حفظ، مشاركة، طباعة، حجم الخط، الوضع الورقي) --- */}
         <nav 
           aria-label={isAr ? 'شريط أدوات القارئ' : 'Reader tools'}
-          className="no-print sticky top-2 z-40 mb-3 sm:mb-6 w-[98%] sm:max-w-4xl lg:max-w-7xl xl:max-w-[1440px] mx-auto p-2 sm:p-2.5 lg:px-5 lg:py-2.5 rounded-2xl bg-stone-900/90 backdrop-blur-md text-stone-200 border border-stone-800 shadow-xl flex flex-wrap items-center justify-between gap-2 text-xs"
+          className="no-print sticky top-2 z-40 mb-3 sm:mb-6 w-[98%] sm:max-w-4xl lg:max-w-7xl xl:max-w-[1440px] mx-auto p-2 sm:p-2.5 lg:px-5 lg:py-2.5 rounded-2xl bg-stone-900/90 backdrop-blur-md text-stone-200 border border-stone-800 shadow-xl flex flex-wrap items-center justify-between gap-2 text-xs relative overflow-hidden"
         >
-          {/* Back button */}
-          <button
-            onClick={onBack}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-100 transition-colors font-medium cursor-pointer"
-            title={isAr ? 'العودة للصفحة السابقة' : 'Go Back'}
-          >
-            {isAr ? <ArrowRight className="w-4 h-4 text-amber-400" /> : <ArrowLeft className="w-4 h-4 text-amber-400" />}
-            <span className="font-bold">{isAr ? 'العودة' : 'Back'}</span>
-          </button>
+          {/* Back button + Reading progress pill */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onBack}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-100 transition-colors font-medium cursor-pointer"
+              title={isAr ? 'العودة للصفحة السابقة' : 'Go Back'}
+            >
+              {isAr ? <ArrowRight className="w-4 h-4 text-amber-400" /> : <ArrowLeft className="w-4 h-4 text-amber-400" />}
+              <span className="font-bold">{isAr ? 'العودة' : 'Back'}</span>
+            </button>
+
+            {/* Reading progress badge */}
+            <div 
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-stone-800/80 border border-stone-700/80 text-[11px] font-mono text-amber-400 shrink-0 select-none shadow-sm"
+              title={isAr ? `مستوى تقدم قراءة المقال: ${Math.round(readingProgress)}%` : `Reading progress: ${Math.round(readingProgress)}%`}
+            >
+              <BookOpen className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span className="font-bold">{Math.round(readingProgress)}%</span>
+            </div>
+          </div>
 
           {/* Desktop Center Headline & Taxonomy Pill (Hidden on Mobile) */}
           <div className="hidden lg:flex items-center gap-2.5 max-w-[360px] xl:max-w-[460px] truncate text-stone-300">
@@ -779,6 +836,14 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
                 <Moon className="w-3 h-3" />
               </button>
             </div>
+          </div>
+
+          {/* Integrated slim bottom progress indicator line on toolbar */}
+          <div className="absolute -bottom-px inset-x-0 h-[2.5px] bg-stone-800/90 rounded-b-2xl overflow-hidden pointer-events-none">
+            <div 
+              className="h-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-300 transition-[width] duration-150 ease-out"
+              style={{ width: `${readingProgress}%` }}
+            />
           </div>
         </nav>
 

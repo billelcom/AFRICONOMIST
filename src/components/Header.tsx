@@ -17,13 +17,16 @@ import {
   Bookmark,
   Crown,
   Sparkles,
-  UserPlus
+  UserPlus,
+  Loader2
 } from 'lucide-react';
 import { NavigationModals, NavModalType } from './NavigationModals';
 import { PWABar } from './pwa/PWABar';
 import { PWAInstallButton } from './pwa/PWAInstallButton';
 import { ShareButton } from './ShareButton';
+import { GlobalSearch } from './GlobalSearch';
 import { useAuth } from '../context/AuthContext';
+import { Article, AfricanCountryProfile } from '../types';
 
 export type HeaderTab = 
   | 'home' 
@@ -44,6 +47,11 @@ interface HeaderProps {
   lang: 'ar' | 'en';
   onToggleLang: () => void;
   pendingDraftsCount: number;
+  articles?: Article[];
+  countries?: AfricanCountryProfile[];
+  onSelectCountry?: (countrySlug: string) => void;
+  onSelectSector?: (sectorId: string) => void;
+  onSelectArticle?: (article: Article) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -51,7 +59,12 @@ export const Header: React.FC<HeaderProps> = ({
   onSelectTab,
   lang,
   onToggleLang,
-  pendingDraftsCount
+  pendingDraftsCount,
+  articles = [],
+  countries = [],
+  onSelectCountry,
+  onSelectSector,
+  onSelectArticle
 }) => {
   const isAr = lang === 'ar';
   const { user, profile, role, unreadCount } = useAuth();
@@ -59,6 +72,16 @@ export const Header: React.FC<HeaderProps> = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [activeModal, setActiveModal] = useState<NavModalType>(null);
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
+  const [isAuthLoading, setIsAuthLoading] = useState<boolean>(false);
+
+  const handleOpenAuthModal = (mode: 'signin' | 'signup' = 'signin') => {
+    setIsAuthLoading(true);
+    setAuthModalMode(mode);
+    setTimeout(() => {
+      setActiveModal('auth');
+      setIsAuthLoading(false);
+    }, 280);
+  };
 
   // استماع لفتح نافذة تسجيل الدخول/إنشاء الحساب من أي مكان في التطبيق (مثل زر الحفظ)
   useEffect(() => {
@@ -156,6 +179,17 @@ export const Header: React.FC<HeaderProps> = ({
             {/* أدوات PWA: في الهاتف تظهر أيقونة التثبيت فقط دون العبارة النصية */}
             <PWABar lang={lang} iconOnly={true} />
 
+            {/* محرك البحث الشامل للهاتف */}
+            <GlobalSearch
+              lang={lang}
+              articles={articles}
+              countries={countries}
+              onSelectCountry={onSelectCountry}
+              onSelectSector={onSelectSector}
+              onSelectArticle={onSelectArticle}
+              variant="mobile"
+            />
+
             {/* زر الحساب أو التسجيل */}
             {profile ? (
               <button
@@ -178,15 +212,19 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             ) : (
               <button
-                onClick={() => {
-                  setAuthModalMode('signin');
-                  setActiveModal('auth');
-                }}
-                className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 text-[10.5px] font-black shadow-sm transition-all active:scale-95 cursor-pointer flex items-center gap-1"
+                disabled={isAuthLoading}
+                onClick={() => handleOpenAuthModal('signin')}
+                className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 text-[10.5px] font-black shadow-sm transition-all active:scale-95 cursor-pointer flex items-center justify-center min-w-[62px] h-7 gap-1"
                 title={isAr ? 'تسجيل' : 'Register / Sign In'}
               >
-                <UserPlus className="w-3 h-3 text-slate-950" />
-                <span>{isAr ? 'تسجيل' : 'Register'}</span>
+                {isAuthLoading ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-950" />
+                ) : (
+                  <>
+                    <UserPlus className="w-3 h-3 text-slate-950" />
+                    <span>{isAr ? 'تسجيل' : 'Register'}</span>
+                  </>
+                )}
               </button>
             )}
 
@@ -231,6 +269,20 @@ export const Header: React.FC<HeaderProps> = ({
            ========================================================================= */}
         {isMobileMenuOpen && (
           <div className="md:hidden bg-[#070B14]/98 backdrop-blur-2xl border-b border-slate-800/90 shadow-2xl px-4 py-4 space-y-3 animate-in slide-in-from-top-3 duration-200">
+            {/* حقل البحث داخل القائمة المنسدلة للهاتف */}
+            <div className="pb-1">
+              <GlobalSearch
+                lang={lang}
+                articles={articles}
+                countries={countries}
+                onSelectCountry={(slug) => handleNavClick(() => onSelectCountry && onSelectCountry(slug))}
+                onSelectSector={(sectorId) => handleNavClick(() => onSelectSector && onSelectSector(sectorId))}
+                onSelectArticle={(article) => handleNavClick(() => onSelectArticle && onSelectArticle(article))}
+                variant="desktop"
+                className="w-full"
+              />
+            </div>
+
             {/* روابط القائمة المنسدلة بتصميم إبداعي وخط صغير ومنسق */}
             <div className="grid grid-cols-2 gap-1.5 text-xs">
               {/* 1. الرئيسية */}
@@ -407,14 +459,24 @@ export const Header: React.FC<HeaderProps> = ({
               )}
 
               <button
-                onClick={() => handleNavClick(() => {
-                  setAuthModalMode('signin');
-                  setActiveModal('auth');
-                })}
-                className={`${canAccessNewsroom ? 'flex-1' : 'w-full'} p-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-black flex items-center justify-center gap-1.5 shadow-lg transition-all cursor-pointer`}
+                disabled={isAuthLoading}
+                onClick={() => {
+                  if (profile) {
+                    handleNavClick(() => setActiveModal('auth'));
+                  } else {
+                    handleNavClick(() => handleOpenAuthModal('signin'));
+                  }
+                }}
+                className={`${canAccessNewsroom ? 'flex-1' : 'w-full'} p-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-black flex items-center justify-center gap-1.5 shadow-lg transition-all cursor-pointer h-10`}
               >
-                <User className="w-4 h-4" />
-                <span>{profile ? (isAr ? 'تبديل الدور' : 'Switch Role') : (isAr ? 'تسجيل' : 'Register')}</span>
+                {isAuthLoading && !profile ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+                ) : (
+                  <>
+                    <User className="w-4 h-4" />
+                    <span>{profile ? (isAr ? 'تبديل الدور' : 'Switch Role') : (isAr ? 'تسجيل' : 'Register')}</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -446,6 +508,19 @@ export const Header: React.FC<HeaderProps> = ({
               }`}>
                 {isAr ? 'صحيفة الاقتصاد الإفريقي' : 'African Economic Journal'}
               </span>
+            </div>
+
+            {/* محرك البحث الشامل للدول والقطاعات والتقارير */}
+            <div className="flex-1 max-w-xs lg:max-w-md mx-3 lg:mx-6">
+              <GlobalSearch
+                lang={lang}
+                articles={articles}
+                countries={countries}
+                onSelectCountry={onSelectCountry}
+                onSelectSector={onSelectSector}
+                onSelectArticle={onSelectArticle}
+                variant="desktop"
+              />
             </div>
 
             {/* أدوات PWA + الإشعارات + الملف الشخصي / التسجيل + اللغة + غرفة الأخبار */}
@@ -518,15 +593,19 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
               ) : (
                 <button
-                  onClick={() => {
-                    setAuthModalMode('signin');
-                    setActiveModal('auth');
-                  }}
-                  className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer active:scale-95"
+                  disabled={isAuthLoading}
+                  onClick={() => handleOpenAuthModal('signin')}
+                  className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-black text-xs flex items-center justify-center min-w-[78px] h-8 gap-1.5 shadow-sm transition-all cursor-pointer active:scale-95"
                   title={isAr ? 'تسجيل' : 'Register / Sign In'}
                 >
-                  <UserPlus className="w-3.5 h-3.5 text-slate-950" />
-                  <span>{isAr ? 'تسجيل' : 'Register'}</span>
+                  {isAuthLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+                  ) : (
+                    <>
+                      <UserPlus className="w-3.5 h-3.5 text-slate-950" />
+                      <span>{isAr ? 'تسجيل' : 'Register'}</span>
+                    </>
+                  )}
                 </button>
               )}
 
@@ -686,7 +765,10 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Pop-up Modals for Navigation (من نحن، الشروط، البودكاست، الفيديو، التسجيل) */}
       <NavigationModals
         activeModal={activeModal}
-        onClose={() => setActiveModal(null)}
+        onClose={() => {
+          setActiveModal(null);
+          setIsAuthLoading(false);
+        }}
         lang={lang}
         initialAuthMode={authModalMode}
         onNavigateToNewsroom={canAccessNewsroom ? () => onSelectTab('editorial') : undefined}

@@ -477,7 +477,7 @@ export const CommissionWizard: React.FC<CommissionWizardProps> = ({
                 </h3>
                 <p className="text-xs text-slate-400">
                   {isAr ? 'النوع المحدد حالياً:' : 'Current Selection:'}{' '}
-                  <span className="font-bold text-amber-400">📰 {currentGenre.nameAr}</span> · {currentGenre.toneAr}
+                  <span className="font-bold text-amber-400">📰 {currentGenre.nameAr}</span> {currentGenre.toneAr ? `· ${currentGenre.toneAr}` : `· ${currentGenre.category}`}
                 </p>
               </div>
 
@@ -528,8 +528,8 @@ export const CommissionWizard: React.FC<CommissionWizardProps> = ({
                     </div>
                     <p className="text-[11px] text-slate-400 leading-snug line-clamp-2">{g.descriptionAr}</p>
                     <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-slate-800/60">
-                      <span>{g.toneAr}</span>
-                      <span>{g.lengthAr}</span>
+                      <span>{g.toneAr || g.category}</span>
+                      <span>{g.lengthAr || (isAr ? 'متوسط' : 'Medium')}</span>
                     </div>
                   </button>
                 );
@@ -613,7 +613,7 @@ export const CommissionWizard: React.FC<CommissionWizardProps> = ({
                       {isSelected && <Check className="w-4 h-4 text-teal-400 shrink-0" />}
                     </div>
                     <span className="text-[10px] text-teal-400/80 font-mono">{s.group}</span>
-                    <p className="text-[11px] text-slate-400 line-clamp-1">{s.descriptionAr}</p>
+                    <p className="text-[11px] text-slate-400 line-clamp-1">{s.descriptionAr || s.nameAr}</p>
                   </button>
                 );
               })}
@@ -661,7 +661,7 @@ export const CommissionWizard: React.FC<CommissionWizardProps> = ({
                   <span className="text-[10px] text-slate-500 underline">{isAr ? 'تعديل' : 'Edit'}</span>
                 </div>
                 <div className="text-sm font-black text-white">📰 {currentGenre.nameAr}</div>
-                <div className="text-[11px] text-slate-400">{currentGenre.toneAr}</div>
+                <div className="text-[11px] text-slate-400">{currentGenre.toneAr || currentGenre.category}</div>
               </div>
 
               <div 

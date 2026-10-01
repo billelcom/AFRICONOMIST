@@ -155,6 +155,12 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
   // Navigation tab within Newsroom
   const [activeTab, setActiveTab] = useState<NewsroomTab>('overview');
   const [selectedArticleId, setSelectedArticleId] = useState<string | null>(articles[0]?.id || null);
+  const [expandedSidebarTab, setExpandedSidebarTab] = useState<NewsroomTab | 'instant_random' | null>(null);
+  const [expandedSectors, setExpandedSectors] = useState<Record<string, boolean>>({});
+
+  const toggleSectorExpansion = (sectorId: string) => {
+    setExpandedSectors(prev => ({ ...prev, [sectorId]: !prev[sectorId] }));
+  };
 
   // Sub-filter for pending articles: All vs AI-Generated vs Human Editor Submissions
   const [pendingSubFilter, setPendingSubFilter] = useState<'all' | 'ai' | 'editor'>('all');
@@ -668,6 +674,78 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
     }
   };
 
+  // بطاقة المقال الموحدة لقطاعات الأخبار (متجاوبة تماماً مع الهاتف والحاسوب)
+  const renderSectorArticleCard = (art: Article, idx: number, isMobile: boolean, totalCount: number) => {
+    const isPending = art.status === 'pending_review';
+    return (
+      <div
+        key={art.id || idx}
+        onClick={() => handleOpenInEditor(art)}
+        className={`${
+          isMobile 
+            ? 'w-full min-w-full max-w-full shrink-0 snap-center' 
+            : 'w-full min-w-0 max-w-full'
+        } bg-[#0A0F1D] hover:bg-[#0E1528] border border-slate-800 hover:border-amber-500/50 rounded-2xl p-4 space-y-3 cursor-pointer transition-all duration-200 group shadow-lg flex flex-col justify-between overflow-hidden break-words`}
+      >
+        {/* Top Bar: Country & Journalistic Genre */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs gap-1.5">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-xs px-2 py-0.5 rounded-md bg-slate-800 text-amber-300 font-bold border border-slate-700 truncate">
+                🌍 {art.countryName}
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono shrink-0">
+                {art.countryCode}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              {isMobile && (
+                <span className="text-[10px] font-mono text-slate-500 sm:hidden">
+                  [{idx + 1}/{totalCount}]
+                </span>
+              )}
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold font-mono ${
+                isPending 
+                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' 
+                  : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+              }`}>
+                {isPending ? (isAr ? 'قيد المراجعة' : 'Pending') : (isAr ? 'منشور' : 'Published')}
+              </span>
+            </div>
+          </div>
+
+          {/* Journalistic Genre Pill */}
+          <div className="inline-block text-[11px] font-bold text-amber-400/90 bg-amber-500/10 px-2.5 py-0.5 rounded-lg border border-amber-500/20 max-w-full truncate">
+            📰 {art.journalisticType || (isAr ? 'التحقيق الصحفي' : 'Investigative')}
+          </div>
+
+          {/* Title */}
+          <h4 className="text-sm sm:text-base md:text-lg font-bold text-white group-hover:text-amber-400 transition-colors line-clamp-2 leading-snug break-words">
+            {art.title}
+          </h4>
+
+          {/* Summary preview */}
+          <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed break-words">
+            {art.summary}
+          </p>
+        </div>
+
+        {/* Footer of Card */}
+        <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
+          <span className="flex items-center gap-1 shrink-0">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <span>{art.factCheck?.score || 96}% {isAr ? 'دقة' : 'score'}</span>
+          </span>
+          <span className="text-amber-400/90 group-hover:translate-x-1 transition-transform flex items-center gap-0.5 font-bold shrink-0">
+            <span>{isAr ? 'فتح المحرر' : 'Open Editor'}</span>
+            <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-0 ltr:rotate-180" />
+          </span>
+        </div>
+      </div>
+    );
+  };
+
   // حظر الوصول المباشر لغير المعتمدين (Zero-Trust Guard)
   if (!canAccessNewsroom) {
     return (
@@ -690,7 +768,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
   }
 
   return (
-    <div className="w-full max-w-full mx-auto min-h-screen bg-white text-slate-900 flex flex-col">
+    <div className="w-full max-w-full mx-auto min-h-screen bg-[#070A13] text-slate-100 flex flex-col overflow-x-hidden">
       {/* =========================================================================
           1. MOBILE TOP HORIZONTAL SCROLLING MENU (قائمة الهاتف الأفقية بدون سكرول بار)
          ========================================================================= */}
@@ -810,234 +888,266 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
       </div>
 
       {/* =========================================================================
-          2. MAIN WORKSPACE WITH ARTISTIC DESKTOP SIDEBAR + CONTENT AREA
+          2. MAIN WORKSPACE WITH DYNAMIC DESKTOP SIDEBAR + CONTENT AREA
          ========================================================================= */}
-      <div className="flex-1 flex flex-col md:flex-row w-full max-w-full">
-        {/* =======================================================================
-            DESKTOP ARTISTIC SIDEBAR (قطعة فنية إبداعية قائمة على اليسار/اليمين)
-           ======================================================================= */}
-        <aside className="hidden md:flex flex-col w-72 lg:w-80 shrink-0 bg-gradient-to-b from-[#090D18] via-[#070A14] to-[#05070E] border-x border-slate-800/80 p-4 space-y-6 select-none shadow-2xl relative">
-          {/* Subtle Ambient Glow */}
-          <div className="absolute top-0 right-0 w-36 h-36 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-10 left-0 w-36 h-36 bg-rose-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="flex-1 flex flex-col md:flex-row w-full max-w-full min-w-0 overflow-x-hidden relative">
+        {/* خلفية تفاعلية شفافة لإغلاق بطاقة العنوان عند الضغط في أي مكان آخر دون تعتيم الشاشة */}
+        {expandedSidebarTab && (
+          <div 
+            className="hidden md:block fixed inset-0 z-30 bg-transparent" 
+            onClick={() => setExpandedSidebarTab(null)} 
+          />
+        )}
 
-          {/* Sidebar Header Title */}
-          <div className="space-y-1.5 border-b border-slate-800/80 pb-4">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-mono tracking-wider text-amber-400/90 font-bold flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-rose-400" />
-                <span>{isAr ? 'غرفة الأخبار والرقابة' : 'Editorial Command'}</span>
-              </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-mono">
-                {isAr ? 'مباشر' : 'LIVE'}
-              </span>
+        {/* =======================================================================
+            DESKTOP DYNAMIC SIDEBAR (أيقونات فقط ديناميكية مع بطاقة العنوان التفاعلية)
+           ======================================================================= */}
+        <aside className="hidden md:flex flex-col w-16 md:w-20 shrink-0 bg-gradient-to-b from-[#090D18] via-[#070A14] to-[#05070E] border-x border-slate-800/80 py-5 px-2 items-center justify-between select-none shadow-2xl relative z-40">
+          <div className="w-full flex flex-col items-center space-y-4">
+            {/* أيقونة شارة غرفة الأخبار بالأعلى */}
+            <div 
+              className="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-sm relative group cursor-default"
+              title={isAr ? 'غرفة الأخبار والرقابة الإفريقية' : 'Newsroom Master Desk'}
+            >
+              <ShieldCheck className="w-5 h-5 text-rose-400" />
+              <span className="absolute -bottom-1 w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50 animate-pulse" />
             </div>
-            <h2 className="text-sm font-black text-white flex items-center gap-2">
-              <span>{isAr ? 'لوحة القيادة التحريرية' : 'Newsroom Master Desk'}</span>
-            </h2>
-            <p className="text-[11px] text-slate-400 leading-snug">
-              {isAr ? 'المشرف البشري يقرأ، يحلل، ينتقد، ينشر أو يؤرشف.' : 'Human-in-the-loop oversight for multi-agent synthesis.'}
-            </p>
+
+            <div className="w-8 h-px bg-slate-800/80 my-1" />
+
+            {/* قائمة الأيقونات الثمانية: تظهر الأيقونات فقط وعند الضغط يظهر العنوان */}
+            <nav className="space-y-2.5 w-full flex flex-col items-center" aria-label="Newsroom Navigation">
+              {[
+                {
+                  id: 'overview' as const,
+                  nameAr: 'التوليد الآلي (كل 30 د)',
+                  nameEn: 'Autonomous Cycle (30m)',
+                  descAr: 'رصد دوري للـ 54 دولة مع عداد التوليد التلقائي',
+                  descEn: 'Periodic continental pulse with automated timer',
+                  category: isAr ? 'رصد آلي' : 'Autonomous',
+                  icon: Clock,
+                  badge: formatTime(secondsUntilNextCycle),
+                  isPulse: true,
+                  activeColor: 'from-amber-500/25 to-amber-600/15 border-amber-400 text-amber-300'
+                },
+                {
+                  id: 'instant_random' as const,
+                  nameAr: 'توليد فوري عشوائي',
+                  nameEn: 'Instant Random Report',
+                  descAr: 'دولة · قطاع · قالب بنقرة واحدة فوراً دون انتظار',
+                  descEn: '1-click immediate report generation',
+                  category: isAr ? 'توليد فوري' : 'Instant',
+                  icon: Zap,
+                  activeColor: 'from-amber-400/30 to-amber-500/20 border-amber-400 text-amber-300'
+                },
+                {
+                  id: 'commission' as const,
+                  nameAr: 'توليد مخصص',
+                  nameEn: 'Commission Custom Report',
+                  descAr: 'معالج تفاعلي لتحديد الدولة والقطاع والقالب الصحفي',
+                  descEn: 'Interactive step-by-step reporting wizard',
+                  category: isAr ? 'تكليف صحفي' : 'Commission',
+                  icon: SlidersHorizontal,
+                  activeColor: 'from-blue-500/25 to-blue-600/15 border-blue-400 text-blue-300'
+                },
+                {
+                  id: 'pending' as const,
+                  nameAr: 'مقالات تحتاج معالجة',
+                  nameEn: 'Pending Review Queue',
+                  descAr: 'بانتظار إجازة واعتماد المشرف البشري (مخرجات الذكاء ومسودات المحررين)',
+                  descEn: 'Human review & approval queue for AI and editor drafts',
+                  category: isAr ? 'الرقابة والتدقيق' : 'Review Queue',
+                  icon: AlertTriangle,
+                  badge: pendingArticles.length > 0 ? pendingArticles.length : null,
+                  activeColor: 'from-rose-500/25 to-rose-600/15 border-rose-400 text-rose-300'
+                },
+                {
+                  id: 'editor' as const,
+                  nameAr: 'محرر الأخبار المباشر',
+                  nameEn: 'Live Editorial Desk',
+                  descAr: 'نشر ومصادقة المقالات، تعديل العناوين والمتون، وإعادة التوجيه',
+                  descEn: 'Live editing, fact-checking and publishing desk',
+                  category: isAr ? 'التحرير المباشر' : 'Live Editor',
+                  icon: FileEdit,
+                  activeColor: 'from-emerald-500/25 to-emerald-600/15 border-emerald-400 text-emerald-300'
+                },
+                {
+                  id: 'training' as const,
+                  nameAr: 'تدريب الوكيل',
+                  nameEn: 'Agent Training Workbench',
+                  descAr: 'ضبط النبرة التحريرية وقواعد التحقق الصارم من المصادر والأرقام',
+                  descEn: 'Prompt tuning & strict verification rules',
+                  category: isAr ? 'هندسة الأوامر' : 'AI Training',
+                  icon: Brain,
+                  activeColor: 'from-purple-500/25 to-purple-600/15 border-purple-400 text-purple-300'
+                },
+                {
+                  id: 'library' as const,
+                  nameAr: 'المكتبة والتقارير',
+                  nameEn: 'Editorial Library',
+                  descAr: `${publishedArticles.length} تقارير منشورة ومعتمدة للجمهور`,
+                  descEn: `${publishedArticles.length} published reports in live feed`,
+                  category: isAr ? 'الأرشيف الحي' : 'Library',
+                  icon: BookOpen,
+                  badge: publishedArticles.length > 0 ? publishedArticles.length : null,
+                  activeColor: 'from-teal-500/25 to-teal-600/15 border-teal-400 text-teal-300'
+                },
+                {
+                  id: 'archive' as const,
+                  nameAr: 'الأرشيف والمرفوضات',
+                  nameEn: 'Editorial Archive',
+                  descAr: 'المقالات المستبعدة والمسودات المؤرشفة للمراجعة اللاحقة',
+                  descEn: 'Archived and rejected editorial records',
+                  category: isAr ? 'المحفوظات' : 'Archive',
+                  icon: Archive,
+                  badge: archivedArticles.length > 0 ? archivedArticles.length : null,
+                  activeColor: 'from-slate-700/40 to-slate-800/20 border-slate-500 text-slate-300'
+                }
+              ].map((item) => {
+                const isActive = activeTab === item.id;
+                const isExpanded = expandedSidebarTab === item.id;
+                const ItemIcon = item.icon;
+
+                const handleActivate = () => {
+                  if (item.id === 'instant_random') {
+                    handleTriggerInstantRandomGeneration();
+                  } else {
+                    if (item.id === 'editor' && !currentActiveArticle && articles.length > 0) {
+                      setSelectedArticleId(articles[0].id);
+                    }
+                    setActiveTab(item.id);
+                  }
+                  // عند الضغط تعرض الصفحة ويختفي العنوان وتبقى الأيقونة ظاهرة
+                  setExpandedSidebarTab(null);
+                };
+
+                return (
+                  <div key={item.id} className="relative w-full flex justify-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (isExpanded) {
+                          // الضغط مجدداً: تعرض الصفحة ويختفي العنوان وتبقى الأيقونة ظاهرة
+                          handleActivate();
+                        } else {
+                          // الضغط الأول: يظهر العنوان الخاص بالأيقونة
+                          setExpandedSidebarTab(item.id);
+                        }
+                      }}
+                      className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all cursor-pointer relative group ${
+                        isActive
+                          ? `bg-gradient-to-br ${item.activeColor} border-2 shadow-lg shadow-amber-500/15 scale-105`
+                          : isExpanded
+                          ? 'bg-amber-500/20 text-amber-300 border-2 border-amber-400/80 shadow-md ring-2 ring-amber-400/20'
+                          : 'bg-slate-900/80 hover:bg-slate-850 text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
+                      }`}
+                      title={isAr ? item.nameAr : item.nameEn}
+                    >
+                      <ItemIcon className={`w-5 h-5 transition-transform group-hover:scale-110 ${item.id === 'instant_random' && isAutomatedIngesting ? 'animate-spin' : ''}`} />
+
+                      {/* شارة رقمية مصغرة (مثل المقالات المعلقة أو عداد الوقت) */}
+                      {item.badge !== undefined && item.badge !== null && (
+                        <span className={`absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold border border-slate-900 shadow-sm ${
+                          item.isPulse
+                            ? 'bg-amber-500 text-slate-950 font-bold'
+                            : 'bg-rose-500 text-white'
+                        }`}>
+                          {item.badge}
+                        </span>
+                      )}
+
+                      {/* نقطة النشاط عند اختيار الأيقونة */}
+                      {isActive && (
+                        <span className="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400" />
+                      )}
+                    </button>
+
+                    {/* =========================================================================
+                        بطاقة العنوان التفاعلية: تظهر عند الضغط على الأيقونة
+                        وعند الضغط تعرض الصفحة ويختفي العنوان وتبقى الأيقونة ظاهرة مع باقي الأيقونات
+                       ========================================================================= */}
+                    {isExpanded && (
+                      <div 
+                        className="absolute rtl:right-[100%] rtl:mr-3 ltr:left-[100%] ltr:ml-3 top-1/2 -translate-y-1/2 z-50 w-72 sm:w-80 p-4 rounded-2xl bg-gradient-to-br from-[#0F172A] via-[#0B101E] to-[#080C16] border-2 border-amber-500/70 shadow-2xl shadow-black/95 space-y-3 animate-in fade-in zoom-in-95 duration-150 text-right rtl:text-right ltr:text-left cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleActivate();
+                        }}
+                      >
+                        <div className="flex items-start justify-between gap-2 border-b border-slate-800/80 pb-2.5">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
+                              <ItemIcon className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <h4 className="text-xs sm:text-sm font-black text-white">
+                                {isAr ? item.nameAr : item.nameEn}
+                              </h4>
+                              <span className="text-[10px] text-amber-400/90 font-mono font-bold">
+                                {item.category}
+                              </span>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setExpandedSidebarTab(null);
+                            }}
+                            className="p-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                            title={isAr ? 'إغلاق العنوان' : 'Close'}
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        <p className="text-[11px] text-slate-300 leading-relaxed">
+                          {isAr ? item.descAr : item.descEn}
+                        </p>
+
+                        {item.badge !== undefined && item.badge !== null && (
+                          <div className="p-2 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between text-[11px]">
+                            <span className="text-slate-400">{isAr ? 'الحالة / الرصد:' : 'Status / Pulse:'}</span>
+                            <span className="font-mono font-bold text-amber-400">{item.badge}</span>
+                          </div>
+                        )}
+
+                        {/* زر عرض الصفحة: عند الضغط تعرض الصفحة ويختفي العنوان وتبقى الأيقونة */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleActivate();
+                          }}
+                          className="w-full py-2.5 px-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-95 transition-all cursor-pointer"
+                        >
+                          <span>
+                            {item.id === 'instant_random' 
+                              ? (isAr ? 'تشغيل التوليد الفوري الآن' : 'Trigger Generation Now') 
+                              : (isAr ? 'عرض الصفحة الآن' : 'Display Page View')}
+                          </span>
+                          <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-0 ltr:rotate-180" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </nav>
           </div>
 
-          {/* The 8 Required Navigation Buttons */}
-          <nav className="space-y-2 flex-1" aria-label="Newsroom Navigation">
-            {/* 1. زر التوليد الآلي كل 30 د */}
-            <button
-              onClick={() => setActiveTab('overview')}
-              className={`w-full p-2.5 rounded-xl text-right flex items-center justify-between border transition-all cursor-pointer ${
-                activeTab === 'overview'
-                  ? 'bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-transparent border-amber-500/40 text-amber-300 font-bold shadow-lg shadow-amber-500/5'
-                  : 'bg-slate-900/60 hover:bg-slate-850/80 text-slate-300 border-slate-800/80 hover:border-slate-700'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                  <Clock className="w-4 h-4 animate-pulse" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-white">{isAr ? 'التوليد الآلي (كل 30 د)' : 'Autonomous Cycle (30m)'}</div>
-                  <div className="text-[10px] text-slate-400">{isAr ? 'رصد دوري للـ 54 دولة' : '54 Nations pulse feed'}</div>
-                </div>
-              </div>
-              <span className="font-mono text-xs px-2 py-0.5 rounded bg-slate-950 border border-amber-500/30 text-amber-400">
-                {formatTime(secondsUntilNextCycle)}
-              </span>
-            </button>
-
-            {/* 2. زر التوليد الفوري العشوائي */}
-            <button
-              onClick={handleTriggerInstantRandomGeneration}
-              disabled={isAutomatedIngesting}
-              className="w-full p-2.5 rounded-xl text-right flex items-center justify-between bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all cursor-pointer group"
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-black/20 flex items-center justify-center text-slate-950">
-                  <Zap className={`w-4 h-4 ${isAutomatedIngesting ? 'animate-spin' : 'fill-current group-hover:scale-110 transition-transform'}`} />
-                </div>
-                <div>
-                  <div className="text-xs font-black">{isAr ? 'توليد فوري عشوائي' : 'Instant Random Commission'}</div>
-                  <div className="text-[10px] text-slate-900/80 font-medium">{isAr ? 'دولة · قطاع · قالب بنقرة واحدة' : '1-click country+sector draft'}</div>
-                </div>
-              </div>
-              <Sparkles className="w-4 h-4 text-slate-950/80" />
-            </button>
-
-            {/* 3. زر التوليد المخصص (انتقال سلس مدمج بدون popup) */}
-            <button
-              onClick={() => setActiveTab('commission')}
-              className={`w-full p-2.5 rounded-xl text-right flex items-center justify-between border transition-all cursor-pointer group ${
-                activeTab === 'commission'
-                  ? 'bg-gradient-to-r from-blue-500/20 via-blue-500/10 to-transparent border-blue-500 text-blue-300 font-bold shadow-lg shadow-blue-500/10'
-                  : 'bg-slate-900/60 hover:bg-slate-850/80 text-slate-300 border-slate-800/80 hover:border-slate-700'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 group-hover:scale-105 transition-transform">
-                  <SlidersHorizontal className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-white">{isAr ? 'توليد مخصص' : 'Commission Custom Report'}</div>
-                  <div className="text-[10px] text-slate-400">{isAr ? 'خطوات متسلسلة بدون نوافذ' : 'Smooth in-page wizard'}</div>
-                </div>
-              </div>
-              <Plus className="w-4 h-4 text-slate-400 group-hover:text-blue-400 transition-colors" />
-            </button>
-
-            {/* 4. زر تدريب الوكيل */}
-            <button
-              onClick={() => setActiveTab('training')}
-              className={`w-full p-2.5 rounded-xl text-right flex items-center justify-between border transition-all cursor-pointer ${
-                activeTab === 'training'
-                  ? 'bg-gradient-to-r from-purple-500/15 to-transparent border-purple-500/40 text-purple-300 font-bold shadow-lg'
-                  : 'bg-slate-900/60 hover:bg-slate-850/80 text-slate-300 border-slate-800/80 hover:border-slate-700'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
-                  <Brain className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-white">{isAr ? 'تدريب الوكيل' : 'Agent Training Workbench'}</div>
-                  <div className="text-[10px] text-slate-400">{isAr ? 'ضبط النبرة التحريرية والبرومبتات' : 'Prompt tuning & strictness'}</div>
-                </div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-slate-400" />
-            </button>
-
-            {/* 5. زر المقالات المولدة التي تحتاج الى معالجة */}
-            <button
-              onClick={() => setActiveTab('pending')}
-              className={`w-full p-2.5 rounded-xl text-right flex items-center justify-between border transition-all cursor-pointer ${
-                activeTab === 'pending'
-                  ? 'bg-gradient-to-r from-rose-500/15 to-transparent border-rose-500/40 text-rose-300 font-bold shadow-lg'
-                  : 'bg-slate-900/60 hover:bg-slate-850/80 text-slate-300 border-slate-800/80 hover:border-slate-700'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400">
-                  <AlertTriangle className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-white">{isAr ? 'مقالات تحتاج معالجة' : 'Pending Ingestion Queue'}</div>
-                  <div className="text-[10px] text-slate-400">{isAr ? 'بانتظار إجازة المشرف البشري' : 'Human review required'}</div>
-                </div>
-              </div>
-              {pendingArticles.length > 0 ? (
-                <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-rose-500 text-white font-mono shadow-sm animate-pulse">
-                  {pendingArticles.length}
-                </span>
-              ) : (
-                <span className="text-[11px] text-slate-500 font-mono">0</span>
-              )}
-            </button>
-
-            {/* 6. زر تحرير */}
-            <button
-              onClick={() => {
-                if (currentActiveArticle) setActiveTab('editor');
-              }}
-              className={`w-full p-2.5 rounded-xl text-right flex items-center justify-between border transition-all cursor-pointer ${
-                activeTab === 'editor'
-                  ? 'bg-gradient-to-r from-emerald-500/15 to-transparent border-emerald-500/40 text-emerald-300 font-bold shadow-lg'
-                  : 'bg-slate-900/60 hover:bg-slate-850/80 text-slate-300 border-slate-800/80 hover:border-slate-700'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                  <FileEdit className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-white">{isAr ? 'محرر الأخبار المباشر' : 'Live Editorial Desk'}</div>
-                  <div className="text-[10px] text-slate-400">{isAr ? 'نشر · تعديل ومحاولة · أرشفة' : 'Publish, Edit/Retry, Archive'}</div>
-                </div>
-              </div>
-              <Edit3 className="w-4 h-4 text-emerald-400/80" />
-            </button>
-
-            {/* 7. زر المكتبة */}
-            <button
-              onClick={() => setActiveTab('library')}
-              className={`w-full p-2.5 rounded-xl text-right flex items-center justify-between border transition-all cursor-pointer ${
-                activeTab === 'library'
-                  ? 'bg-gradient-to-r from-teal-500/15 to-transparent border-teal-500/40 text-teal-300 font-bold shadow-lg'
-                  : 'bg-slate-900/60 hover:bg-slate-850/80 text-slate-300 border-slate-800/80 hover:border-slate-700'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400">
-                  <BookOpen className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-white">{isAr ? 'المكتبة والتقارير' : 'Editorial Library'}</div>
-                  <div className="text-[10px] text-slate-400">{isAr ? `${publishedArticles.length} تقارير منشورة` : `${publishedArticles.length} published reports`}</div>
-                </div>
-              </div>
-              <span className="text-[11px] text-teal-400 font-mono">{publishedArticles.length}</span>
-            </button>
-
-            {/* 8. زر الارشيف */}
-            <button
-              onClick={() => setActiveTab('archive')}
-              className={`w-full p-2.5 rounded-xl text-right flex items-center justify-between border transition-all cursor-pointer ${
-                activeTab === 'archive'
-                  ? 'bg-gradient-to-r from-slate-700/30 to-transparent border-slate-600 text-slate-200 font-bold shadow-lg'
-                  : 'bg-slate-900/60 hover:bg-slate-850/80 text-slate-400 border-slate-800/80 hover:border-slate-700'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400">
-                  <Archive className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-slate-300">{isAr ? 'الأرشيف والمرفوضات' : 'Editorial Archive'}</div>
-                  <div className="text-[10px] text-slate-500">{isAr ? 'المقالات المستبعدة للمراجعة' : 'Shelved & rejected records'}</div>
-                </div>
-              </div>
-              <span className="text-[11px] text-slate-500 font-mono">{archivedArticles.length}</span>
-            </button>
-          </nav>
-
-          {/* Security & System Info Footer in Sidebar */}
-          <div className="pt-3 border-t border-slate-800/80 text-[11px] space-y-2 text-slate-400">
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                <span>{isAr ? 'المشرف البشري:' : 'Supervisor:'}</span>
-              </span>
-              <span className="text-white font-bold">{isAr ? 'رئيس التحرير' : 'Editor-in-Chief'}</span>
-            </div>
-            <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono">
-              <span>RBAC Zero-Trust</span>
-              <span>Gemini 3.6 Flash</span>
-            </div>
+          {/* تذييل مصغر في أسفل الشريط */}
+          <div className="pt-3 border-t border-slate-800/80 flex flex-col items-center gap-1 text-[9px] text-slate-500 font-mono">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>AI</span>
           </div>
         </aside>
 
         {/* =======================================================================
-            MAIN CONTENT AREA (بدون سكرول بار إضافي مزدوج على الحاسوب)
+            MAIN CONTENT AREA (متجاوبة بالكامل وتمنع خروج المقالات عن حدود الصفحة)
            ======================================================================= */}
-        <div className="flex-1 p-2 sm:p-6 lg:p-8 space-y-6 w-full max-w-full bg-white">
+        <div className="flex-1 min-w-0 p-2 sm:p-5 md:p-6 lg:p-8 space-y-6 w-full max-w-full overflow-x-hidden bg-[#070A13]">
           {/* Success Banner Notice */}
           {saveSuccessNotice && (
             <div className="p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-200 text-xs font-bold flex items-center gap-2 animate-in fade-in duration-200">
@@ -1112,123 +1222,79 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                   const SectorIcon = sector.icon;
 
                   return (
-                    <section key={sector.id} className="space-y-4 w-full max-w-full">
+                    <section key={sector.id} className="space-y-4 w-full max-w-full min-w-0 overflow-hidden">
                       {/* Sector Header with Desktop Controls */}
-                      <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                        <div className="flex items-center gap-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3 w-full max-w-full min-w-0">
+                        <div className="flex items-center gap-3 min-w-0">
                           <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br ${sector.accentColor} border flex items-center justify-center shrink-0`}>
                             <SectorIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                           </div>
-                          <div>
-                            <h3 className="text-base sm:text-lg md:text-xl font-black text-slate-900 flex items-center gap-2">
-                              <span>{isAr ? sector.nameAr : sector.nameEn}</span>
-                              <span className="text-[10px] sm:text-[11px] font-mono px-2 py-0.2 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                          <div className="min-w-0">
+                            <h3 className="text-base sm:text-lg md:text-xl font-black text-white flex items-center gap-2 truncate">
+                              <span className="truncate">{isAr ? sector.nameAr : sector.nameEn}</span>
+                              <span className="text-[10px] sm:text-[11px] font-mono px-2 py-0.2 rounded-full bg-slate-800 text-amber-300 border border-slate-700 shrink-0">
                                 {sectorArticles.length} {isAr ? 'تقارير' : 'reports'}
                               </span>
                             </h3>
-                            <p className="text-[11px] sm:text-xs text-slate-600">
+                            <p className="text-[11px] sm:text-xs text-slate-400 line-clamp-1">
                               {isAr ? sector.descriptionAr : sector.descriptionEn}
                             </p>
                           </div>
                         </div>
 
-                        {/* Desktop Slider Navigation Arrows (انتقال سلس بين الشرائح) */}
-                        <div className="hidden sm:flex items-center gap-1.5 shrink-0">
-                          <span className="text-[11px] text-slate-500 font-mono ml-2">
-                            {isAr ? 'تنقل بين الدول والقوالب' : 'Scroll slides'}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleScrollSector(sector.id, 'prev')}
-                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 transition-colors cursor-pointer border border-slate-300 shadow-sm"
-                            title={isAr ? 'السابق' : 'Previous'}
-                          >
-                            <ChevronRight className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleScrollSector(sector.id, 'next')}
-                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 transition-colors cursor-pointer border border-slate-300 shadow-sm"
-                            title={isAr ? 'التالي' : 'Next'}
-                          >
-                            <ChevronLeft className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
-                          </button>
+                        {/* Desktop Controls (عرض كل المقالات / السابق والتالي) */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          {sectorArticles.length > 3 && (
+                            <button
+                              type="button"
+                              onClick={() => toggleSectorExpansion(sector.id)}
+                              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition-colors cursor-pointer"
+                            >
+                              <span>
+                                {expandedSectors[sector.id]
+                                  ? (isAr ? 'عرض أقل' : 'Show less')
+                                  : (isAr ? `عرض كل التقارير (${sectorArticles.length})` : `View all (${sectorArticles.length})`)}
+                              </span>
+                            </button>
+                          )}
+
+                          {/* أزرار السلايدر على الهاتف والشاشات الصغيرة */}
+                          <div className="flex sm:hidden items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleScrollSector(sector.id, 'prev')}
+                              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer border border-slate-700 shadow-sm"
+                              title={isAr ? 'السابق' : 'Previous'}
+                            >
+                              <ChevronRight className="w-3.5 h-3.5 rtl:rotate-0 ltr:rotate-180" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleScrollSector(sector.id, 'next')}
+                              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer border border-slate-700 shadow-sm"
+                              title={isAr ? 'التالي' : 'Next'}
+                            >
+                              <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-0 ltr:rotate-180" />
+                            </button>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Sector Slides / Cards:
-                          - On Mobile: Takes 100% of width, snap-center, without any scrollbar!
-                          - On Desktop: Multi-card layout with smooth scroll buttons
-                      */}
+                      {/* 1. على الهاتف: شريط انسيابي بطاقة كاملة 100% دون خروج */}
                       <div 
                         id={`sector-slider-${sector.id}`}
-                        className="overflow-x-auto no-scrollbar scroll-smooth flex gap-3 sm:gap-4 pb-2 snap-x snap-mandatory w-full max-w-full"
+                        className="md:hidden overflow-x-auto no-scrollbar scroll-smooth flex gap-3 pb-2 snap-x snap-mandatory w-full max-w-full min-w-0"
                       >
-                        {sectorArticles.map((art, idx) => {
-                          const isPending = art.status === 'pending_review';
+                        {sectorArticles.map((art, idx) => 
+                          renderSectorArticleCard(art, idx, true, sectorArticles.length)
+                        )}
+                      </div>
 
-                          return (
-                            <div
-                              key={art.id || idx}
-                              onClick={() => handleOpenInEditor(art)}
-                              className="w-full min-w-full max-w-full sm:w-80 sm:min-w-[320px] sm:max-w-none shrink-0 snap-center sm:snap-start bg-slate-900/95 hover:bg-slate-850 border border-slate-800 hover:border-amber-500/50 rounded-2xl p-4 space-y-3 cursor-pointer transition-all duration-200 group shadow-lg flex flex-col justify-between mx-auto sm:mx-0"
-                            >
-                              {/* Top Bar: Country & Journalistic Genre */}
-                              <div className="space-y-2">
-                                <div className="flex items-center justify-between text-xs">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-xs px-2 py-0.5 rounded-md bg-slate-800 text-amber-300 font-bold border border-slate-700">
-                                      🌍 {art.countryName}
-                                    </span>
-                                    <span className="text-[10px] text-slate-400 font-mono">
-                                      {art.countryCode}
-                                    </span>
-                                  </div>
-
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-[10px] font-mono text-slate-500 sm:hidden">
-                                      [{idx + 1}/{sectorArticles.length}]
-                                    </span>
-                                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold font-mono ${
-                                      isPending 
-                                        ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' 
-                                        : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                                    }`}>
-                                      {isPending ? (isAr ? 'قيد المراجعة' : 'Pending') : (isAr ? 'منشور' : 'Published')}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                {/* Journalistic Genre Pill */}
-                                <div className="inline-block text-[11px] font-bold text-amber-400/90 bg-amber-500/10 px-2.5 py-0.5 rounded-lg border border-amber-500/20">
-                                  📰 {art.journalisticType || (isAr ? 'التحقيق الصحفي' : 'Investigative')}
-                                </div>
-
-                                {/* Title */}
-                                <h4 className="text-sm sm:text-base md:text-lg font-bold text-white group-hover:text-amber-400 transition-colors line-clamp-2 leading-snug">
-                                  {art.title}
-                                </h4>
-
-                                {/* Summary preview */}
-                                <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
-                                  {art.summary}
-                                </p>
-                              </div>
-
-                              {/* Footer of Card */}
-                              <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
-                                <span className="flex items-center gap-1">
-                                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                                  <span>{art.factCheck?.score || 96}% {isAr ? 'دقة' : 'score'}</span>
-                                </span>
-                                <span className="text-amber-400/90 group-hover:translate-x-1 transition-transform flex items-center gap-0.5 font-bold">
-                                  <span>{isAr ? 'فتح المحرر' : 'Open Editor'}</span>
-                                  <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-0 ltr:rotate-180" />
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        })}
+                      {/* 2. على الحاسوب: شبكة متجاوبة منضبطة تماماً ضمن حدود الصفحة دون أي تجاوز */}
+                      <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 w-full max-w-full min-w-0">
+                        {(expandedSectors[sector.id] ? sectorArticles : sectorArticles.slice(0, 3)).map((art, idx) => 
+                          renderSectorArticleCard(art, idx, false, sectorArticles.length)
+                        )}
                       </div>
                     </section>
                   );
@@ -1332,39 +1398,39 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
               VIEW 3: PENDING QUEUE (المقالات التي تحتاج إلى معالجة: نوعان منفصلان للمشرف)
              ===================================================================== */}
           {activeTab === 'pending' && (
-            <div className="space-y-6 animate-in fade-in duration-200 w-full max-w-full mx-auto">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
-                <div>
-                  <h2 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5 text-rose-500" />
-                    <span>{isAr ? 'منصة مراجعة واعتماد المقالات (غرفة إشراف المحررين والذكاء الاصطناعي)' : 'Pending Ingestion & Editorial Desk'}</span>
+            <div className="space-y-6 animate-in fade-in duration-200 w-full max-w-full min-w-0 mx-auto">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3 w-full max-w-full min-w-0">
+                <div className="min-w-0">
+                  <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0" />
+                    <span className="truncate">{isAr ? 'منصة مراجعة واعتماد المقالات (غرفة إشراف المحررين والذكاء الاصطناعي)' : 'Pending Ingestion & Editorial Desk'}</span>
                   </h2>
-                  <p className="text-xs text-slate-600">
+                  <p className="text-xs text-slate-400">
                     {isAr 
                       ? 'يظهر للمشرف نوعان: مقالات مولدة بالذكاء الاصطناعي، ومقالات مرسلة من المحررين البشريين للاعتماد أو لإعادة التعديل.' 
                       : 'Dual streams: Autonomous AI agent pipeline and Human Editor draft submissions awaiting review.'}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded-full bg-rose-500/15 text-rose-700 text-xs font-bold border border-rose-500/30">
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="px-3 py-1 rounded-full bg-rose-500/15 text-rose-300 text-xs font-bold border border-rose-500/30">
                     {pendingArticles.length} {isAr ? 'إجمالي بانتظار الإجراء' : 'pending total'}
                   </span>
                 </div>
               </div>
 
               {/* أزرار التبديل بين نوعي المقالات عند المشرف */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar scroll-smooth">
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar scroll-smooth w-full max-w-full min-w-0">
                 <button
                   type="button"
                   onClick={() => setPendingSubFilter('all')}
                   className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
                     pendingSubFilter === 'all'
-                      ? 'bg-slate-900 text-white shadow-md ring-1 ring-slate-700'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300'
+                      ? 'bg-amber-500 text-slate-950 shadow-md ring-2 ring-amber-400 font-black'
+                      : 'bg-slate-900/80 hover:bg-slate-850 text-slate-300 border border-slate-800'
                   }`}
                 >
                   <span>{isAr ? 'كافة المقالات المعلقة' : 'All Pending'}</span>
-                  <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20 font-mono font-bold">
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-950/20 font-mono font-bold">
                     {pendingArticles.length}
                   </span>
                 </button>
@@ -1376,10 +1442,10 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                   className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
                     pendingSubFilter === 'ai'
                       ? 'bg-amber-500 text-slate-950 shadow-md ring-2 ring-amber-400 font-black'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300'
+                      : 'bg-slate-900/80 hover:bg-slate-850 text-slate-300 border border-slate-800'
                   }`}
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                   <span>{isAr ? '1. مقالات الذكاء الاصطناعي والتوليد المباشر' : '1. AI Generated & Direct Ingestion'}</span>
                   <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-950/20 font-mono font-bold">
                     {aiGeneratedArticles.length}
@@ -1393,7 +1459,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                   className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
                     pendingSubFilter === 'editor'
                       ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-400 font-black'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300'
+                      : 'bg-slate-900/80 hover:bg-slate-850 text-slate-300 border border-slate-800'
                   }`}
                 >
                   <Edit3 className="w-3.5 h-3.5 text-blue-400" />
@@ -1405,10 +1471,10 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
               </div>
 
               {/* بطاقة توضيحية للمحرر والمشرف */}
-              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-blue-950/40 via-slate-900 to-amber-950/30 border border-slate-800 text-xs text-slate-300 flex items-center justify-between gap-3 shadow-sm">
-                <div className="flex items-center gap-2.5">
+              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-blue-950/40 via-slate-900 to-amber-950/30 border border-slate-800 text-xs text-slate-300 flex items-center justify-between gap-3 shadow-sm w-full max-w-full min-w-0">
+                <div className="flex items-center gap-2.5 min-w-0">
                   <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
-                  <span>
+                  <span className="leading-relaxed">
                     {isSupervisor 
                       ? (isAr ? 'صلاحيات المشرف: قراءة كامل المسودة، اعتماد النشر المباشر للجمهور، أو إعادة طلب التعديل من المحررين مع كتابة الملاحظات وتوثيقها بالإشعارات.' : 'Supervisor Privileges: Read drafts, approve live publication, or request editorial revisions with feedback.')
                       : (isAr ? 'صلاحيات المحرر: صياغة وتعديل التقارير، وإرسالها للمشرف للاعتماد والمصادقة، ومتابعة الملاحظات المطلوبة.' : 'Editor Privileges: Draft & modify articles, submit to supervisor for review, and iterate on critiques.')}
@@ -1426,12 +1492,12 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
 
                 if (listToDisplay.length === 0) {
                   return (
-                    <div className="p-12 text-center rounded-2xl bg-slate-50 border border-slate-200 space-y-3 w-full max-w-full">
-                      <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
-                      <h3 className="text-base font-bold text-slate-900">
+                    <div className="p-12 text-center rounded-2xl bg-[#090D18] border border-slate-800 space-y-3 w-full max-w-full min-w-0">
+                      <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
+                      <h3 className="text-base font-bold text-white">
                         {isAr ? 'لا توجد مقالات معلقة في هذا القسم حالياً' : 'No pending articles in this section'}
                       </h3>
-                      <p className="text-xs text-slate-600">
+                      <p className="text-xs text-slate-400">
                         {isAr 
                           ? 'كافة المقالات تمت معالجتها. يمكنك استخدام "توليد فوري عشوائي" أو قيام المحررين بإرسال مسودات جديدة.' 
                           : 'Queue clear. Commission a new report or submit an editor draft.'}
@@ -1441,7 +1507,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                 }
 
                 return (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-full">
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full max-w-full min-w-0">
                     {listToDisplay.map((art) => {
                       const isHumanEditorSubmission = art.editorSubmission || art.authorType === 'HUMAN_JOURNALIST' || art.authorType === 'HYBRID';
                       const isRevisionRequested = art.status === 'revision_requested';
@@ -1449,7 +1515,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                       return (
                         <div
                           key={art.id}
-                          className={`p-4 sm:p-5 rounded-2xl border transition-all space-y-3 shadow-md ${
+                          className={`p-4 sm:p-5 rounded-2xl border transition-all space-y-3 shadow-md min-w-0 overflow-hidden break-words ${
                             isHumanEditorSubmission
                               ? 'bg-[#0B1220] border-blue-500/40 hover:border-blue-400'
                               : 'bg-slate-900 border-slate-800 hover:border-amber-500/50'
@@ -1699,30 +1765,30 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-full">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-full min-w-0">
                 {publishedArticles.map((art) => (
                   <div
                     key={art.id}
                     onClick={() => handleOpenInEditor(art)}
-                    className="p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-teal-500/50 transition-all cursor-pointer space-y-3 shadow-md group"
+                    className="p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-teal-500/50 transition-all cursor-pointer space-y-3 shadow-md group min-w-0 max-w-full overflow-hidden break-words"
                   >
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="px-2 py-0.5 rounded bg-slate-800 text-teal-300 font-bold">
+                    <div className="flex items-center justify-between text-xs gap-1.5">
+                      <span className="px-2 py-0.5 rounded bg-slate-800 text-teal-300 font-bold truncate">
                         {art.countryName} · {art.sector || art.category}
                       </span>
-                      <span className="text-[10px] text-emerald-400 font-mono px-2 py-0.5 rounded bg-emerald-950/40 border border-emerald-500/30">
+                      <span className="text-[10px] text-emerald-400 font-mono px-2 py-0.5 rounded bg-emerald-950/40 border border-emerald-500/30 shrink-0">
                         {isAr ? 'منشور للجمهور' : 'Live'}
                       </span>
                     </div>
-                    <h4 className="text-base sm:text-lg font-bold text-white group-hover:text-teal-400 transition-colors line-clamp-2">
+                    <h4 className="text-base sm:text-lg font-bold text-white group-hover:text-teal-400 transition-colors line-clamp-2 break-words">
                       {art.title}
                     </h4>
-                    <p className="text-xs text-slate-400 line-clamp-2">
+                    <p className="text-xs text-slate-400 line-clamp-2 break-words">
                       {art.summary}
                     </p>
                     <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
-                      <span className="text-slate-500 font-mono">{art.createdAt}</span>
-                      <span className="text-teal-400 font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                      <span className="text-slate-500 font-mono shrink-0">{art.createdAt}</span>
+                      <span className="text-teal-400 font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform shrink-0">
                         <span>{isAr ? 'مراجعة وتعديل' : 'View in Editor'}</span>
                         <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-0 ltr:rotate-180" />
                       </span>
@@ -1760,30 +1826,30 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                   <p className="text-xs text-slate-600">{isAr ? 'لم يتم أرشفة أي مقالات بعد.' : 'No archived articles.'}</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-full">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-full min-w-0">
                   {archivedArticles.map((art) => (
                     <div
                       key={art.id}
                       onClick={() => handleOpenInEditor(art)}
-                      className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-600 transition-all cursor-pointer space-y-3 group"
+                      className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-600 transition-all cursor-pointer space-y-3 group min-w-0 max-w-full overflow-hidden break-words"
                     >
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-bold">
+                      <div className="flex items-center justify-between text-xs gap-1.5">
+                        <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-bold truncate">
                           {art.countryName} · {art.sector || art.category}
                         </span>
-                        <span className="text-[10px] text-slate-400 font-mono px-2 py-0.5 rounded bg-slate-800">
+                        <span className="text-[10px] text-slate-400 font-mono px-2 py-0.5 rounded bg-slate-800 shrink-0">
                           {isAr ? 'مؤرشف' : 'Archived'}
                         </span>
                       </div>
-                      <h4 className="text-base sm:text-lg font-bold text-slate-300 group-hover:text-white transition-colors line-clamp-2">
+                      <h4 className="text-base sm:text-lg font-bold text-slate-300 group-hover:text-white transition-colors line-clamp-2 break-words">
                         {art.title}
                       </h4>
-                      <p className="text-xs text-slate-500 line-clamp-2">
+                      <p className="text-xs text-slate-500 line-clamp-2 break-words">
                         {art.summary}
                       </p>
                       <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
-                        <span className="text-slate-600 font-mono">{art.createdAt}</span>
-                        <span className="text-slate-400 font-bold flex items-center gap-1 group-hover:text-amber-400 transition-colors">
+                        <span className="text-slate-600 font-mono shrink-0">{art.createdAt}</span>
+                        <span className="text-slate-400 font-bold flex items-center gap-1 group-hover:text-amber-400 transition-colors shrink-0">
                           <span>{isAr ? 'استرجاع للمحرر' : 'Restore to Editor'}</span>
                           <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-0 ltr:rotate-180" />
                         </span>

@@ -334,7 +334,8 @@ interface EditorialLeadCarouselProps {
 const PORTAL_LAUNCH_DATE = new Date('2026-09-25T00:00:00Z');
 
 export { type WeatherCity, WEATHER_CAPITALS } from '../data/africanWeatherCapitals';
-import { WEATHER_CAPITALS } from '../data/africanWeatherCapitals';
+import { WEATHER_CAPITALS, type WeatherCity } from '../data/africanWeatherCapitals';
+import { TIMEZONE_TO_COUNTRY_MAP } from '../lib/africanGeoProximity';
 
 const getWeatherDetails = (code: number, isArabic: boolean) => {
   if (code === 0) return { label: isArabic ? 'مشمس وصافٍ' : 'Clear & Sunny', icon: Sun, color: 'text-amber-400' };

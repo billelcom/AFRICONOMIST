@@ -607,11 +607,11 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
           VIEW MODE 1: EXPANSIVE EDITORIAL DESK (المحرر الموسع بدون سكرول بار)
          ========================================================================= */}
       {viewMode === 'edit' && (
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 w-full max-w-full items-start">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 w-full max-w-full min-w-0 items-start">
           {/* -------------------------------------------------------------------
               MAIN COLUMN (8 COLS): HEADLINE, SUMMARY, EXPANDING CONTENT, GRAPHICS
              ------------------------------------------------------------------- */}
-          <div className="xl:col-span-8 space-y-6 w-full max-w-full">
+          <div className="xl:col-span-8 space-y-6 w-full max-w-full min-w-0 overflow-hidden">
             {/* Feedback notification */}
             {submissionFeedback && (
               <div className="p-4 rounded-2xl bg-emerald-950/60 border border-emerald-500/50 text-emerald-200 text-xs font-bold flex items-center gap-2.5 shadow-lg animate-in fade-in">
@@ -1038,7 +1038,7 @@ export const ArticleEditorialDesk: React.FC<ArticleEditorialDeskProps> = ({
           {/* -------------------------------------------------------------------
               SIDE COLUMN (4 COLS): EDITORIAL ACTIONS, METADATA, FACT-CHECK & AI
              ------------------------------------------------------------------- */}
-          <div className="xl:col-span-4 space-y-6 w-full max-w-full">
+          <div className="xl:col-span-4 space-y-6 w-full max-w-full min-w-0 overflow-hidden">
             {/* Box A: Editorial Decision Deck (المبدأ الصحفي: ينشر، يعدل، يؤرشف وفق الأدوار) */}
             <div className="p-5 sm:p-6 rounded-2xl bg-[#080C17] border border-slate-800 shadow-xl space-y-4 w-full max-w-full">
               <div className="border-b border-slate-800/80 pb-3 flex items-center justify-between">

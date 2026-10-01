@@ -48,7 +48,7 @@ export interface PublishedArticle {
   category: string;
   countryCode: string;
   countryName: string;
-  status: 'draft' | 'pending_review' | 'published';
+  status: 'draft' | 'pending_review' | 'published' | 'rejected' | 'revision_requested';
   publishedAt: string;
   imageUrl?: string;
   viewsCount?: number;

@@ -20,9 +20,16 @@ import { PWAInstallButton } from './PWAInstallButton';
 interface PWABarProps {
   lang: 'ar' | 'en';
   iconOnly?: boolean;
+  showPushToggle?: boolean;
+  showShare?: boolean;
 }
 
-export const PWABar: React.FC<PWABarProps> = ({ lang, iconOnly = false }) => {
+export const PWABar: React.FC<PWABarProps> = ({ 
+  lang, 
+  iconOnly = false,
+  showPushToggle = false,
+  showShare = false
+}) => {
   const isAr = lang === 'ar';
   const { 
     isPushSupported, 
@@ -91,19 +98,21 @@ export const PWABar: React.FC<PWABarProps> = ({ lang, iconOnly = false }) => {
           />
         )}
 
-        {/* Native Web Share Button */}
-        <button
-          onClick={handleShare}
-          type="button"
-          className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700/60 transition-colors text-xs flex items-center justify-center cursor-pointer"
-          title={isAr ? 'مشاركة التطبيق عبر واجهة النظام (Web Share)' : 'Share via Native Web Share'}
-          aria-label="Share App"
-        >
-          <Share2 className="w-3.5 h-3.5 text-blue-400" />
-        </button>
+        {/* Native Web Share Button (Only shown if explicitly requested) */}
+        {showShare && (
+          <button
+            onClick={handleShare}
+            type="button"
+            className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700/60 transition-colors text-xs flex items-center justify-center cursor-pointer"
+            title={isAr ? 'مشاركة التطبيق عبر واجهة النظام (Web Share)' : 'Share via Native Web Share'}
+            aria-label="Share App"
+          >
+            <Share2 className="w-3.5 h-3.5 text-blue-400" />
+          </button>
+        )}
 
-        {/* Push Notification Toggle Button */}
-        {isPushSupported && (
+        {/* Push Notification Toggle Button (Only displayed when showPushToggle is explicitly true) */}
+        {showPushToggle && isPushSupported && (
           <button
             onClick={() => setShowPushModal(true)}
             type="button"
@@ -217,3 +226,137 @@ export const PWABar: React.FC<PWABarProps> = ({ lang, iconOnly = false }) => {
     </>
   );
 };
+
+export interface DevicePushNotificationBannerProps {
+  lang: 'ar' | 'en';
+}
+
+/**
+ * بنر مدمج لمركز الإشعارات: يتيح تفعيل إشعارات الويب اللحظية على الجهاز أو اختبارها مباشرة
+ */
+export const DevicePushNotificationBanner: React.FC<DevicePushNotificationBannerProps> = ({ lang }) => {
+  const isAr = lang === 'ar';
+  const { 
+    isPushSupported, 
+    isPushSubscribed, 
+    pushLoading, 
+    enablePush, 
+    sendTestNotification 
+  } = usePWA();
+
+  const [notificationNotice, setNotificationNotice] = useState<string | null>(null);
+  const [isSendingTest, setIsSendingTest] = useState<boolean>(false);
+  const [dismissed, setDismissed] = useState<boolean>(false);
+
+  if (!isPushSupported || dismissed) return null;
+
+  const handleSubscribe = async () => {
+    const res = await enablePush();
+    if (res.success) {
+      setNotificationNotice(isAr ? '🔔 تم تفعيل التنبيهات الفورية على جهازك بنجاح!' : '🔔 Push alerts enabled on this device!');
+      setTimeout(() => setNotificationNotice(null), 4000);
+    } else {
+      setNotificationNotice(res.error || (isAr ? 'تعذر تفعيل التنبيهات على الجهاز' : 'Failed to enable push on device'));
+      setTimeout(() => setNotificationNotice(null), 4000);
+    }
+  };
+
+  const handleSendTest = async () => {
+    setIsSendingTest(true);
+    try {
+      await sendTestNotification(
+        isAr ? 'لافريكونوميست | تنبيه اختباري 🚀' : 'L’Africonomist | Test Alert 🚀',
+        isAr ? 'نظام الإشعارات اللحظية يعمل بكفاءة على جهازك عبر W3C Web Push.' : 'Web Push API operational on this device.'
+      );
+      setNotificationNotice(isAr ? '✅ تم إرسال إشعار اختباري لجهازك!' : '✅ Test notification sent!');
+      setTimeout(() => setNotificationNotice(null), 4000);
+    } finally {
+      setIsSendingTest(false);
+    }
+  };
+
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-r from-[#0F172A] via-[#0D1424] to-[#0A0E1A] p-4 sm:p-5 shadow-lg">
+      {/* Toast Notice */}
+      {notificationNotice && (
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20 px-3.5 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs shadow-xl flex items-center gap-1.5 animate-in fade-in duration-200">
+          <span>{notificationNotice}</span>
+        </div>
+      )}
+
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-start gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+            <BellRing className={`w-5 h-5 ${isPushSubscribed ? 'text-emerald-400' : 'text-amber-400 animate-pulse'}`} />
+          </div>
+
+          <div className="space-y-1 text-right rtl:text-right ltr:text-left">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-sm font-bold text-white">
+                {isAr ? 'تفعيل الإشعارات الفورية على هذا الجهاز' : 'Enable Device Push Notifications'}
+              </h3>
+              <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${
+                isPushSubscribed
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                  : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+              }`}>
+                {isPushSubscribed 
+                  ? (isAr ? 'مفعلة على الجهاز ✅' : 'Subscribed ✅') 
+                  : (isAr ? 'غير مفعلة بعد' : 'Not Enabled')}
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed max-w-xl">
+              {isAr
+                ? 'استقبل عاجل أسواق المال وتقارير التحليل الاقتصادي فور نشرها مباشرة على هاتفك أو حاسوبك حتى عند إغلاق التطبيق.'
+                : 'Receive breaking African macro intelligence directly on your device via standard Web Push API even when the app is closed.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+          {!isPushSubscribed ? (
+            <button
+              type="button"
+              onClick={handleSubscribe}
+              disabled={pushLoading}
+              className="py-2 px-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-md shadow-amber-500/15 active:scale-95 transition-all cursor-pointer"
+            >
+              {pushLoading ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <BellRing className="w-3.5 h-3.5 fill-current" />
+              )}
+              <span>{isAr ? 'تفعيل على الجهاز الآن' : 'Enable Now'}</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSendTest}
+              disabled={isSendingTest}
+              className="py-1.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+            >
+              {isSendingTest ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
+              ) : (
+                <Send className="w-3.5 h-3.5 text-amber-400" />
+              )}
+              <span>{isAr ? 'إرسال إشعار تجريبي' : 'Send Test Alert'}</span>
+            </button>
+          )}
+
+          {!isPushSubscribed && (
+            <button
+              type="button"
+              onClick={() => setDismissed(true)}
+              className="p-2 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 transition-colors"
+              title={isAr ? 'إخفاء مؤقت' : 'Dismiss'}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+

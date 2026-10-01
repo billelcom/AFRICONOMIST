@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Article, ArticleGraphicItem } from '../../types';
 import { shareContent } from '../../lib/pwa/webShare';
 import { useAuth } from '../../context/AuthContext';
+import { AuthSaveRequiredModal } from '../BookmarkButton';
 import { 
   ArrowRight, 
   ArrowLeft, 
@@ -73,8 +74,9 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
   onNavigateToEditorial
 }) => {
   const isAr = lang === 'ar';
-  const { isArticleSaved, saveArticle, unsaveArticle } = useAuth();
+  const { user, isArticleSaved, saveArticle, unsaveArticle } = useAuth();
   const isSaved = isArticleSaved(article.id);
+  const [showAuthSaveModal, setShowAuthSaveModal] = useState<boolean>(false);
 
   // --- Reading Preferences State ---
   const [paperTheme, setPaperTheme] = useState<PaperTheme>('paper');
@@ -215,6 +217,12 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
 
   // Handle Save / Bookmark via Firebase & AuthContext
   const handleToggleSave = async () => {
+    // خاصية حفظ المقالات خاصة بمن لديهم حساب فقط
+    if (!user) {
+      setShowAuthSaveModal(true);
+      return;
+    }
+
     try {
       if (isSaved) {
         await unsaveArticle(article.id);
@@ -2040,6 +2048,13 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
           })()}
         </div>
       )}
+
+      {/* نافذة تنبيه مصممة بأناقة عالية: ميزة الحفظ خاصة بالأعضاء المسجلين */}
+      <AuthSaveRequiredModal
+        isOpen={showAuthSaveModal}
+        onClose={() => setShowAuthSaveModal(false)}
+        lang={lang}
+      />
     </div>
   );
 };

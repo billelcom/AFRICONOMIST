@@ -11,6 +11,8 @@ export interface JournalisticGenreOption {
   descriptionAr: string;
   descriptionEn: string;
   iconName: string;
+  toneAr?: string;
+  lengthAr?: string;
 }
 
 export interface EconomicSectorOption {
@@ -21,6 +23,8 @@ export interface EconomicSectorOption {
   groupNameAr: string;
   groupNameEn: string;
   iconName: string;
+  descriptionAr?: string;
+  descriptionEn?: string;
 }
 
 // 1. الأنواع الصحفية الثمانية عشر المعتمدة بدقة تامة

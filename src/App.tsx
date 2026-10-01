@@ -38,6 +38,7 @@ import { PrivacyTermsView } from './components/views/PrivacyTermsView';
 import { ProfileView } from './components/views/ProfileView';
 import { NotificationsView } from './components/views/NotificationsView';
 import { InteractiveTopCard } from './components/InteractiveTopCard';
+import { ShareButton } from './components/ShareButton';
 import { Facebook, Twitter, Youtube, Instagram, Music2, MessageCircle, Linkedin, ShieldCheck, Building2, FileText } from 'lucide-react';
 import { useAuth } from './context/AuthContext';
 
@@ -875,6 +876,11 @@ export default function App() {
                   >
                     <MessageCircle className="w-4 h-4" />
                   </a>
+                </div>
+
+                {/* زر مشاركة المنصة في الفوتر */}
+                <div className="pt-3 flex justify-center">
+                  <ShareButton lang={lang} variant="footer" />
                 </div>
               </div>
             </div>

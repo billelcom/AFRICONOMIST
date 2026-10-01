@@ -682,10 +682,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // حفظ المقال
+  // حفظ المقال (خاص بمن لديهم حساب فقط)
   const saveArticle = async (article: Article) => {
     const activeAuthUser = auth.currentUser || user;
-    const currentUserId = activeAuthUser?.uid || profile?.uid || 'guest';
+    if (!activeAuthUser) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { mode: 'signup' } }));
+      }
+      return;
+    }
+
+    const currentUserId = activeAuthUser.uid;
     const saveId = `save-${currentUserId}-${article.id}`;
     
     const newSave: SavedArticle = {
@@ -944,8 +951,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // فحص هل المقال محفوظ
+  // فحص هل المقال محفوظ (خاص بمن لديهم حساب فقط)
   const isArticleSaved = (articleId: string): boolean => {
+    if (!user && !auth.currentUser) return false;
     return savedArticles.some(s => s.articleId === articleId);
   };
 

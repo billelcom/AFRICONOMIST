@@ -110,6 +110,7 @@ export interface AfricanCountryProfile {
   keySectors: string[];
   powerScore?: number; // مؤشر القوة الاقتصادية المركب المحسوب ديناميكياً
   rankChange?: number; // التغير في الترتيب مقارنة بالأساس (+1 صعود، -1 هبوط، 0)
+  rankMovement?: number; // تدرج الحركة في الرتبة
   lastUpdated?: string;
   descriptionAr: string;
   descriptionEn: string;

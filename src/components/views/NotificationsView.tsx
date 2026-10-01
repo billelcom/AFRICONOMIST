@@ -19,6 +19,7 @@ import {
   CheckCircle2,
   AlertCircle
 } from 'lucide-react';
+import { DevicePushNotificationBanner } from '../pwa/PWABar';
 
 interface NotificationsViewProps {
   articles: Article[];
@@ -136,6 +137,9 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
           </button>
         </div>
       </div>
+
+      {/* بنر مدمج لتفعيل أو اختبار التنبيهات الفورية (Web Push) على هذا الجهاز */}
+      <DevicePushNotificationBanner lang={lang} />
 
       {/* 3. قائمة الإشعارات */}
       <div className="space-y-3">

@@ -32,6 +32,7 @@ import { getCountryFlag } from '../../lib/africanGeoProximity';
 import { DraggableFloatingContainer } from '../DraggableFloatingContainer';
 import { EditorialLeadCarousel } from '../EditorialLeadCarousel';
 import { InteractiveTopCard } from '../InteractiveTopCard';
+import { BookmarkButton } from '../BookmarkButton';
 
 interface HomeViewProps {
   articles: Article[];
@@ -57,9 +58,11 @@ interface CreativeReportCardProps {
   article: Article;
   onSelect: (art: Article) => void;
   isAr: boolean;
+  lang?: 'ar' | 'en';
 }
 
-const CreativeReportCard: React.FC<CreativeReportCardProps> = ({ article, onSelect, isAr }) => {
+const CreativeReportCard: React.FC<CreativeReportCardProps> = ({ article, onSelect, isAr, lang }) => {
+  const cardLang: 'ar' | 'en' = lang || (isAr ? 'ar' : 'en');
   const { isArticleSaved, saveArticle, unsaveArticle } = useAuth();
   const saved = isArticleSaved(article.id);
   const flag = getCountryFlag(article.countryCode);
@@ -101,31 +104,8 @@ const CreativeReportCard: React.FC<CreativeReportCardProps> = ({ article, onSele
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
-            {/* زر حفظ المقال السريع */}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (saved) {
-                  unsaveArticle(article.id);
-                } else {
-                  saveArticle(article);
-                }
-              }}
-              className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
-                saved
-                  ? 'bg-amber-500/25 text-amber-300 border-amber-500/50 shadow-sm'
-                  : 'bg-slate-900/90 hover:bg-slate-800 text-slate-400 hover:text-amber-400 border-slate-700/60'
-              }`}
-              title={saved ? (isAr ? 'محفوظ في حسابك (انقر للإلغاء)' : 'Saved (click to unsave)') : (isAr ? 'حفظ المقال في حسابك' : 'Save article to account')}
-              aria-label="Save Article"
-            >
-              {saved ? (
-                <BookmarkCheck className="w-3.5 h-3.5 text-amber-400 fill-amber-400/20" />
-              ) : (
-                <Bookmark className="w-3.5 h-3.5" />
-              )}
-            </button>
+            {/* زر حفظ المقال السريع عبر المكون المركزي مع التحقق من الحساب */}
+            <BookmarkButton article={article} variant="icon" lang={cardLang} />
 
             <div className="flex items-center gap-1 font-mono text-[10px] text-emerald-400/90 shrink-0 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
               <ShieldCheck className="w-3 h-3 text-emerald-400" />
@@ -435,6 +415,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 article={article}
                 onSelect={onSelectArticle}
                 isAr={isAr}
+                lang={lang}
               />
             ))}
           </div>
@@ -749,6 +730,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               article={article}
               onSelect={onSelectArticle}
               isAr={isAr}
+              lang={lang}
             />
           ))}
         </div>

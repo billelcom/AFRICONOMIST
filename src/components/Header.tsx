@@ -1,6 +1,7 @@
+'use client';
 /* eslint-disable @next/next/no-img-element */
 // src/components/Header.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Globe2, 
   ShieldCheck, 
@@ -16,12 +17,12 @@ import {
   Bookmark,
   Crown,
   Sparkles,
-  LogIn,
   UserPlus
 } from 'lucide-react';
 import { NavigationModals, NavModalType } from './NavigationModals';
 import { PWABar } from './pwa/PWABar';
 import { PWAInstallButton } from './pwa/PWAInstallButton';
+import { ShareButton } from './ShareButton';
 import { useAuth } from '../context/AuthContext';
 
 export type HeaderTab = 
@@ -54,9 +55,23 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const isAr = lang === 'ar';
   const { user, profile, role, unreadCount } = useAuth();
+  const isAuthenticated = Boolean(user || profile);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [activeModal, setActiveModal] = useState<NavModalType>(null);
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
+
+  // استماع لفتح نافذة تسجيل الدخول/إنشاء الحساب من أي مكان في التطبيق (مثل زر الحفظ)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleOpenAuth = (e: Event) => {
+      const customEvent = e as CustomEvent<{ mode?: 'signin' | 'signup' }>;
+      const mode = customEvent.detail?.mode === 'signup' ? 'signup' : 'signin';
+      setAuthModalMode(mode);
+      setActiveModal('auth');
+    };
+    window.addEventListener('open-auth-modal', handleOpenAuth);
+    return () => window.removeEventListener('open-auth-modal', handleOpenAuth);
+  }, []);
 
   // ميثاق أمني صارم: غرفة الأخبار تظهر فقط بعد تسجيل الدخول للأدمن، المشرفين، والمحررين
   // القراء لا تظهر لهم غرفة الأخبار إطلاقاً لا قبل التسجيل ولا بعد التسجيل
@@ -117,24 +132,26 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* الجانب الأيسر: إشعارات + حساب / تسجيل + PWA + لغة + قائمة */}
           <div className="flex items-center gap-1 sm:gap-1.5">
-            {/* أيقونة الإشعارات مع العداد بالهاتف */}
-            <button
-              onClick={() => onSelectTab('notifications')}
-              className={`relative p-1.5 rounded-lg border transition-colors flex items-center justify-center cursor-pointer ${
-                currentTab === 'notifications'
-                  ? 'bg-amber-500/20 border-amber-500/50 text-amber-400'
-                  : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-800'
-              }`}
-              title={isAr ? 'الإشعارات والتنبيهات' : 'Notifications'}
-              aria-label="Notifications"
-            >
-              <Bell className="w-3.5 h-3.5 text-amber-400" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold flex items-center justify-center animate-pulse">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-            </button>
+            {/* أيقونة الإشعارات مع العداد بالهاتف (لا تظهر إلا بعد تسجيل الدخول) */}
+            {isAuthenticated && (
+              <button
+                onClick={() => onSelectTab('notifications')}
+                className={`relative p-1.5 rounded-lg border transition-colors flex items-center justify-center cursor-pointer ${
+                  currentTab === 'notifications'
+                    ? 'bg-amber-500/20 border-amber-500/50 text-amber-400'
+                    : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-800'
+                }`}
+                title={isAr ? 'الإشعارات والتنبيهات' : 'Notifications'}
+                aria-label="Notifications"
+              >
+                <Bell className="w-3.5 h-3.5 text-amber-400" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold flex items-center justify-center animate-pulse">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+            )}
 
             {/* أدوات PWA: في الهاتف تظهر أيقونة التثبيت فقط دون العبارة النصية */}
             <PWABar lang={lang} iconOnly={true} />
@@ -160,28 +177,17 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               </button>
             ) : (
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => {
-                    setAuthModalMode('signin');
-                    setActiveModal('auth');
-                  }}
-                  className="px-2 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700/60 text-[10px] font-bold transition-all active:scale-95 cursor-pointer"
-                  title={isAr ? 'تسجيل الدخول' : 'Sign In'}
-                >
-                  <span>{isAr ? 'دخول' : 'Sign In'}</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setAuthModalMode('signup');
-                    setActiveModal('auth');
-                  }}
-                  className="px-2 py-1 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 text-[10px] font-black shadow-sm transition-all active:scale-95 cursor-pointer"
-                  title={isAr ? 'إنشاء حساب جديد' : 'Register'}
-                >
-                  <span>{isAr ? 'تسجيل' : 'Register'}</span>
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  setAuthModalMode('signin');
+                  setActiveModal('auth');
+                }}
+                className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 text-[10.5px] font-black shadow-sm transition-all active:scale-95 cursor-pointer flex items-center gap-1"
+                title={isAr ? 'تسجيل' : 'Register / Sign In'}
+              >
+                <UserPlus className="w-3 h-3 text-slate-950" />
+                <span>{isAr ? 'تسجيل' : 'Register'}</span>
+              </button>
             )}
 
             {/* أيقونة اللغة */}
@@ -278,25 +284,27 @@ export const Header: React.FC<HeaderProps> = ({
                 )}
               </button>
 
-              {/* 4. الإشعارات والتنبيهات */}
-              <button
-                onClick={() => handleNavClick(() => onSelectTab('notifications'))}
-                className={`p-2.5 rounded-xl text-right flex items-center justify-between border transition-all cursor-pointer ${
-                  currentTab === 'notifications'
-                    ? 'bg-amber-500/15 text-amber-400 border-amber-500/30 font-bold'
-                    : 'bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white'
-                }`}
-              >
-                <div className="flex items-center gap-2 truncate">
-                  <Bell className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                  <span className="truncate">{isAr ? 'الإشعارات' : 'Notifications'}</span>
-                </div>
-                {unreadCount > 0 && (
-                  <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono font-bold">
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
+              {/* 4. الإشعارات والتنبيهات (خاصة بمن لديهم حساب فقط) */}
+              {isAuthenticated && (
+                <button
+                  onClick={() => handleNavClick(() => onSelectTab('notifications'))}
+                  className={`p-2.5 rounded-xl text-right flex items-center justify-between border transition-all cursor-pointer ${
+                    currentTab === 'notifications'
+                      ? 'bg-amber-500/15 text-amber-400 border-amber-500/30 font-bold'
+                      : 'bg-slate-900/60 text-slate-300 border-slate-800/70 hover:bg-slate-800/60 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 truncate">
+                    <Bell className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <span className="truncate">{isAr ? 'الإشعارات' : 'Notifications'}</span>
+                  </div>
+                  {unreadCount > 0 && (
+                    <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono font-bold">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+              )}
 
               {/* 5. صحافة البيانات */}
               <button
@@ -372,6 +380,9 @@ export const Header: React.FC<HeaderProps> = ({
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 <span className="truncate">{isAr ? 'الشروط والخصوصية' : 'Terms & Privacy'}</span>
               </button>
+
+              {/* 10. زر مشاركة المنصة */}
+              <ShareButton lang={lang} variant="drawer-item" />
             </div>
 
             {/* زر الحساب، مع زر غرفة الأخبار حصرياً للأدمن والمشرفين والمحررين فقط بعد تسجيل الدخول */}
@@ -396,11 +407,14 @@ export const Header: React.FC<HeaderProps> = ({
               )}
 
               <button
-                onClick={() => handleNavClick(() => setActiveModal('auth'))}
+                onClick={() => handleNavClick(() => {
+                  setAuthModalMode('signin');
+                  setActiveModal('auth');
+                })}
                 className={`${canAccessNewsroom ? 'flex-1' : 'w-full'} p-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-black flex items-center justify-center gap-1.5 shadow-lg transition-all cursor-pointer`}
               >
                 <User className="w-4 h-4" />
-                <span>{profile ? (isAr ? 'تبديل الدور' : 'Switch Role') : (isAr ? 'التسجيل / العضوية' : 'Sign In')}</span>
+                <span>{profile ? (isAr ? 'تبديل الدور' : 'Switch Role') : (isAr ? 'تسجيل' : 'Register')}</span>
               </button>
             </div>
           </div>
@@ -439,23 +453,25 @@ export const Header: React.FC<HeaderProps> = ({
               {/* أدوات PWA */}
               <PWABar lang={lang} />
 
-              {/* زر الإشعارات والتنبيهات للحاسوب مع العداد */}
-              <button
-                onClick={() => onSelectTab('notifications')}
-                className={`relative p-2 rounded-xl border transition-all flex items-center justify-center cursor-pointer group ${
-                  currentTab === 'notifications'
-                    ? 'bg-amber-500/20 border-amber-500/50 text-amber-400 shadow-md'
-                    : 'bg-slate-900 hover:bg-slate-850 text-slate-300 border-slate-700/60'
-                }`}
-                title={isAr ? 'مركز الإشعارات والتنبيهات' : 'Notifications Center'}
-              >
-                <Bell className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white font-mono text-[10px] font-bold flex items-center justify-center animate-pulse shadow-sm">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
-              </button>
+              {/* زر الإشعارات والتنبيهات للحاسوب مع العداد (خاص بمن لديهم حساب فقط) */}
+              {isAuthenticated && (
+                <button
+                  onClick={() => onSelectTab('notifications')}
+                  className={`relative p-2 rounded-xl border transition-all flex items-center justify-center cursor-pointer group ${
+                    currentTab === 'notifications'
+                      ? 'bg-amber-500/20 border-amber-500/50 text-amber-400 shadow-md'
+                      : 'bg-slate-900 hover:bg-slate-850 text-slate-300 border-slate-700/60'
+                  }`}
+                  title={isAr ? 'مركز الإشعارات والتنبيهات' : 'Notifications Center'}
+                >
+                  <Bell className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white font-mono text-[10px] font-bold flex items-center justify-center animate-pulse shadow-sm">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+              )}
 
               {/* زر تغيير اللغة */}
               <button
@@ -501,31 +517,17 @@ export const Header: React.FC<HeaderProps> = ({
                   </span>
                 </button>
               ) : (
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => {
-                      setAuthModalMode('signin');
-                      setActiveModal('auth');
-                    }}
-                    className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-850 border border-slate-700/80 text-slate-200 hover:text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95"
-                    title={isAr ? 'تسجيل الدخول إلى حسابك' : 'Sign In'}
-                  >
-                    <LogIn className="w-3.5 h-3.5 text-amber-400" />
-                    <span>{isAr ? 'تسجيل الدخول' : 'Sign In'}</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setAuthModalMode('signup');
-                      setActiveModal('auth');
-                    }}
-                    className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer active:scale-95"
-                    title={isAr ? 'إنشاء حساب جديد وتفعيله' : 'Create Account'}
-                  >
-                    <UserPlus className="w-3.5 h-3.5" />
-                    <span>{isAr ? 'إنشاء حساب' : 'Create Account'}</span>
-                  </button>
-                </div>
+                <button
+                  onClick={() => {
+                    setAuthModalMode('signin');
+                    setActiveModal('auth');
+                  }}
+                  className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer active:scale-95"
+                  title={isAr ? 'تسجيل' : 'Register / Sign In'}
+                >
+                  <UserPlus className="w-3.5 h-3.5 text-slate-950" />
+                  <span>{isAr ? 'تسجيل' : 'Register'}</span>
+                </button>
               )}
 
               {/* زر غرفة الأخبار - يظهر فقط بعد تسجيل الدخول للادمن، المشرفين، والمحررين */}
@@ -592,23 +594,25 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>{isAr ? 'حسابي والملف الشخصي' : 'My Profile'}</span>
               </button>
 
-              {/* 4. الإشعارات */}
-              <button
-                onClick={() => onSelectTab('notifications')}
-                className={`px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer ${
-                  currentTab === 'notifications'
-                    ? 'bg-amber-500/15 text-amber-400 font-bold border border-amber-500/30'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-850'
-                }`}
-              >
-                <Bell className="w-3.5 h-3.5 text-amber-400" />
-                <span>{isAr ? 'الإشعارات' : 'Notifications'}</span>
-                {unreadCount > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white font-mono">
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
+              {/* 4. الإشعارات (خاصة بمن لديهم حساب فقط) */}
+              {isAuthenticated && (
+                <button
+                  onClick={() => onSelectTab('notifications')}
+                  className={`px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer ${
+                    currentTab === 'notifications'
+                      ? 'bg-amber-500/15 text-amber-400 font-bold border border-amber-500/30'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-850'
+                  }`}
+                >
+                  <Bell className="w-3.5 h-3.5 text-amber-400" />
+                  <span>{isAr ? 'الإشعارات' : 'Notifications'}</span>
+                  {unreadCount > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white font-mono">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+              )}
 
               {/* 5. صحافة البيانات */}
               <button

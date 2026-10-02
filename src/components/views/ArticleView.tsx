@@ -45,8 +45,11 @@ import {
   FileCheck2,
   BookOpen,
   Maximize2,
-  X
+  X,
+  FileDown,
+  Loader2
 } from 'lucide-react';
+import { exportArticleToPDF } from '../../lib/pdfExport';
 
 interface ArticleViewProps {
   article: Article;
@@ -90,6 +93,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
   const [activeCitationId, setActiveCitationId] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<string>('sec-analysis');
   const [readingProgress, setReadingProgress] = useState<number>(0);
+  const [isExportingPDF, setIsExportingPDF] = useState<boolean>(false);
   const articleWrapperRef = useRef<HTMLDivElement>(null);
 
   // Track active section and visual reading progress as user scrolls through article
@@ -372,6 +376,23 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
   const handlePrint = () => {
     if (typeof window !== 'undefined') {
       window.print();
+    }
+  };
+
+  // --- Export Formatted PDF Broadsheet Handler ---
+  const handleExportPDF = async () => {
+    setIsExportingPDF(true);
+    setToastMessage(isAr ? 'جاري إعداد وثيقة PDF المنسقة للطباعة والمشاركة...' : 'Generating formatted PDF broadsheet...');
+    try {
+      const success = await exportArticleToPDF(article, lang);
+      if (success) {
+        setToastMessage(isAr ? 'تم فتح خيارات حفظ PDF والطباعة بنجاح' : 'PDF export & print window opened');
+      }
+    } catch (e) {
+      console.error('PDF export error:', e);
+      setToastMessage(isAr ? 'حدث خطأ أثناء تصدير PDF' : 'Error exporting PDF');
+    } finally {
+      setIsExportingPDF(false);
     }
   };
 
@@ -705,6 +726,21 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
             >
               {isSaved ? <BookmarkCheck className="w-3.5 h-3.5 text-amber-400" /> : <Bookmark className="w-3.5 h-3.5" />}
               <span className="hidden sm:inline">{isSaved ? (isAr ? 'محفوظ' : 'Saved') : (isAr ? 'حفظ' : 'Save')}</span>
+            </button>
+
+            {/* Export PDF Button */}
+            <button
+              onClick={handleExportPDF}
+              disabled={isExportingPDF}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/50 transition-all font-bold cursor-pointer shadow-sm active:scale-95 disabled:opacity-50"
+              title={isAr ? 'تصدير المقال كملف PDF منسق للطباعة أو المشاركة' : 'Export article as formatted PDF for printing or sharing'}
+            >
+              {isExportingPDF ? (
+                <Loader2 className="w-3.5 h-3.5 text-amber-400 animate-spin" />
+              ) : (
+                <FileDown className="w-3.5 h-3.5 text-amber-400" />
+              )}
+              <span>{isAr ? 'تصدير PDF' : 'Export PDF'}</span>
             </button>
 
             {/* Share */}
@@ -1827,6 +1863,21 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
               {isAr ? 'إجراءات ومشاركة' : 'Quick Actions'}
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
+              {/* Featured PDF Export Button */}
+              <button
+                onClick={handleExportPDF}
+                disabled={isExportingPDF}
+                className="col-span-2 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-800 dark:text-amber-300 font-bold transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                title={isAr ? 'تصدير المقال كملف PDF منسق للطباعة والمشاركة' : 'Export formatted PDF'}
+              >
+                {isExportingPDF ? (
+                  <Loader2 className="w-4 h-4 text-amber-600 animate-spin" />
+                ) : (
+                  <FileDown className="w-4 h-4 text-amber-600" />
+                )}
+                <span>{isAr ? 'تصدير كملف PDF للطباعة والمشاركة' : 'Export Formatted PDF'}</span>
+              </button>
+
               <button
                 onClick={handleToggleSave}
                 className={`flex items-center justify-center gap-1.5 p-2 rounded-xl border transition-colors cursor-pointer ${
@@ -1896,6 +1947,23 @@ ${article.citations.map((c, i) => `${i + 1}. ${c.sourceName} (${c.publishDate}) 
             <p className="text-xs text-stone-300 font-newspaper-body leading-relaxed line-clamp-2">
               {isAr ? article.title : article.titleEn}
             </p>
+
+            {/* Direct PDF export option inside Share Modal */}
+            <button
+              onClick={() => {
+                setIsShareModalOpen(false);
+                handleExportPDF();
+              }}
+              disabled={isExportingPDF}
+              className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500/20 to-amber-600/20 hover:from-amber-500/30 hover:to-amber-600/30 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50"
+            >
+              {isExportingPDF ? (
+                <Loader2 className="w-4 h-4 text-amber-400 animate-spin" />
+              ) : (
+                <FileDown className="w-4 h-4 text-amber-400" />
+              )}
+              <span>{isAr ? 'تصدير المقال كملف PDF للمشاركة أو الطباعة' : 'Export Formatted PDF to Share or Print'}</span>
+            </button>
 
             <div className="flex items-center gap-2">
               <input

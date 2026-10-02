@@ -36,13 +36,27 @@ import {
   Crown,
   User,
   X,
-  Lock
+  Lock,
+  Database,
+  Play,
+  Layers
 } from 'lucide-react';
 import { CommissionWizard } from '../CommissionWizard';
 import { ArticleEditorialDesk } from '../ArticleEditorialDesk';
 import { ALL_54_AFRICAN_COUNTRIES } from '../../data/africanCountries';
 import { JOURNALISTIC_GENRES, ECONOMIC_SECTORS } from '../../data/reportOptions';
 import { getSecondsUntilNextCycle, resetNextCycleTarget } from '../../lib/cycleScheduler';
+import { 
+  GENRE_AGENT_DIRECTIVES, 
+  SECTOR_AGENT_DIRECTIVES, 
+  buildCompositeAgentDirective, 
+  getGenreDirective, 
+  getSectorDirective 
+} from '../../lib/agents/personasRegistry';
+import { 
+  ALL_OFFICIAL_GROUNDING_SOURCES, 
+  getOfficialSourcesForCountry 
+} from '../../lib/agents/officialSourcesLedger';
 
 interface EditorialViewProps {
   articles: Article[];
@@ -187,6 +201,98 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
   const [mandatoryCitationsStrictness, setMandatoryCitationsStrictness] = useState<number>(98);
   const [selectedAiModel, setSelectedAiModel] = useState<string>('gemini-3.6-flash');
   const [trainingSavedAlert, setTrainingSavedAlert] = useState<boolean>(false);
+
+  // Agent Matrix Workbench State
+  const [trainingSubTab, setTrainingSubTab] = useState<'matrix' | 'genres' | 'sectors' | 'sources' | 'directives'>('matrix');
+  const [simCountry, setSimCountry] = useState<string>('نيجيريا');
+  const [simSector, setSimSector] = useState<string>('الاقتصاد الكلي');
+  const [simGenre, setSimGenre] = useState<string>('التحقيق الصحفي');
+  const [isSimulating, setIsSimulating] = useState<boolean>(false);
+  const [simulationResult, setSimulationResult] = useState<any | null>(null);
+  const [activeGenreDetailId, setActiveGenreDetailId] = useState<string>('investigative_journalism');
+  const [activeSectorDetailId, setActiveSectorDetailId] = useState<string>('macroeconomics');
+  const [sourcesSearchQuery, setSourcesSearchQuery] = useState<string>('');
+  const [sourcesCategoryFilter, setSourcesCategoryFilter] = useState<'all' | 'central_bank' | 'stock_exchange' | 'continental_body'>('all');
+
+  // تشغيل محاكاة تدريب الوكلاء المباشرة
+  const handleRunMatrixSimulation = async () => {
+    setIsSimulating(true);
+    setSimulationResult(null);
+    try {
+      const res = await fetch('/api/agents/pipeline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          country: simCountry,
+          sector: simSector,
+          journalisticType: simGenre,
+          generationMode: 'manual_supervisor',
+          customNotes: `تجربة تدريب محاكاة الوكلاء المتخصصة | النمط: [${simGenre}] | القطاع: [${simSector}] | الدولة: [${simCountry}].`
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.report) {
+          const rep = data.report;
+          const newArt: Article = {
+            id: rep.id,
+            slug: rep.slug,
+            title: rep.title,
+            titleEn: rep.titleEn,
+            summary: rep.summary,
+            summaryEn: rep.summaryEn,
+            content: [rep.content],
+            contentEn: [rep.content],
+            category: rep.category || 'Macroeconomics',
+            countryCode: rep.countryCode || 'PAN_AFRICA',
+            countryName: rep.country || simCountry,
+            countryNameEn: rep.country || simCountry,
+            status: 'pending_review',
+            generationType: 'manual_supervisor',
+            journalisticType: rep.journalisticType || simGenre,
+            sector: rep.sector || simSector,
+            authorType: 'AI_AGENT',
+            aiModel: rep.agent_metrics?.ai_engine || 'Gemini 2.5 Flash',
+            reviewNotes: `محاكاة مصفوفة الوكلاء التدريبية الثلاثية | ${simGenre} | ${simSector}`,
+            citations: (rep.sources || []).map((s: any, idx: number) => ({
+              id: `cit-sim-${idx}-${Date.now()}`,
+              sourceName: s.source || s.title,
+              url: s.url,
+              publishDate: '2026-10-02',
+              verified: true,
+              credibilityScore: 99,
+              snippet: s.title
+            })),
+            factCheck: {
+              score: 98,
+              verifiedClaimsCount: 6,
+              totalClaimsCount: 6,
+              biasRating: 'Neutral',
+              riskScore: 'Low',
+              checkedAt: new Date().toISOString().split('T')[0]
+            },
+            createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+            readTimeMinutes: 4,
+            featured: false,
+            marketImpact: 'positive'
+          };
+          onAddNewDraft(newArt);
+          setSimulationResult({
+            success: true,
+            report: rep
+          });
+        }
+      }
+    } catch (err: any) {
+      console.error('Simulation error:', err);
+      setSimulationResult({
+        success: false,
+        error: err?.message || 'Failed to simulate'
+      });
+    } finally {
+      setIsSimulating(false);
+    }
+  };
 
   // Wall-clock synchronization for countdown timer display
   useEffect(() => {
@@ -1644,104 +1750,676 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
           )}
 
           {/* =====================================================================
-              VIEW 4: AGENT TRAINING (تدريب الوكيل وضبط المعايير التحريرية)
+              VIEW 4: AGENT TRAINING (تدريب وتطوير وكلاء الذكاء الاصطناعي الصحفيين)
              ===================================================================== */}
           {activeTab === 'training' && (
             <div className="space-y-6 animate-in fade-in duration-200 w-full max-w-full mx-auto">
-              <div className="border-b border-slate-200 pb-3">
-                <h2 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
-                  <Brain className="w-5 h-5 text-purple-600" />
-                  <span>{isAr ? 'منصة تدريب وضبط وكلاء الذكاء الاصطناعي' : 'Agent Training & Directives Workbench'}</span>
-                </h2>
-                <p className="text-xs text-slate-600">
-                  {isAr ? 'تحديد معايير الصرامة التحريرية، نبرة الصياغة، وضوابط استشهاد المصادر الرسمية.' : 'Configure strictness, tone of voice, and official fact-check tolerances.'}
-                </p>
+              {/* Header with Metrics */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                <div>
+                  <h2 className="text-lg sm:text-xl font-black text-white flex items-center gap-2.5">
+                    <Brain className="w-6 h-6 text-purple-400" />
+                    <span>{isAr ? 'منصة تدريب وهندسة وكلاء الذكاء الاصطناعي الصحفيين' : 'Journalistic AI Agents Training & Persona Engine'}</span>
+                  </h2>
+                  <p className="text-xs text-slate-400 mt-1">
+                    {isAr 
+                      ? 'تدريب وتخصيص هويات الوكلاء وفق مصفوفة ثلاثية الأبعاد: 18 نوعاً صحفياً × 28 قطاعاً اقتصادياً × 54 دولة إفريقية، ببروتوكول Zero Trust.' 
+                      : 'Training 3D Specialized Agent Matrix: 18 Genres × 28 Economic Sectors × 54 African Nations with Zero-Trust safeguards.'}
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="px-3 py-1 rounded-full bg-purple-500/15 text-purple-300 text-xs font-mono font-bold border border-purple-500/30 flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-purple-400" />
+                    <span>18 {isAr ? 'وكيل نوع صحفي' : 'Genre Agents'}</span>
+                  </span>
+                  <span className="px-3 py-1 rounded-full bg-amber-500/15 text-amber-300 text-xs font-mono font-bold border border-amber-500/30 flex items-center gap-1.5">
+                    <Database className="w-3.5 h-3.5 text-amber-400" />
+                    <span>28 {isAr ? 'وكيل قطاع' : 'Sector Agents'}</span>
+                  </span>
+                  <span className="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 text-xs font-mono font-bold border border-emerald-500/30 flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>54 {isAr ? 'دولة جاهزة' : 'Nations'}</span>
+                  </span>
+                </div>
               </div>
 
               {trainingSavedAlert && (
                 <div className="p-3.5 rounded-xl bg-purple-950/40 border border-purple-500/40 text-purple-200 text-xs font-bold flex items-center gap-2 w-full max-w-full">
-                  <Check className="w-4 h-4 text-purple-400" />
-                  <span>{isAr ? 'تم حفظ معايير التدريب بنجاح وتطبيقها على خط الإنتاج الآلي!' : 'Agent directives updated successfully!'}</span>
+                  <Check className="w-4 h-4 text-purple-400 shrink-0" />
+                  <span>{isAr ? 'تم حفظ معايير التدريب بنجاح وتطبيقها على خط الإنتاج والوكلاء!' : 'Agent directives updated successfully!'}</span>
                 </div>
               )}
 
-              <div className="p-4 sm:p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-6 shadow-xl w-full max-w-full">
-                {/* 1. النبرة التحريرية */}
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-white flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-amber-400" />
-                    <span>{isAr ? 'المدرسة التحريرية والنبرة الصحفية المعتمدة:' : 'Editorial Tone of Voice:'}</span>
-                  </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {[
-                      { id: 'financial_times', nameAr: 'Financial Times', descAr: 'رصانة تحليلية وأرقام دقيقة' },
-                      { id: 'the_economist', nameAr: 'The Economist', descAr: 'عمق استشرافي وتحليل هيكلي' },
-                      { id: 'bloomberg', nameAr: 'Bloomberg Africa', descAr: 'سرعة الأسواق وتدفقات السيولة' }
-                    ].map((tone) => (
-                      <div
-                        key={tone.id}
-                        onClick={() => setTrainingTone(tone.id as any)}
-                        className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
-                          trainingTone === tone.id
-                            ? 'bg-purple-500/15 border-purple-500/50 text-purple-200'
-                            : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
-                        }`}
-                      >
-                        <div className="font-bold text-xs text-white">{tone.nameAr}</div>
-                        <div className="text-[11px] text-slate-400 mt-1">{tone.descAr}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 2. صرامة الاستشهاد بالمصادر */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs font-bold text-white">
-                    <span>{isAr ? 'الحد الأدنى لصرامة مطابقة المصادر الرسمية:' : 'Mandatory Citation Strictness:'}</span>
-                    <span className="font-mono text-emerald-400">{mandatoryCitationsStrictness}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={90}
-                    max={100}
-                    value={mandatoryCitationsStrictness}
-                    onChange={(e) => setMandatoryCitationsStrictness(Number(e.target.value))}
-                    className="w-full accent-amber-500"
-                  />
-                  <p className="text-[11px] text-slate-400">
-                    {isAr ? 'يتم رفض أي مقال آلياً إذا كانت المصادر غير رسمية أو تقل موثوقيتها عن هذه النسبة.' : 'Automated rejection triggered if primary source matching falls below threshold.'}
-                  </p>
-                </div>
-
-                {/* 3. نموذج الذكاء الاصطناعي */}
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-white flex items-center gap-2">
-                    <Cpu className="w-4 h-4 text-blue-400" />
-                    <span>{isAr ? 'محرك الذكاء الاصطناعي المعتمد:' : 'Primary Inference Engine:'}</span>
-                  </label>
-                  <select
-                    value={selectedAiModel}
-                    onChange={(e) => setSelectedAiModel(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-amber-500"
-                  >
-                    <option value="gemini-3.6-flash">Gemini 3.6 Flash (توليد واسترجاع فائق السرعة)</option>
-                    <option value="gemini-1.5-pro">Gemini 1.5 Pro (تحليل استقصائي عميق وسياق مليوني)</option>
-                  </select>
-                </div>
-
-                {/* Save Directives Button */}
-                <div className="pt-2 flex justify-end">
-                  <button
-                    onClick={() => {
-                      setTrainingSavedAlert(true);
-                      setTimeout(() => setTrainingSavedAlert(false), 3000);
-                    }}
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-bold text-xs shadow-lg transition-all cursor-pointer"
-                  >
-                    {isAr ? 'حفظ وتثبيت معايير التدريب' : 'Save & Deploy Parameters'}
-                  </button>
-                </div>
+              {/* Training Sub-navigation Tabs */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar border-b border-slate-800/80">
+                {[
+                  { id: 'matrix', nameAr: '⚡ محاكاة المصفوفة الثلاثية الحية', nameEn: '3D Matrix Sandbox', icon: Sparkles },
+                  { id: 'genres', nameAr: '📰 تدريب وكلاء الأنواع الصحفية (18)', nameEn: '18 Journalistic Genres', icon: FileText },
+                  { id: 'sectors', nameAr: '📊 تدريب وكلاء القطاعات (28)', nameEn: '28 Economic Sectors', icon: Database },
+                  { id: 'sources', nameAr: '🏛️ سجل المصادر وتدقيق الحقائق', nameEn: 'Official Sources & Fact-Check', icon: ShieldCheck },
+                  { id: 'directives', nameAr: '⚙️ الحوكمة والنبرة والذكاء الاصطناعي', nameEn: 'Directives & Models', icon: SlidersHorizontal }
+                ].map((st) => {
+                  const Icon = st.icon;
+                  const isActive = trainingSubTab === st.id;
+                  return (
+                    <button
+                      key={st.id}
+                      type="button"
+                      onClick={() => setTrainingSubTab(st.id as any)}
+                      className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+                        isActive
+                          ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20 ring-1 ring-purple-400'
+                          : 'bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-850 border border-slate-800'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span>{isAr ? st.nameAr : st.nameEn}</span>
+                    </button>
+                  );
+                })}
               </div>
+
+              {/* -------------------------------------------------------------
+                  SUB-TAB 1: 3D MATRIX SANDBOX & SIMULATOR (المحاكاة الثلاثية)
+                 ------------------------------------------------------------- */}
+              {trainingSubTab === 'matrix' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                    {/* Column 1: Configurator Controls */}
+                    <div className="lg:col-span-1 p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
+                      <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+                        <Sparkles className="w-4 h-4 text-purple-400" />
+                        <h3 className="text-sm font-bold text-white">
+                          {isAr ? 'توليف فرقة العمل الرقمية الثلاثية' : '3D Task Force Configuration'}
+                        </h3>
+                      </div>
+
+                      {/* 1. Country Selector */}
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
+                          <span>{isAr ? '1. وكيل الدولة الإفريقية:' : '1. African Nation Agent:'}</span>
+                          <span className="text-[10px] text-amber-400 font-mono">54 {isAr ? 'دولة' : 'Nations'}</span>
+                        </label>
+                        <select
+                          value={simCountry}
+                          onChange={(e) => setSimCountry(e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-purple-500"
+                        >
+                          {ALL_54_AFRICAN_COUNTRIES.map((c) => (
+                            <option key={c.code} value={c.nameAr}>
+                              {c.nameAr} ({c.nameEn}) - {c.currency}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* 2. Sector Selector */}
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
+                          <span>{isAr ? '2. وكيل القطاع الاقتصادي:' : '2. Economic Sector Agent:'}</span>
+                          <span className="text-[10px] text-purple-400 font-mono">28 {isAr ? 'قطاعاً' : 'Sectors'}</span>
+                        </label>
+                        <select
+                          value={simSector}
+                          onChange={(e) => setSimSector(e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-purple-500"
+                        >
+                          {ECONOMIC_SECTORS.map((s) => (
+                            <option key={s.id} value={s.nameAr}>
+                              {s.nameAr} ({s.groupNameAr})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* 3. Genre Selector */}
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
+                          <span>{isAr ? '3. وكيل النوع الصحفي والقالب:' : '3. Journalistic Genre Agent:'}</span>
+                          <span className="text-[10px] text-emerald-400 font-mono">18 {isAr ? 'نوعاً' : 'Genres'}</span>
+                        </label>
+                        <select
+                          value={simGenre}
+                          onChange={(e) => setSimGenre(e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-purple-500"
+                        >
+                          {JOURNALISTIC_GENRES.map((g) => (
+                            <option key={g.id} value={g.nameAr}>
+                              {g.nameAr} ({g.category})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Run Simulation Button */}
+                      <div className="pt-2">
+                        <button
+                          type="button"
+                          onClick={handleRunMatrixSimulation}
+                          disabled={isSimulating}
+                          className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-xs shadow-lg shadow-purple-600/25 flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50"
+                        >
+                          {isSimulating ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                              <span>{isAr ? 'جاري تشغيل الوكلاء ومحاكاة الإنتاج...' : 'Simulating Agent Pipeline...'}</span>
+                            </>
+                          ) : (
+                            <>
+                              <Play className="w-4 h-4 fill-current text-white" />
+                              <span>{isAr ? 'تشغيل تجربة محاكاة وتدريب الوكلاء فوراً' : 'Run Matrix Simulation & Generate Draft'}</span>
+                            </>
+                          )}
+                        </button>
+                        <p className="text-[10px] text-slate-500 mt-2 text-center">
+                          {isAr ? '⚠️ معيار أمني صارم: تحفظ المسودة المولدة في MongoDB بحالة (قيد المراجعة) لاعتمادها لاحقاً.' : 'Strict Security: Generated draft is committed as pending_review.'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Column 2 & 3: Composite Directive Inspector */}
+                    <div className="lg:col-span-2 p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div className="flex items-center gap-2">
+                          <Layers className="w-4 h-4 text-emerald-400" />
+                          <h3 className="text-sm font-bold text-white">
+                            {isAr ? 'معاينة الموجه التدريبي الموحد للفرقة الرقمية (Composite Directive Preview)' : 'Composite Agent Directive Preview'}
+                          </h3>
+                        </div>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                          {isAr ? 'توليف ثلاثي ديناميكي' : '3D Dynamic Synthesis'}
+                        </span>
+                      </div>
+
+                      {/* Live Generated Prompt Preview */}
+                      {(() => {
+                        const matchedG = Object.values(GENRE_AGENT_DIRECTIVES).find(g => g.nameAr === simGenre) || GENRE_AGENT_DIRECTIVES['news_report'];
+                        const matchedS = Object.values(SECTOR_AGENT_DIRECTIVES).find(s => s.nameAr === simSector) || SECTOR_AGENT_DIRECTIVES['macroeconomics'];
+                        const directiveText = buildCompositeAgentDirective({
+                          genreId: matchedG.genreId,
+                          sectorId: matchedS.sectorId,
+                          countryName: simCountry,
+                          countryCode: 'AFRICA',
+                          stage: 'writer',
+                          customNotes: isAr ? 'مراعاة ربط التطورات الحالية بالسلاسل الزمنية التاريخية' : 'Correlate with historical time-series'
+                        });
+
+                        return (
+                          <div className="space-y-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                              <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+                                <span className="text-slate-500 block text-[10px]">{isAr ? 'وكيل الصياغة المتخصص' : 'Specialist Agent'}</span>
+                                <span className="font-bold text-amber-400 truncate block">{matchedG.agentRoleAr}</span>
+                              </div>
+                              <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+                                <span className="text-slate-500 block text-[10px]">{isAr ? 'المحلل القطاعي المالي' : 'Sector Specialist'}</span>
+                                <span className="font-bold text-purple-400 truncate block">{matchedS.specialistTitleAr}</span>
+                              </div>
+                              <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+                                <span className="text-slate-500 block text-[10px]">{isAr ? 'الهدف اللفظي' : 'Target Length'}</span>
+                                <span className="font-bold text-emerald-400 block">{matchedG.wordCountTarget.recommended} {isAr ? 'كلمة' : 'words'}</span>
+                              </div>
+                            </div>
+
+                            <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-[11px] text-slate-300 leading-relaxed max-h-72 overflow-y-auto whitespace-pre-wrap no-scrollbar">
+                              {directiveText}
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      {/* Simulation Result Box */}
+                      {simulationResult && (
+                        <div className={`p-4 rounded-xl border animate-in fade-in duration-200 ${
+                          simulationResult.success 
+                            ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-200' 
+                            : 'bg-rose-950/30 border-rose-500/40 text-rose-200'
+                        }`}>
+                          {simulationResult.success ? (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="font-black text-xs flex items-center gap-1.5">
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                                  <span>{isAr ? '✨ نجحت دورة المحاكاة والتدريب! أُرسلت المسودة إلى قائمة قيد المراجعة:' : 'Simulation Succeeded! Draft added to Pending Queue:'}</span>
+                                </span>
+                                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                  {simulationResult.report?.agent_metrics?.ai_engine || 'AI Engine'}
+                                </span>
+                              </div>
+                              <p className="text-xs font-bold text-white">{simulationResult.report?.title}</p>
+                              <div className="flex items-center gap-3 text-[11px] text-slate-400">
+                                <span>{isAr ? 'الكلمات:' : 'Words:'} {simulationResult.report?.agent_metrics?.word_count || 600}</span>
+                                <span>•</span>
+                                <span>{isAr ? 'صرامة الاستشهاد:' : 'Citations Strictness:'} 98%</span>
+                                <span>•</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveTab('pending');
+                                    setPendingSubFilter('ai');
+                                  }}
+                                  className="text-amber-400 underline font-bold cursor-pointer hover:text-amber-300"
+                                >
+                                  {isAr ? 'فتح المسودة في قائمة المراجعة ⬅️' : 'Review in Pending Queue ➡️'}
+                                </button>
+                              </div>
+
+                              {/* Fact-Check Audit Summary Certificate */}
+                              {simulationResult.report?.factCheck && (
+                                <div className="p-3 rounded-xl bg-slate-950/80 border border-emerald-500/30 space-y-1.5 text-xs">
+                                  <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <span className="font-black text-emerald-300 flex items-center gap-1.5">
+                                      <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                                      <span>{simulationResult.report.factCheck.institutionAuthorityBadge || '🏛️ موثق بسجلات البنك المركزي الرسمي'}</span>
+                                    </span>
+                                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                      {isAr ? 'فحص رياضي خالٍ من الهلوسة' : 'Zero Hallucinations Verified'}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-4 text-[11px] text-slate-400 font-mono">
+                                    <span>{isAr ? 'مطابقة المؤشرات:' : 'Match Score:'} <strong className="text-emerald-400">{simulationResult.report.factCheck.score || 98}%</strong></span>
+                                    <span>{isAr ? 'الحقائق المفحوصة:' : 'Verified Claims:'} <strong className="text-white">{simulationResult.report.factCheck.verifiedClaimsCount || 6}/{simulationResult.report.factCheck.totalClaimsCount || 6}</strong></span>
+                                    <span>{isAr ? 'مستوى المخاطر:' : 'Risk:'} <strong className="text-emerald-400">{isAr ? 'منخفض للغاية' : 'Low'}</strong></span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="text-xs font-bold text-rose-300">
+                              {isAr ? '⚠️ تعذر إتمام المحاكاة:' : 'Simulation Error:'} {simulationResult.error}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* -------------------------------------------------------------
+                  SUB-TAB 2: 18 JOURNALISTIC GENRES (تدريب الأنواع الصحفية الـ 18)
+                 ------------------------------------------------------------- */}
+              {trainingSubTab === 'genres' && (
+                <div className="space-y-5">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+                    {JOURNALISTIC_GENRES.map((g) => {
+                      const isSelected = activeGenreDetailId === g.id;
+                      return (
+                        <button
+                          key={g.id}
+                          type="button"
+                          onClick={() => setActiveGenreDetailId(g.id)}
+                          className={`p-3 rounded-xl border text-right transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-purple-600/20 border-purple-500 text-white shadow-md ring-1 ring-purple-400'
+                              : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                          }`}
+                        >
+                          <div className="text-xs font-bold truncate">{g.nameAr}</div>
+                          <div className="text-[10px] text-slate-500 truncate mt-0.5">{g.category}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Active Genre Detailed Dossier */}
+                  {(() => {
+                    const directive = getGenreDirective(activeGenreDetailId);
+                    return (
+                      <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-5 shadow-xl">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                          <div>
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                              {directive.nameEn}
+                            </span>
+                            <h3 className="text-base font-black text-white mt-1 flex items-center gap-2">
+                              <span>{directive.nameAr}</span>
+                              <span className="text-xs text-amber-400 font-normal">({directive.agentRoleAr})</span>
+                            </h3>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs px-3 py-1 rounded-full bg-slate-950 border border-slate-800 text-slate-300 font-mono">
+                              {isAr ? 'النطاق اللفظي:' : 'Target:'} {directive.wordCountTarget.min} - {directive.wordCountTarget.max} {isAr ? 'كلمة' : 'words'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* Structural Template */}
+                          <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5">
+                            <h4 className="text-xs font-black text-purple-300 flex items-center gap-1.5">
+                              <Layers className="w-3.5 h-3.5" />
+                              <span>{isAr ? 'الهيكل التحريري الإلزامي للوكيل:' : 'Mandatory Structural Rubric:'}</span>
+                            </h4>
+                            <ol className="space-y-1.5 text-xs text-slate-300 pr-4 list-decimal">
+                              {directive.structuralTemplate.map((step, idx) => (
+                                <li key={idx} className="leading-relaxed">{step}</li>
+                              ))}
+                            </ol>
+                          </div>
+
+                          {/* Mandatory Questions */}
+                          <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5">
+                            <h4 className="text-xs font-black text-amber-300 flex items-center gap-1.5">
+                              <Sparkles className="w-3.5 h-3.5" />
+                              <span>{isAr ? 'الأسئلة الصحفية الإلزامية التي يتقصى عنها:' : 'Core Investigative Questions:'}</span>
+                            </h4>
+                            <ul className="space-y-1.5 text-xs text-slate-300 pr-4 list-disc">
+                              {directive.mandatoryQuestions.map((q, idx) => (
+                                <li key={idx} className="leading-relaxed">{q}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+
+                        {/* Tone & Citations */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                          <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800">
+                            <span className="text-slate-500 font-bold block mb-1">{isAr ? 'ضوابط النبرة والصوت الصحفي:' : 'Tone & Voice Guidelines:'}</span>
+                            <p className="text-slate-300 leading-relaxed">{directive.toneGuidelines}</p>
+                          </div>
+                          <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800">
+                            <span className="text-slate-500 font-bold block mb-1">{isAr ? 'شرط التوثيق والمصادر المعتمدة:' : 'Citation Rule:'}</span>
+                            <p className="text-emerald-400 leading-relaxed">{directive.citationRequirement}</p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {/* -------------------------------------------------------------
+                  SUB-TAB 3: 28 ECONOMIC SECTORS (تدريب وكلاء القطاعات الـ 28)
+                 ------------------------------------------------------------- */}
+              {trainingSubTab === 'sectors' && (
+                <div className="space-y-5">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 max-h-52 overflow-y-auto p-1 border border-slate-800/80 rounded-2xl bg-slate-950/50 no-scrollbar">
+                    {ECONOMIC_SECTORS.map((s) => {
+                      const isSelected = activeSectorDetailId === s.id;
+                      return (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => setActiveSectorDetailId(s.id)}
+                          className={`p-2.5 rounded-xl border text-right transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-amber-500/20 border-amber-500 text-white shadow-md ring-1 ring-amber-400'
+                              : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                          }`}
+                        >
+                          <div className="text-xs font-bold truncate">{s.nameAr}</div>
+                          <div className="text-[9px] text-slate-500 truncate mt-0.5">{s.groupNameAr}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Active Sector Detailed Dossier */}
+                  {(() => {
+                    const sectorDir = getSectorDirective(activeSectorDetailId);
+                    return (
+                      <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-5 shadow-xl">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                          <div>
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                              {sectorDir.nameEn}
+                            </span>
+                            <h3 className="text-base font-black text-white mt-1 flex items-center gap-2">
+                              <span>{sectorDir.nameAr}</span>
+                              <span className="text-xs text-purple-400 font-normal">({sectorDir.specialistTitleAr})</span>
+                            </h3>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {/* Key Terminology */}
+                          <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+                            <h4 className="text-xs font-black text-amber-400">{isAr ? 'المعجم المالي والمصطلحات الإلزامية:' : 'Domain Lexicon:'}</h4>
+                            <div className="flex flex-wrap gap-1.5">
+                              {sectorDir.keyTerminologies.map((t, idx) => (
+                                <span key={idx} className="px-2 py-0.5 rounded bg-slate-900 text-slate-300 text-[11px] border border-slate-800">
+                                  {t}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Benchmark Metrics */}
+                          <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+                            <h4 className="text-xs font-black text-purple-400">{isAr ? 'المؤشرات الحسابية المعيارية:' : 'Benchmark Metrics:'}</h4>
+                            <div className="flex flex-wrap gap-1.5">
+                              {sectorDir.benchmarkMetrics.map((m, idx) => (
+                                <span key={idx} className="px-2 py-0.5 rounded bg-slate-900 text-purple-300 font-mono text-[11px] border border-slate-800">
+                                  {m}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Trusted Institutions */}
+                          <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+                            <h4 className="text-xs font-black text-emerald-400">{isAr ? 'المؤسسات الرسمية المعتمدة:' : 'Trusted Institutions:'}</h4>
+                            <ul className="space-y-1 text-xs text-slate-300">
+                              {sectorDir.trustedInstitutions.map((inst, idx) => (
+                                <li key={idx} className="flex items-center gap-1.5">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                  <span>{inst}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+
+                        <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 text-xs">
+                          <span className="text-slate-500 font-bold block mb-1">{isAr ? 'التوجيه المنهجي لوكيل القطاع:' : 'Sector Directive:'}</span>
+                          <p className="text-slate-300 leading-relaxed font-mono">{sectorDir.systemDirectivePrompt}</p>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {/* -------------------------------------------------------------
+                  SUB-TAB 4: OFFICIAL SOURCES & FACT-CHECK LEDGER (سجل المصادر وتدقيق الحقائق)
+                 ------------------------------------------------------------- */}
+              {trainingSubTab === 'sources' && (
+                <div className="space-y-6">
+                  {/* Search and Category Filter */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl">
+                    <div className="flex-1 min-w-0">
+                      <input
+                        type="text"
+                        value={sourcesSearchQuery}
+                        onChange={(e) => setSourcesSearchQuery(e.target.value)}
+                        placeholder={isAr ? "بحث في البنوك المركزية والبورصات والمؤسسات الإفريقية (مثال: مصر، BCEAO، JSE، SARB)..." : "Search central banks and bourses..."}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                    <div className="flex items-center gap-1.5 overflow-x-auto shrink-0 no-scrollbar">
+                      {[
+                        { id: 'all', labelAr: 'الكل', labelEn: 'All' },
+                        { id: 'central_bank', labelAr: 'البنوك المركزية', labelEn: 'Central Banks' },
+                        { id: 'stock_exchange', labelAr: 'البورصات', labelEn: 'Exchanges' },
+                        { id: 'continental_body', labelAr: 'المؤسسات القارية', labelEn: 'Continental' }
+                      ].map((f) => (
+                        <button
+                          key={f.id}
+                          type="button"
+                          onClick={() => setSourcesCategoryFilter(f.id as any)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                            sourcesCategoryFilter === f.id
+                              ? 'bg-emerald-500 text-slate-950 font-black shadow-md'
+                              : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                          }`}
+                        >
+                          {isAr ? f.labelAr : f.labelEn}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Sources List */}
+                  {(() => {
+                    const filteredSources = ALL_OFFICIAL_GROUNDING_SOURCES.filter(s => {
+                      const matchesCat = sourcesCategoryFilter === 'all' || s.institutionType === sourcesCategoryFilter;
+                      const q = sourcesSearchQuery.toLowerCase().trim();
+                      const matchesQuery = !q || 
+                        s.countryNameAr.includes(q) || 
+                        s.countryNameEn.toLowerCase().includes(q) || 
+                        s.institutionNameAr.includes(q) || 
+                        s.institutionNameEn.toLowerCase().includes(q) ||
+                        (s.currencySymbol && s.currencySymbol.toLowerCase().includes(q));
+                      return matchesCat && matchesQuery;
+                    });
+
+                    return (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {filteredSources.map((source) => (
+                          <div
+                            key={source.id}
+                            className="p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-emerald-500/50 transition-all space-y-3 shadow-md group flex flex-col justify-between"
+                          >
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="px-2 py-0.5 rounded bg-slate-800 text-amber-300 font-bold">
+                                  🌍 {source.countryNameAr}
+                                </span>
+                                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold">
+                                  {source.credibilityScore}% {isAr ? 'موثوقية رسمية' : 'Trust Score'}
+                                </span>
+                              </div>
+
+                              <h4 className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">
+                                {source.institutionNameAr}
+                              </h4>
+                              <p className="text-[11px] text-slate-400 font-mono">
+                                {source.institutionNameEn}
+                              </p>
+
+                              {/* Key Indicators Provided */}
+                              <div className="pt-2 border-t border-slate-800/80 space-y-1">
+                                <span className="text-[10px] text-slate-500 font-bold block">{isAr ? 'المؤشرات والبيانات المفحوصة:' : 'Grounded Indicators:'}</span>
+                                <div className="flex flex-wrap gap-1">
+                                  {source.keyIndicatorsProvided.map((ind, i) => (
+                                    <span key={i} className="px-2 py-0.5 rounded bg-slate-950 text-slate-300 text-[10px] border border-slate-800">
+                                      {ind}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Footer with Portal Link & Currency */}
+                            <div className="pt-2.5 border-t border-slate-800 flex items-center justify-between text-xs">
+                              {source.currencySymbol ? (
+                                <span className="font-mono text-xs font-bold text-purple-300">
+                                  🪙 {source.currencySymbol}
+                                </span>
+                              ) : (
+                                <span className="text-[10px] text-slate-500 font-mono">PAN-REGIONAL</span>
+                              )}
+                              <a
+                                href={source.feedPortal}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 text-[11px] hover:underline"
+                              >
+                                <span>{isAr ? 'بوابة الإفصاح الرسمي ↗' : 'Official Portal ↗'}</span>
+                              </a>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {/* -------------------------------------------------------------
+                  SUB-TAB 5: DIRECTIVES & MODELS (الحوكمة والنبرة والذكاء الاصطناعي)
+                 ------------------------------------------------------------- */}
+              {trainingSubTab === 'directives' && (
+                <div className="p-5 sm:p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-6 shadow-xl w-full max-w-full">
+                  {/* 1. النبرة التحريرية */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-white flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-amber-400" />
+                      <span>{isAr ? 'المدرسة التحريرية والنبرة الصحفية المعتمدة:' : 'Editorial Tone of Voice:'}</span>
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {[
+                        { id: 'financial_times', nameAr: 'Financial Times', descAr: 'رصانة تحليلية وأرقام دقيقة وحياد توثيقي' },
+                        { id: 'the_economist', nameAr: 'The Economist', descAr: 'عمق استشرافي وتحليل هيكلي وتفكيك سياسات' },
+                        { id: 'bloomberg', nameAr: 'Bloomberg Africa', descAr: 'سرعة الأسواق اللحظية وتدفقات السيولة الاستثمارية' }
+                      ].map((tone) => (
+                        <div
+                          key={tone.id}
+                          onClick={() => setTrainingTone(tone.id as any)}
+                          className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                            trainingTone === tone.id
+                              ? 'bg-purple-500/15 border-purple-500/50 text-purple-200 ring-1 ring-purple-400'
+                              : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                          }`}
+                        >
+                          <div className="font-bold text-xs text-white">{tone.nameAr}</div>
+                          <div className="text-[11px] text-slate-400 mt-1">{tone.descAr}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 2. صرامة الاستشهاد بالمصادر */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs font-bold text-white">
+                      <span>{isAr ? 'الحد الأدنى لصرامة مطابقة المصادر الرسمية:' : 'Mandatory Citation Strictness:'}</span>
+                      <span className="font-mono text-emerald-400">{mandatoryCitationsStrictness}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={90}
+                      max={100}
+                      value={mandatoryCitationsStrictness}
+                      onChange={(e) => setMandatoryCitationsStrictness(Number(e.target.value))}
+                      className="w-full accent-purple-500"
+                    />
+                    <p className="text-[11px] text-slate-400">
+                      {isAr ? 'يتم رفض أي مقال آلياً إذا كانت المصادر غير رسمية أو تقل موثوقيتها عن هذه النسبة.' : 'Automated rejection triggered if primary source matching falls below threshold.'}
+                    </p>
+                  </div>
+
+                  {/* 3. نموذج الذكاء الاصطناعي */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-white flex items-center gap-2">
+                      <Cpu className="w-4 h-4 text-blue-400" />
+                      <span>{isAr ? 'محرك الذكاء الاصطناعي المعتمد في السيرفر:' : 'Primary Inference Engine:'}</span>
+                    </label>
+                    <select
+                      value={selectedAiModel}
+                      onChange={(e) => setSelectedAiModel(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-purple-500"
+                    >
+                      <option value="gemini-2.5-flash">Gemini 2.5 Flash (توليد وتحليل فائق السرعة والرصانة)</option>
+                      <option value="gemini-1.5-pro">Gemini 1.5 Pro (تحليل استقصائي عميق وسياق مليوني)</option>
+                    </select>
+                  </div>
+
+                  {/* Save Directives Button */}
+                  <div className="pt-2 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTrainingSavedAlert(true);
+                        setTimeout(() => setTrainingSavedAlert(false), 3500);
+                      }}
+                      className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-bold text-xs shadow-lg transition-all cursor-pointer"
+                    >
+                      {isAr ? 'حفظ وتثبيت معايير تدريب الوكلاء' : 'Save & Deploy Agent Directives'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

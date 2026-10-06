@@ -796,12 +796,12 @@ export default function App() {
       {/* Professional Financial Media Footer (تصميم احترافي متوازن مع أزرار المشاركة وتوسيط شريط الحقوق) */}
       <footer className="border-t border-slate-800/90 bg-[#050811] text-slate-400 text-xs mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 pb-4 sm:pb-5 border-b border-slate-800/80 items-center">
-            {/* Column 1: Brand Info & Mission + Social Icons (توسيط اللوغو والنص التعريفي والأيقونات دون إطارات) */}
-            <div className="lg:col-span-5 flex flex-col items-center justify-center text-center space-y-3 mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 pb-4 sm:pb-5 border-b border-slate-800/80 items-start">
+            {/* Column 1: Brand Info & Mission + Social Icons */}
+            <div className="lg:col-span-4 flex flex-col items-center lg:items-start text-center lg:text-right rtl:lg:text-right ltr:lg:text-left space-y-3">
               <div 
                 onClick={() => navigateToTab('home')}
-                className="flex items-center justify-center gap-2 cursor-pointer select-none group inline-flex"
+                className="flex items-center justify-center lg:justify-start gap-2 cursor-pointer select-none group inline-flex"
               >
                 <span className={`font-black text-white font-mono tracking-tight group-hover:text-amber-400 transition-colors ${
                   isAr ? 'text-lg sm:text-xl' : 'text-base tracking-wider'
@@ -813,7 +813,7 @@ export default function App() {
                   {isAr ? 'صحيفة الاقتصاد الإفريقي' : 'African Economic Journal'}
                 </span>
               </div>
-              <p className="text-slate-400 text-xs leading-relaxed max-w-md text-center">
+              <p className="text-slate-400 text-xs leading-relaxed max-w-sm text-center lg:text-right rtl:lg:text-right ltr:lg:text-left">
                 {isAr
                   ? 'مؤسسة صحفية مالية واستقصائية مستقلة ترصد تطورات أسواق المال، استثمارات الطاقة، ومؤشرات الاقتصاد الكلي عبر كافة الدول الأفريقية الـ 54.'
                   : 'Independent financial publication tracking capital markets, sovereign debt, and macroeconomic indicators across all 54 African nations.'}
@@ -821,7 +821,7 @@ export default function App() {
 
               {/* روابط التواصل الاجتماعي: أيقونات فقط دون إطارات في صف واحد */}
               <div className="pt-1">
-                <div className="flex items-center justify-center gap-4 text-slate-400">
+                <div className="flex items-center justify-center lg:justify-start gap-4 text-slate-400">
                   <a
                     href="https://facebook.com"
                     target="_blank"
@@ -888,15 +888,15 @@ export default function App() {
                 </div>
 
                 {/* زر مشاركة المنصة في الفوتر */}
-                <div className="pt-3 flex justify-center">
+                <div className="pt-3 flex justify-center lg:justify-start">
                   <ShareButton lang={lang} variant="footer" />
                 </div>
               </div>
             </div>
 
-            {/* قسمي أقسام المنصة والمؤسسة والشفافية جنب بعضهما في عمودين */}
-            <div className="lg:col-span-7 grid grid-cols-2 gap-4 sm:gap-8">
-              {/* عمود اليمين: أقسام المنصة */}
+            {/* الأقسام الأربعة على الحاسوب بشكل أفقي متناسق وموزع */}
+            <div className="lg:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+              {/* عمود 1: عنوان أقسام المنصة وتحته ثلاث روابط */}
               <div className="space-y-3">
                 <h4 className="text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 text-amber-400">
                   <FileText className="w-3.5 h-3.5" />
@@ -930,17 +930,16 @@ export default function App() {
                       <span>{isAr ? 'صحافة البيانات والمؤشرات' : 'Data Journalism & Visuals'}</span>
                     </button>
                   </li>
-                  {canAccessNewsroom && (
-                    <li>
-                      <button 
-                        onClick={() => navigateToTab('editorial')}
-                        className="hover:text-amber-400 transition-colors text-slate-300 cursor-pointer text-right rtl:text-right ltr:text-left flex items-center gap-1.5"
-                      >
-                        <span>·</span>
-                        <span>{isAr ? 'غرفة الأخبار والتحرير' : 'Newsroom Desk'}</span>
-                      </button>
-                    </li>
-                  )}
+                </ul>
+              </div>
+
+              {/* عمود 2: عمود جديد فيه الرابطين المتبقيين */}
+              <div className="space-y-3">
+                <h4 className="text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 text-amber-400/80">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400/60 hidden sm:inline-block"></span>
+                  <span>{isAr ? 'الوسائط والتقارير' : 'Media & Reports'}</span>
+                </h4>
+                <ul className="space-y-2 text-xs">
                   <li>
                     <button 
                       onClick={() => navigateToTab('podcast')}
@@ -959,10 +958,21 @@ export default function App() {
                       <span>{isAr ? 'التقارير المصورة والوثائقيات' : 'Video Reports & Documentaries'}</span>
                     </button>
                   </li>
+                  {canAccessNewsroom && (
+                    <li>
+                      <button 
+                        onClick={() => navigateToTab('editorial')}
+                        className="hover:text-amber-400 transition-colors text-slate-300 cursor-pointer text-right rtl:text-right ltr:text-left flex items-center gap-1.5"
+                      >
+                        <span>·</span>
+                        <span>{isAr ? 'غرفة الأخبار والتحرير' : 'Newsroom Desk'}</span>
+                      </button>
+                    </li>
+                  )}
                 </ul>
               </div>
 
-              {/* عمود اليسار: المؤسسة والشفافية + المدير العام مسؤول النشر + الجهة الناشرة */}
+              {/* عمود 3: عمود فيه المؤسسة والشفافية برابطيه */}
               <div className="space-y-3">
                 <h4 className="text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 text-blue-400">
                   <Building2 className="w-3.5 h-3.5" />
@@ -987,15 +997,23 @@ export default function App() {
                       <span>{isAr ? 'الشروط وحماية المصادر' : 'Charter & Whistleblower Protection'}</span>
                     </button>
                   </li>
-                  <li className="pt-2 border-t border-slate-800/60 text-xs leading-relaxed text-slate-300 space-y-1">
-                    <div>
-                      <span className="text-amber-400 font-semibold block text-[11px]">{isAr ? 'المدير العام مسؤول النشر:' : 'Publishing Director:'}</span>
-                      <span className="text-white font-bold">{isAr ? 'بلال عويش' : 'Billel Aouiche'}</span>
-                    </div>
-                    <div className="pt-1">
-                      <span className="text-amber-400 font-semibold block text-[11px]">{isAr ? 'الجهة الناشرة:' : 'Publisher:'}</span>
-                      <span className="text-white font-bold">GOODATA</span>
-                    </div>
+                </ul>
+              </div>
+
+              {/* عمود 4: عمود المدير العام والجهة الناشرة */}
+              <div className="space-y-3">
+                <h4 className="text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 text-emerald-400">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>{isAr ? 'المدير العام والجهة الناشرة' : 'Publisher & Leadership'}</span>
+                </h4>
+                <ul className="space-y-2 text-xs">
+                  <li className="space-y-0.5">
+                    <span className="text-slate-400 block text-[11px]">{isAr ? 'المدير العام مسؤول النشر:' : 'Publishing Director:'}</span>
+                    <span className="text-white font-bold block">{isAr ? 'بلال عويش' : 'Billel Aouiche'}</span>
+                  </li>
+                  <li className="space-y-0.5 pt-1 border-t border-slate-800/60">
+                    <span className="text-slate-400 block text-[11px]">{isAr ? 'الجهة الناشرة:' : 'Publisher:'}</span>
+                    <span className="text-white font-bold block">GOODATA</span>
                   </li>
                 </ul>
               </div>
@@ -1006,7 +1024,7 @@ export default function App() {
           <div className="flex flex-col items-center justify-center text-center space-y-1.5 pt-0.5 pb-0.5">
             <p className="text-xs text-slate-400 font-medium">
               {isAr
-                ? '© 2026 لافريكونوميست (L’Africonomist) - صحيفة الاقتصاد الإفريقي · جميع الحقوق محفوظة للناشر GOODATA'
+                ? '© 2026 لافريكونوميست - صحيفة الاقتصاد الإفريقي · جميع الحقوق محفوظة للناشر GOODATA'
                 : '© 2026 L’Africonomist - African Economic Journal. All rights reserved by GOODATA.'}
             </p>
             <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-4 text-xs text-slate-400">

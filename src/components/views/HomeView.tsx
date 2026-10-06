@@ -489,70 +489,73 @@ export const HomeView: React.FC<HomeViewProps> = ({
   // =========================================================================
   return (
     <div className="space-y-8 pb-16">
-      {/* Editorial Lead Stories Carousel (8 Horizontal Slides with Columnist Card & Videos) + Desktop Top Economies Section */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Main Editorial Carousel (8 Cols on Desktop, Full Width on Mobile) */}
-        <div className="lg:col-span-8">
-          <EditorialLeadCarousel
-            onSelectArticle={onSelectArticle}
-            lang={lang}
-          />
+      {/* 
+        =======================================================================
+        القسم الأول على الحاسوب:
+        الواجهة الإخبارية الكبرى (50% للقصة الكبرى + 50% مقسمة: 33% خمس بطاقات مستطيلة + رأي الخبير)
+        على الهاتف: سليدات أفقية سلسة مع مؤشرات التنقل
+        =======================================================================
+      */}
+      <section className="w-full">
+        <EditorialLeadCarousel
+          onSelectArticle={onSelectArticle}
+          lang={lang}
+        />
+      </section>
+
+      {/* 
+        قسم أكبر الاقتصاديات الأفريقية ومعايير التدقيق المالي (على الحاسوب فقط)
+        تم تنسيقه بشكل متجاوب وأنيق وموحد عبر شبكة 12 عموداً
+      */}
+      <section className="hidden lg:grid lg:grid-cols-12 gap-6 items-stretch">
+        <div className="lg:col-span-8 p-5 rounded-2xl bg-[#0d1320] border border-slate-800 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-800">
+            <h2 className="text-sm font-bold text-white flex items-center gap-2">
+              <Globe2 className="w-4 h-4 text-amber-400" />
+              {isAr ? 'أكبر الاقتصادات الأفريقية' : 'Top African Economies'}
+            </h2>
+            <span className="text-[11px] text-amber-400 font-mono font-bold">54 Nations</span>
+          </div>
+
+          <div className="grid grid-cols-4 gap-2.5">
+            {countries.slice(0, 8).map((c) => {
+              const flag = getCountryFlag(c.code);
+              return (
+                <button
+                  key={c.code}
+                  onClick={() => onSelectCountry(c.slug)}
+                  className="p-2.5 rounded-lg bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800/60 text-right rtl:text-right ltr:text-left transition-all group flex flex-col justify-between"
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-xs font-bold text-slate-200 group-hover:text-amber-400 truncate flex items-center gap-1">
+                      <span className="text-sm">{flag}</span>
+                      <span>#{c.rank} {isAr ? c.nameAr : c.nameEn}</span>
+                    </span>
+                    <span className="text-[10px] text-emerald-400 font-mono">{c.gdpGrowth}</span>
+                  </div>
+                  <div className="text-[11px] text-slate-400 font-mono mt-1 flex items-center justify-between">
+                    <span className="text-amber-400 font-semibold">{c.gdp}</span>
+                    <span className="text-[10px] text-slate-500">{c.code}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* 
-          قسم أكبر الاقتصاديات الأفريقية:
-          يبقى على حاله بالنسبة للحاسوب (hidden lg:block lg:col-span-4)
-        */}
-        <div className="hidden lg:block lg:col-span-4 space-y-4">
-            <div className="p-5 rounded-xl bg-[#0d1320] border border-slate-800">
-              <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-800">
-                <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Globe2 className="w-4 h-4 text-amber-400" />
-                  {isAr ? 'أكبر الاقتصادات الأفريقية' : 'Top African Economies'}
-                </h2>
-                <span className="text-[11px] text-amber-400 font-mono font-bold">54 Nations</span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                {countries.slice(0, 8).map((c) => {
-                  const flag = getCountryFlag(c.code);
-                  return (
-                    <button
-                      key={c.code}
-                      onClick={() => onSelectCountry(c.slug)}
-                      className="p-2.5 rounded-lg bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800/60 text-right rtl:text-right ltr:text-left transition-all group flex flex-col justify-between"
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <span className="text-xs font-bold text-slate-200 group-hover:text-amber-400 truncate flex items-center gap-1">
-                          <span className="text-sm">{flag}</span>
-                          <span>#{c.rank} {isAr ? c.nameAr : c.nameEn}</span>
-                        </span>
-                        <span className="text-[10px] text-emerald-400 font-mono">{c.gdpGrowth}</span>
-                      </div>
-                      <div className="text-[11px] text-slate-400 font-mono mt-1 flex items-center justify-between">
-                        <span className="text-amber-400 font-semibold">{c.gdp}</span>
-                        <span className="text-[10px] text-slate-500">{c.code}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Zero-Trust Editorial Standards Banner */}
-            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-xs space-y-2">
-              <div className="flex items-center gap-2 font-bold text-white">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                {isAr ? 'معايير النزاهة والتدقيق المالي' : 'Financial Integrity Standards'}
-              </div>
-              <p className="text-slate-400 leading-relaxed text-[11px]">
-                {isAr
-                  ? 'تخضع كافة المؤشرات والبيانات لمطابقة دقيقة مع النشرات الدورية للبنوك المركزية وصندوق النقد الدولي ومؤسسات التمويل القارية.'
-                  : 'All indicators and macroeconomic feeds are verified against official central bank bulletins, IMF statistics, and AfDB reports.'}
-              </p>
-            </div>
+        {/* Zero-Trust Editorial Standards Banner */}
+        <div className="lg:col-span-4 p-5 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col justify-center space-y-2.5 shadow-sm">
+          <div className="flex items-center gap-2 font-bold text-white">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span className="text-sm">{isAr ? 'معايير النزاهة والتدقيق المالي' : 'Financial Integrity Standards'}</span>
           </div>
-        </section>
+          <p className="text-slate-400 leading-relaxed text-xs">
+            {isAr
+              ? 'تخضع كافة المؤشرات والبيانات لمطابقة دقيقة مع النشرات الدورية للبنوك المركزية وصندوق النقد الدولي ومؤسسات التمويل القارية.'
+              : 'All indicators and macroeconomic feeds are verified against official central bank bulletins, IMF statistics, and AfDB reports.'}
+          </p>
+        </div>
+      </section>
 
       {/* =========================================================================
           MOBILE TWO-STAGE ACCORDION: أكبر الاقتصادات الأفريقية (خاص بالهاتف فقط)

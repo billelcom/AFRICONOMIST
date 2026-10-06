@@ -604,205 +604,459 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
   const activeTempMin = liveWeather?.tempMin ?? selectedCity.tempMin;
   const activeCityName = liveWeather?.customCityName || (isAr ? selectedCity.nameAr : selectedCity.nameEn);
 
+  // القصص المخصصة للواجهة المكتبية الخاصة بالحاسوب (Desktop 3-Section Showcase):
+  // 1. القصة الكبرى الرئيسية (مربع يأخذ 50% من الشاشة على اليمين/اليسار)
+  const leadStory = EDITORIAL_LEAD_STORIES[0];
+  // 2. قصة رأي الخبير / الافتتاحية (عمود رأي الخبير بنفس الارتفاع)
+  const expertStory = EDITORIAL_LEAD_STORIES.find(s => s.isColumn && s.id === 'edit-lead-004') || EDITORIAL_LEAD_STORIES[3];
+  // 3. البطاقات المستطيلة الخمس (تأخذ 33% من الـ 50% المتبقية)
+  const fiveRectangularStories = EDITORIAL_LEAD_STORIES.filter(s => s.id !== leadStory.id && s.id !== expertStory.id).slice(0, 5);
+
   return (
     <div className="flex flex-col">
       <InteractiveTopCard lang={lang} className="mb-3" />
 
-      {/* Horizontal Carousel Track (سلايدات متناسقة الارتفاع تماماً دون أي تفاوت) */}
-      <div
-        ref={scrollRef}
-        onScroll={handleScroll}
-        className="flex items-stretch gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar pb-0"
-        style={{ scrollSnapType: 'x mandatory' }}
-      >
-        {EDITORIAL_LEAD_STORIES.map((story, idx) => {
-          const flag = getCountryFlag(story.countryCode);
-          return (
-            <div
-              key={story.id}
-              onClick={() => handleStoryClick(story)}
-              className="w-full min-w-full sm:min-w-[540px] md:min-w-[620px] lg:min-w-[680px] snap-center rounded-2xl overflow-hidden border border-slate-800/90 hover:border-amber-500/50 bg-gradient-to-b from-[#0f172a] via-[#0b1120] to-[#070b14] transition-all duration-300 shadow-xl group cursor-pointer flex flex-col justify-between h-full"
-            >
-              <div className="flex flex-col flex-1">
-                {/* 1. صورة أو فيديو في الأعلى يأخذ كامل عرض البطاقة */}
-                <div className="w-full h-56 sm:h-72 relative overflow-hidden bg-slate-950 shrink-0">
-                  <img
-                    src={story.imageUrl}
-                    alt={isAr ? story.title : story.titleEn}
-                    loading="lazy"
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-90 group-hover:brightness-100"
-                  />
+      {/* 
+        =======================================================================
+        الواجهة المحمولة للهاتف والتابلت (Mobile Slider):
+        تبقى على شكل سليدات أفقية سلسة مع مؤشرات التنقل
+        =======================================================================
+      */}
+      <div className="lg:hidden flex flex-col">
+        {/* Horizontal Carousel Track */}
+        <div
+          ref={scrollRef}
+          onScroll={handleScroll}
+          className="flex items-stretch gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar pb-0"
+          style={{ scrollSnapType: 'x mandatory' }}
+        >
+          {EDITORIAL_LEAD_STORIES.map((story) => {
+            const flag = getCountryFlag(story.countryCode);
+            return (
+              <div
+                key={story.id}
+                onClick={() => handleStoryClick(story)}
+                className="w-full min-w-full sm:min-w-[540px] md:min-w-[620px] snap-center rounded-2xl overflow-hidden border border-slate-800/90 hover:border-amber-500/50 bg-gradient-to-b from-[#0f172a] via-[#0b1120] to-[#070b14] transition-all duration-300 shadow-xl group cursor-pointer flex flex-col justify-between h-full"
+              >
+                <div className="flex flex-col flex-1">
+                  {/* صورة أو فيديو في الأعلى */}
+                  <div className="w-full h-56 sm:h-72 relative overflow-hidden bg-slate-950 shrink-0">
+                    <img
+                      src={story.imageUrl}
+                      alt={isAr ? story.title : story.titleEn}
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-90 group-hover:brightness-100"
+                    />
 
-                  {/* شارة الفيديو إن وجد */}
-                  {story.hasVideo && (
-                    <div className="absolute top-3 right-3 rtl:right-3 ltr:left-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-600/90 text-white text-xs font-bold shadow-lg backdrop-blur-md">
-                      <Play className="w-3.5 h-3.5 fill-current" />
-                      <span>{isAr ? 'تقرير مرئي مصور' : 'Video Report'}</span>
-                    </div>
-                  )}
-
-                  {/* شارة الافتتاحية / العمود إن وجد */}
-                  {story.isColumn && (
-                    <div className="absolute top-3 right-3 rtl:right-3 ltr:left-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500 text-slate-950 text-xs font-black shadow-lg">
-                      <Award className="w-3.5 h-3.5" />
-                      <span>{isAr ? (story.genre === 'افتتاحية اليوم' ? 'افتتاحية اليوم' : 'رأي خبير | عمود تحليلي') : story.genreEn}</span>
-                    </div>
-                  )}
-
-                  {/* 2. فوق الصورة والفيديو في الأسفل: معلومات وصفية (التاريخ والتوقيت والنوع والقطاع) */}
-                  <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-[#0b1120] via-[#0b1120]/80 to-transparent p-4 sm:p-5 pt-12 flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
-                      {/* علم والدولة */}
-                      <span className="text-base leading-none">{flag}</span>
-                      <span className="text-white font-bold">
-                        {isAr ? story.countryName : story.countryNameEn}
-                      </span>
-                      <span aria-hidden="true" className="text-slate-500">·</span>
-
-                      {/* نوع المقال */}
-                      <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-bold">
-                        {isAr ? story.genre : story.genreEn}
-                      </span>
-                      <span aria-hidden="true" className="text-slate-500">·</span>
-
-                      {/* القطاع */}
-                      <span className="text-slate-300 text-[11px]">
-                        {isAr ? story.sector : story.sectorEn}
-                      </span>
-                    </div>
-
-                    {/* تاريخ وتوقيت المقال بدقة */}
-                    <div className="flex items-center gap-1.5 text-[10.5px] font-mono text-amber-400 bg-slate-950/70 px-2.5 py-1 rounded-md border border-slate-700/60 backdrop-blur-sm">
-                      <Clock className="w-3 h-3 text-amber-400" />
-                      <span>{story.date} · {story.time}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. تحت الصورة أو الفيديو: الكاتب/المكتب التحريري، العنوان، ثم الملخص الموحد */}
-                <div className="p-5 sm:p-6 pb-4 sm:pb-5 space-y-3 flex-1 flex flex-col justify-between">
-                  <div className="space-y-3">
-                    {/* إن كانت افتتاحية أو عمود: تظهر صورة صاحب الافتتاحية مع اسمه ولقبه، وفي المقالات الأخرى يظهر مكتب التحرير المتخصص */}
-                    {story.isColumn && story.columnistAvatar ? (
-                      <div className="flex items-center gap-3 p-2.5 sm:p-3 rounded-xl bg-slate-900/80 border border-amber-500/40">
-                        <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 border-2 border-amber-500 shadow-md">
-                          <img
-                            src={story.columnistAvatar}
-                            alt={story.columnistName || 'Columnist'}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                          />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[11px] font-black text-amber-400">
-                              {story.genre === 'افتتاحية اليوم'
-                                ? (isAr ? 'صاحب الافتتاحية:' : 'Editorial Columnist:')
-                                : (isAr ? 'الخبير الاقتصادي:' : 'Expert Columnist:')}
-                            </span>
-                            <span className="text-xs font-bold text-white truncate">
-                              {isAr ? story.columnistName : story.columnistNameEn}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-slate-400 font-serif truncate">
-                            {isAr ? story.columnistRole : story.columnistRoleEn}
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-3 p-2.5 sm:p-3 rounded-xl bg-slate-900/50 border border-slate-800/80">
-                        <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 bg-slate-800 border border-slate-700/80 flex items-center justify-center text-amber-400 shadow-inner">
-                          <Feather className="w-5 h-5 text-amber-400" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[11px] font-bold text-amber-400/90">
-                              {isAr ? 'مكتب التحقيقات الاقتصادية:' : 'Editorial Desk Analysis:'}
-                            </span>
-                            <span className="text-xs font-bold text-white truncate">
-                              {isAr ? story.columnistName : story.columnistNameEn}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-slate-400 font-serif truncate">
-                            {isAr ? (story.columnistRole || 'هيئة التحرير والتقارير الاستقصائية') : (story.columnistRoleEn || 'Editorial Desk & Field Investigations')}
-                          </p>
-                        </div>
+                    {story.hasVideo && (
+                      <div className="absolute top-3 right-3 rtl:right-3 ltr:left-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-600/90 text-white text-xs font-bold shadow-lg backdrop-blur-md">
+                        <Play className="w-3.5 h-3.5 fill-current" />
+                        <span>{isAr ? 'تقرير مرئي مصور' : 'Video Report'}</span>
                       </div>
                     )}
 
-                    {/* العنوان المتناسق */}
-                    <h3 className="text-xl sm:text-2xl font-black text-white group-hover:text-amber-300 transition-colors leading-snug line-clamp-2 min-h-[3.25rem] sm:min-h-[3.75rem] flex items-center">
-                      {isAr ? story.title : story.titleEn}
-                    </h3>
+                    {story.isColumn && (
+                      <div className="absolute top-3 right-3 rtl:right-3 ltr:left-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500 text-slate-950 text-xs font-black shadow-lg">
+                        <Award className="w-3.5 h-3.5" />
+                        <span>{isAr ? (story.genre === 'افتتاحية اليوم' ? 'افتتاحية اليوم' : 'رأي خبير | عمود تحليلي') : story.genreEn}</span>
+                      </div>
+                    )}
 
-                    {/* الملخص الموحد 50 كلمة */}
-                    <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
-                      {isAr ? story.summary : story.summaryEn}
-                    </p>
+                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-[#0b1120] via-[#0b1120]/80 to-transparent p-4 sm:p-5 pt-12 flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
+                        <span className="text-base leading-none">{flag}</span>
+                        <span className="text-white font-bold">
+                          {isAr ? story.countryName : story.countryNameEn}
+                        </span>
+                        <span aria-hidden="true" className="text-slate-500">·</span>
+                        <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-bold">
+                          {isAr ? story.genre : story.genreEn}
+                        </span>
+                        <span aria-hidden="true" className="text-slate-500">·</span>
+                        <span className="text-slate-300 text-[11px]">
+                          {isAr ? story.sector : story.sectorEn}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 text-[10.5px] font-mono text-amber-400 bg-slate-950/70 px-2.5 py-1 rounded-md border border-slate-700/60 backdrop-blur-sm">
+                        <Clock className="w-3 h-3 text-amber-400" />
+                        <span>{story.date} · {story.time}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* المحتوى النصي */}
+                  <div className="p-5 sm:p-6 pb-4 sm:pb-5 space-y-3 flex-1 flex flex-col justify-between">
+                    <div className="space-y-3">
+                      {story.isColumn && story.columnistAvatar ? (
+                        <div className="flex items-center gap-3 p-2.5 sm:p-3 rounded-xl bg-slate-900/80 border border-amber-500/40">
+                          <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 border-2 border-amber-500 shadow-md">
+                            <img
+                              src={story.columnistAvatar}
+                              alt={story.columnistName || 'Columnist'}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[11px] font-black text-amber-400">
+                                {story.genre === 'افتتاحية اليوم'
+                                  ? (isAr ? 'صاحب الافتتاحية:' : 'Editorial Columnist:')
+                                  : (isAr ? 'الخبير الاقتصادي:' : 'Expert Columnist:')}
+                              </span>
+                              <span className="text-xs font-bold text-white truncate">
+                                {isAr ? story.columnistName : story.columnistNameEn}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate-400 font-serif truncate">
+                              {isAr ? story.columnistRole : story.columnistRoleEn}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-3 p-2.5 sm:p-3 rounded-xl bg-slate-900/50 border border-slate-800/80">
+                          <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 bg-slate-800 border border-slate-700/80 flex items-center justify-center text-amber-400 shadow-inner">
+                            <Feather className="w-5 h-5 text-amber-400" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[11px] font-bold text-amber-400/90">
+                                {isAr ? 'مكتب التحقيقات الاقتصادية:' : 'Editorial Desk Analysis:'}
+                              </span>
+                              <span className="text-xs font-bold text-white truncate">
+                                {isAr ? story.columnistName : story.columnistNameEn}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate-400 font-serif truncate">
+                              {isAr ? (story.columnistRole || 'هيئة التحرير والتقارير الاستقصائية') : (story.columnistRoleEn || 'Editorial Desk & Field Investigations')}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      <h3 className="text-xl sm:text-2xl font-black text-white group-hover:text-amber-300 transition-colors leading-snug line-clamp-2 min-h-[3.25rem] sm:min-h-[3.75rem] flex items-center">
+                        {isAr ? story.title : story.titleEn}
+                      </h3>
+
+                      <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
+                        {isAr ? story.summary : story.summaryEn}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* أسفل البطاقة */}
+                <div className="px-5 sm:px-6 py-3.5 sm:py-4 border-t border-slate-800/80 bg-slate-950/60 flex flex-wrap items-center justify-between gap-3 text-xs shrink-0">
+                  <div className="flex items-center gap-2 text-slate-300 truncate">
+                    <span className="text-[11px] text-slate-400">{isAr ? 'بقلم:' : 'By:'}</span>
+                    <span className="font-bold text-slate-200 truncate">
+                      {isAr ? story.columnistName : story.columnistNameEn}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 text-slate-300 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800 text-[11px] font-medium shrink-0">
+                    <Timer className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <span className="font-bold text-amber-300 font-mono">{story.readTimeMinutes}</span>
+                    <span className="text-slate-400">{isAr ? 'دقيقة' : 'min'}</span>
+                  </div>
+
+                  <div className="flex items-center gap-3 shrink-0 font-mono text-[11px]">
+                    <div className="flex items-center gap-1.5 text-slate-300 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
+                      <Eye className="w-3.5 h-3.5 text-amber-400" />
+                      <span className="font-bold">{story.viewsCount.toLocaleString()}</span>
+                      <span className="text-[10px] text-slate-500 font-sans">{isAr ? 'مشاهدة' : 'views'}</span>
+                    </div>
+
+                    <div className="flex items-center gap-1 text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>{story.factScore}%</span>
+                    </div>
+
+                    <span className="text-amber-400 group-hover:translate-x-0.5 transition-transform flex items-center gap-1 font-sans font-bold">
+                      <span>{isAr ? 'قراءة التحليل' : 'Read Full'}</span>
+                      <ArrowUpRight className="w-3.5 h-3.5" />
+                    </span>
                   </div>
                 </div>
               </div>
+            );
+          })}
+        </div>
 
-              {/* 4. أسفل البطاقة: كاتب المقال والمشاهدات ومؤشر الدقة */}
-              <div className="px-5 sm:px-6 py-3.5 sm:py-4 border-t border-slate-800/80 bg-slate-950/60 flex flex-wrap items-center justify-between gap-3 text-xs shrink-0">
-                {/* كاتب المقال */}
-                <div className="flex items-center gap-2 text-slate-300 truncate">
-                  <span className="text-[11px] text-slate-400">{isAr ? 'بقلم:' : 'By:'}</span>
-                  <span className="font-bold text-slate-200 truncate">
-                    {isAr ? story.columnistName : story.columnistNameEn}
-                  </span>
-                </div>
-
-                {/* دقائق القراءة: الأيقونة والعدد وكلمة دقيقة فقط بين الكاتب وعدد المشاهدات */}
-                <div className="flex items-center gap-1.5 text-slate-300 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800 text-[11px] font-medium shrink-0">
-                  <Timer className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                  <span className="font-bold text-amber-300 font-mono">{story.readTimeMinutes}</span>
-                  <span className="text-slate-400">{isAr ? 'دقيقة' : 'min'}</span>
-                </div>
-
-                {/* المشاهدات مع الأيقونة والعدد + نسبة الدقة */}
-                <div className="flex items-center gap-3 shrink-0 font-mono text-[11px]">
-                  {/* المشاهدات */}
-                  <div className="flex items-center gap-1.5 text-slate-300 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
-                    <Eye className="w-3.5 h-3.5 text-amber-400" />
-                    <span className="font-bold">{story.viewsCount.toLocaleString()}</span>
-                    <span className="text-[10px] text-slate-500 font-sans">{isAr ? 'مشاهدة' : 'views'}</span>
-                  </div>
-
-                  {/* مؤشر الدقة */}
-                  <div className="flex items-center gap-1 text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>{story.factScore}%</span>
-                  </div>
-
-                  {/* زر القراءة */}
-                  <span className="text-amber-400 group-hover:translate-x-0.5 transition-transform flex items-center gap-1 font-sans font-bold">
-                    <span>{isAr ? 'قراءة التحليل' : 'Read Full'}</span>
-                    <ArrowUpRight className="w-3.5 h-3.5" />
-                  </span>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        {/* مؤشرات التنقل للهاتف */}
+        <div className="flex items-center justify-center gap-1.5 pt-2 pb-0">
+          {EDITORIAL_LEAD_STORIES.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => scrollToIndex(i)}
+              className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                currentIndex === i
+                  ? 'w-7 bg-amber-500 shadow-sm shadow-amber-500/50'
+                  : 'w-2 bg-slate-800 hover:bg-slate-700'
+              }`}
+              aria-label={`Go to slide ${i + 1}`}
+              title={`Slide ${i + 1}`}
+            />
+          ))}
+        </div>
       </div>
 
-      {/* Slide Indicators Pills (1 to 8) مباشرة تحت صندوق كاتب المقال وعدد المشاهدات دون أي فراغ */}
-      <div className="flex items-center justify-center gap-1.5 pt-2 pb-0">
-        {EDITORIAL_LEAD_STORIES.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => scrollToIndex(i)}
-            className={`h-1.5 rounded-full transition-all cursor-pointer ${
-              currentIndex === i
-                ? 'w-7 bg-amber-500 shadow-sm shadow-amber-500/50'
-                : 'w-2 bg-slate-800 hover:bg-slate-700'
-            }`}
-            aria-label={`Go to slide ${i + 1}`}
-            title={`Slide ${i + 1}`}
-          />
-        ))}
+      {/* 
+        =======================================================================
+        الواجهة المكتبية الخاصة بالحاسوب فقط (Desktop 3-Part Newspaper Layout):
+        1. مربع على اليمين (RTL) أو اليسار (LTR) يأخذ 50% من الشاشة
+        2. الـ 50% المتبقية مقسمة إلى:
+           - 33% خمس بطاقات بشكل مستطيل
+           - 67% بطاقة رأي خبير كعمود يأخذ نفس ارتفاع الـ 5 بطاقات والبطاقة الكبيرة
+        =======================================================================
+      */}
+      <div className="hidden lg:flex flex-row items-stretch gap-4 w-full h-[620px] select-none">
+        {/* 1. مربع القصة الرئيسية الكبرى (50% من الشاشة) */}
+        <div
+          onClick={() => handleStoryClick(leadStory)}
+          className="w-1/2 h-full rounded-2xl overflow-hidden border border-slate-800/90 hover:border-amber-500/50 bg-gradient-to-b from-[#0f172a] via-[#0b1120] to-[#070b14] transition-all duration-300 shadow-xl group cursor-pointer flex flex-col justify-between relative shrink-0"
+        >
+          {/* صورة وميديا في النصف العلوي */}
+          <div className="w-full h-[320px] relative overflow-hidden bg-slate-950 shrink-0">
+            <img
+              src={leadStory.imageUrl}
+              alt={isAr ? leadStory.title : leadStory.titleEn}
+              loading="lazy"
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-90 group-hover:brightness-100"
+            />
+
+            {leadStory.hasVideo && (
+              <div className="absolute top-3 right-3 rtl:right-3 ltr:left-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-600/90 text-white text-xs font-bold shadow-lg backdrop-blur-md">
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>{isAr ? 'تقرير مرئي مصور' : 'Video Report'}</span>
+              </div>
+            )}
+
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-[#0b1120] via-[#0b1120]/80 to-transparent p-4 pt-10 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-xs font-medium">
+                <span className="text-base leading-none">{getCountryFlag(leadStory.countryCode)}</span>
+                <span className="text-white font-bold">{isAr ? leadStory.countryName : leadStory.countryNameEn}</span>
+                <span aria-hidden="true" className="text-slate-500">·</span>
+                <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-bold">
+                  {isAr ? leadStory.genre : leadStory.genreEn}
+                </span>
+                <span aria-hidden="true" className="text-slate-500">·</span>
+                <span className="text-slate-300 text-[11px]">{isAr ? leadStory.sector : leadStory.sectorEn}</span>
+              </div>
+
+              <div className="flex items-center gap-1.5 text-[10.5px] font-mono text-amber-400 bg-slate-950/70 px-2.5 py-1 rounded-md border border-slate-700/60 backdrop-blur-sm">
+                <Clock className="w-3 h-3 text-amber-400" />
+                <span>{leadStory.date} · {leadStory.time}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* المتن والعناوين */}
+          <div className="p-5 pb-3 space-y-2.5 flex-1 flex flex-col justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-900/60 border border-slate-800/80">
+                <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-slate-800 border border-slate-700/80 flex items-center justify-center text-amber-400 shadow-inner">
+                  <Feather className="w-4 h-4 text-amber-400" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-amber-400/90">
+                      {isAr ? 'مكتب التحقيقات الاقتصادية:' : 'Editorial Desk Analysis:'}
+                    </span>
+                    <span className="text-xs font-bold text-white truncate">
+                      {isAr ? leadStory.columnistName : leadStory.columnistNameEn}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 font-serif truncate">
+                    {isAr ? (leadStory.columnistRole || 'هيئة التحرير والتقارير الاستقصائية') : (leadStory.columnistRoleEn || 'Editorial Desk & Field Investigations')}
+                  </p>
+                </div>
+              </div>
+
+              <h3 className="text-lg xl:text-xl font-black text-white group-hover:text-amber-300 transition-colors leading-snug line-clamp-2">
+                {isAr ? leadStory.title : leadStory.titleEn}
+              </h3>
+
+              <p className="text-xs xl:text-[13px] text-slate-300 leading-relaxed font-normal line-clamp-3">
+                {isAr ? leadStory.summary : leadStory.summaryEn}
+              </p>
+            </div>
+          </div>
+
+          {/* شريط معلومات الأسفل */}
+          <div className="px-5 py-3 border-t border-slate-800/80 bg-slate-950/60 flex items-center justify-between text-xs shrink-0">
+            <div className="flex items-center gap-2 text-slate-300 truncate">
+              <span className="text-[11px] text-slate-400">{isAr ? 'بقلم:' : 'By:'}</span>
+              <span className="font-bold text-slate-200 truncate">
+                {isAr ? leadStory.columnistName : leadStory.columnistNameEn}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 text-slate-300 bg-slate-900 px-2 py-0.5 rounded-lg border border-slate-800 text-[11px] font-medium shrink-0">
+              <Timer className="w-3 h-3 text-amber-400 shrink-0" />
+              <span className="font-bold text-amber-300 font-mono">{leadStory.readTimeMinutes}</span>
+              <span className="text-slate-400">{isAr ? 'دقيقة' : 'min'}</span>
+            </div>
+
+            <div className="flex items-center gap-2.5 shrink-0 font-mono text-[11px]">
+              <div className="flex items-center gap-1 text-slate-300 bg-slate-900 px-2 py-0.5 rounded-lg border border-slate-800">
+                <Eye className="w-3 h-3 text-amber-400" />
+                <span className="font-bold">{leadStory.viewsCount.toLocaleString()}</span>
+              </div>
+
+              <div className="flex items-center gap-1 text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">
+                <ShieldCheck className="w-3 h-3" />
+                <span>{leadStory.factScore}%</span>
+              </div>
+
+              <span className="text-amber-400 group-hover:translate-x-0.5 transition-transform flex items-center gap-1 font-sans font-bold">
+                <span>{isAr ? 'قراءة التحليل' : 'Read Full'}</span>
+                <ArrowUpRight className="w-3 h-3" />
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. الـ 50% المتبقية: خمس بطاقات مستطيلة (33%) + عمود رأي الخبير (النسبة المتبقية 67%) */}
+        <div className="w-1/2 h-full flex flex-row items-stretch gap-3.5 shrink-0">
+          {/* العمود أ: خمس بطاقات بشكل مستطيل تأخذ 33% من الـ 50% المتبقية */}
+          <div className="w-[33%] h-full flex flex-col justify-between gap-2 shrink-0">
+            {fiveRectangularStories.map((story) => {
+              const flag = getCountryFlag(story.countryCode);
+              return (
+                <div
+                  key={story.id}
+                  onClick={() => handleStoryClick(story)}
+                  className="flex-1 min-h-0 p-2.5 rounded-xl border border-slate-800/80 hover:border-amber-500/50 bg-[#0c1220]/90 hover:bg-[#11192e] transition-all cursor-pointer group flex flex-col justify-between shadow-sm relative overflow-hidden"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[10.5px]">
+                      <div className="flex items-center gap-1.5 truncate">
+                        <span className="text-xs leading-none shrink-0">{flag}</span>
+                        <span className="text-slate-300 font-bold truncate">
+                          {isAr ? story.countryName : story.countryNameEn}
+                        </span>
+                      </div>
+                      <span className="text-[9.5px] font-mono text-amber-400/90 shrink-0">
+                        {story.time}
+                      </span>
+                    </div>
+
+                    <h4 className="text-[11.5px] xl:text-xs font-bold text-white group-hover:text-amber-300 line-clamp-2 leading-snug transition-colors">
+                      {isAr ? story.title : story.titleEn}
+                    </h4>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[9.5px] pt-1 border-t border-slate-800/60 text-slate-400 font-mono">
+                    <span className="truncate max-w-[85px] text-slate-400 font-sans">
+                      {isAr ? story.sector : story.sectorEn}
+                    </span>
+                    <span className="text-emerald-400 font-bold flex items-center gap-0.5">
+                      <ShieldCheck className="w-2.5 h-2.5" />
+                      <span>{story.factScore}%</span>
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* العمود ب: بطاقة رأي خبير تأخذ النسبة المتبقية (67%) بشكل عمود يأخذ نفس ارتفاع الـ 5 بطاقات والبطاقة الكبيرة */}
+          <div
+            onClick={() => handleStoryClick(expertStory)}
+            className="flex-1 min-w-0 h-full rounded-2xl overflow-hidden border border-amber-500/40 hover:border-amber-400/80 bg-gradient-to-b from-[#131b2e] via-[#0d1424] to-[#070b14] transition-all duration-300 shadow-2xl group cursor-pointer flex flex-col justify-between relative ring-1 ring-amber-500/20 shrink-0"
+          >
+            {/* الشريط العلوي لشارة رأي الخبير */}
+            <div className="bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-transparent p-3 border-b border-amber-500/30 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-1.5 text-xs font-black text-amber-400">
+                <Award className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>{isAr ? 'رأي خبير | افتتاحية اليوم' : 'Expert Opinion | Editorial Lead'}</span>
+              </div>
+              <div className="flex items-center gap-1 text-[10px] font-mono text-amber-300/80">
+                <span>{getCountryFlag(expertStory.countryCode)}</span>
+                <span>{expertStory.date}</span>
+              </div>
+            </div>
+
+            {/* بطاقة تعريف وصورة الخبير صاحب الرأي */}
+            <div className="p-3.5 pb-2 flex items-center gap-3 bg-slate-900/70 rounded-xl mx-3.5 mt-2 border border-amber-500/30 shadow-inner shrink-0">
+              <div className="w-13 h-13 rounded-full overflow-hidden shrink-0 border-2 border-amber-400 shadow-md">
+                <img
+                  src={expertStory.columnistAvatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80'}
+                  alt={expertStory.columnistName || 'Expert'}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-xs font-black text-white group-hover:text-amber-300 truncate">
+                  {isAr ? expertStory.columnistName : expertStory.columnistNameEn}
+                </div>
+                <p className="text-[11px] text-amber-300/90 font-serif truncate">
+                  {isAr ? expertStory.columnistRole : expertStory.columnistRoleEn}
+                </p>
+                <span className="text-[10px] text-slate-400 block truncate font-mono">
+                  AFRICONOMIST Editorial Board
+                </span>
+              </div>
+            </div>
+
+            {/* صورة تصويرية مصغرة للمقال */}
+            <div className="w-[calc(100%-1.75rem)] h-24 relative overflow-hidden bg-slate-950 mx-3.5 rounded-xl mt-2 shrink-0">
+              <img
+                src={expertStory.imageUrl}
+                alt={isAr ? expertStory.title : expertStory.titleEn}
+                loading="lazy"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-90"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0d1424] via-transparent to-transparent" />
+            </div>
+
+            {/* العنوان والاقتباس والملخص */}
+            <div className="px-3.5 py-1.5 space-y-1.5 flex-1 flex flex-col justify-center">
+              <h3 className="text-sm xl:text-[15px] font-black text-white group-hover:text-amber-300 transition-colors leading-snug line-clamp-2">
+                {isAr ? expertStory.title : expertStory.titleEn}
+              </h3>
+
+              <div className="bg-amber-500/10 border-r-2 rtl:border-r-2 ltr:border-l-2 border-amber-400 p-2 rounded-lg text-[11px] italic text-amber-200/90 leading-relaxed font-serif line-clamp-2">
+                &ldquo;{isAr 
+                  ? 'اعتماد نظام المدفوعات الإفريقي الموحد بالعملات المحلية ورفع الاحتياطيات السيادية بالذهب لإنهاء التبعية المالية الخارجية.' 
+                  : 'Accelerating PAPSS local currency clearing and sovereign gold reserves to anchor financial independence.'}&rdquo;
+              </div>
+
+              <p className="text-[11.5px] text-slate-300 leading-relaxed line-clamp-2">
+                {isAr ? expertStory.summary : expertStory.summaryEn}
+              </p>
+            </div>
+
+            {/* الشريط السفلي للعمود */}
+            <div className="px-3.5 py-2.5 border-t border-slate-800/90 bg-slate-950/80 flex items-center justify-between text-xs shrink-0">
+              <div className="flex items-center gap-1.5 text-slate-300 font-mono text-[11px]">
+                <Timer className="w-3 h-3 text-amber-400" />
+                <span className="font-bold text-amber-300">{expertStory.readTimeMinutes} {isAr ? 'دقائق' : 'min'}</span>
+              </div>
+
+              <div className="flex items-center gap-1.5 font-mono text-[11px]">
+                <div className="flex items-center gap-1 text-slate-300 bg-slate-900 px-2 py-0.5 rounded-lg border border-slate-800">
+                  <Eye className="w-3 h-3 text-amber-400" />
+                  <span className="font-bold">{expertStory.viewsCount.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center gap-1 text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">
+                  <ShieldCheck className="w-3 h-3" />
+                  <span>{expertStory.factScore}%</span>
+                </div>
+              </div>
+
+              <span className="text-amber-400 group-hover:translate-x-0.5 transition-transform flex items-center gap-1 font-bold text-[11px]">
+                <span>{isAr ? 'قراءة المقال' : 'Read Opinion'}</span>
+                <ArrowUpRight className="w-3 h-3" />
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

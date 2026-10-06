@@ -13,6 +13,7 @@ export interface UserProfile {
   bio?: string;
   role: UserRole;
   status?: 'active' | 'suspended' | 'pending';
+  theme?: 'standard' | 'light' | 'night';
   favoriteCountry?: string;
   savedArticlesCount?: number;
   publishedArticlesCount?: number;

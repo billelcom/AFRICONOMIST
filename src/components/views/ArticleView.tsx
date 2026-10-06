@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Article, ArticleGraphicItem } from '../../types';
 import { shareContent } from '../../lib/pwa/webShare';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { AuthSaveRequiredModal } from '../BookmarkButton';
 import { 
   ArrowRight, 
@@ -78,11 +79,27 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
 }) => {
   const isAr = lang === 'ar';
   const { user, isArticleSaved, saveArticle, unsaveArticle } = useAuth();
+  const { theme: globalTheme } = useTheme();
   const isSaved = isArticleSaved(article.id);
   const [showAuthSaveModal, setShowAuthSaveModal] = useState<boolean>(false);
 
   // --- Reading Preferences State ---
-  const [paperTheme, setPaperTheme] = useState<PaperTheme>('paper');
+  const [paperTheme, setPaperTheme] = useState<PaperTheme>(() => {
+    if (globalTheme === 'light') return 'white';
+    if (globalTheme === 'night') return 'dark';
+    return 'paper';
+  });
+
+  // مزامنة نمط ورقة المقال تلقائياً مع النمط العام للموقع
+  useEffect(() => {
+    if (globalTheme === 'light') {
+      setPaperTheme('white');
+    } else if (globalTheme === 'night') {
+      setPaperTheme('dark');
+    } else {
+      setPaperTheme('paper');
+    }
+  }, [globalTheme]);
   const [fontSize, setFontSize] = useState<FontSize>('md');
   const [lineSpacing, setLineSpacing] = useState<LineSpacing>('relaxed');
   const [toastMessage, setToastMessage] = useState<string | null>(null);

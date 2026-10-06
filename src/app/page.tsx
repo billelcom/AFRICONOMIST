@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import App from "../App";
 import { AuthProvider } from "../context/AuthContext";
+import { ThemeProvider } from "../context/ThemeContext";
 
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
@@ -26,8 +27,10 @@ export default function HomePage() {
   }
 
   return (
-    <AuthProvider>
-      <App />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

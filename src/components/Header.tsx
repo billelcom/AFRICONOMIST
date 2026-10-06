@@ -18,7 +18,11 @@ import {
   Crown,
   Sparkles,
   UserPlus,
-  Loader2
+  Loader2,
+  Sun,
+  Moon,
+  Landmark,
+  Palette
 } from 'lucide-react';
 import { NavigationModals, NavModalType } from './NavigationModals';
 import { PWABar } from './pwa/PWABar';
@@ -26,6 +30,7 @@ import { PWAInstallButton } from './pwa/PWAInstallButton';
 import { ShareButton } from './ShareButton';
 import { GlobalSearch } from './GlobalSearch';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { Article, AfricanCountryProfile } from '../types';
 
 export type HeaderTab = 
@@ -68,11 +73,18 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const isAr = lang === 'ar';
   const { user, profile, role, unreadCount } = useAuth();
+  const { theme, setTheme } = useTheme();
   const isAuthenticated = Boolean(user || profile);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [activeModal, setActiveModal] = useState<NavModalType>(null);
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
   const [isAuthLoading, setIsAuthLoading] = useState<boolean>(false);
+
+  const cycleTheme = () => {
+    if (theme === 'standard') setTheme('light');
+    else if (theme === 'light') setTheme('night');
+    else setTheme('standard');
+  };
 
   const handleOpenAuthModal = (mode: 'signin' | 'signup' = 'signin') => {
     setIsAuthLoading(true);
@@ -236,6 +248,24 @@ export const Header: React.FC<HeaderProps> = ({
               aria-label="Language Toggle"
             >
               <Globe2 className="w-3.5 h-3.5 text-amber-400" />
+            </button>
+
+            {/* أيقونة التبديل السريع للسمات: قياسي -> فاتح -> ليلي */}
+            <button
+              onClick={cycleTheme}
+              className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700/60 transition-colors text-xs flex items-center justify-center cursor-pointer relative group"
+              title={
+                theme === 'standard'
+                  ? (isAr ? 'النمط القياسي المالي (انقر للتبديل للنمط الفاتح)' : 'Standard Theme (Click for Light)')
+                  : theme === 'light'
+                    ? (isAr ? 'الصحيفة النهارية الفاتحة (انقر للتبديل للنمط الليلي)' : 'Daylight Broadsheet (Click for Night)')
+                    : (isAr ? 'نمط القراءة الليلية OLED (انقر للتبديل للنمط القياسي)' : 'Night Reading Mode (Click for Standard)')
+              }
+              aria-label="Theme Toggle"
+            >
+              {theme === 'standard' && <Landmark className="w-3.5 h-3.5 text-amber-400" />}
+              {theme === 'light' && <Sun className="w-3.5 h-3.5 text-amber-500" />}
+              {theme === 'night' && <Moon className="w-3.5 h-3.5 text-blue-400" />}
             </button>
 
             {/* أيقونة القائمة Menu Burger الإبداعية */}
@@ -435,6 +465,54 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* 10. زر مشاركة المنصة */}
               <ShareButton lang={lang} variant="drawer-item" />
+            </div>
+
+            {/* محوّل السمات الثلاث في القائمة المتنقلة */}
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1.5">
+              <div className="flex items-center justify-between text-[11px] text-slate-400 font-bold px-1">
+                <span className="flex items-center gap-1 text-amber-300">
+                  <Palette className="w-3 h-3 text-amber-400" />
+                  <span>{isAr ? 'مظهر وتنسيق المنصة:' : 'Theme Mode:'}</span>
+                </span>
+                <span className="text-[10px] text-amber-400 font-bold">
+                  {theme === 'standard' ? (isAr ? 'القياسي' : 'Standard') : theme === 'light' ? (isAr ? 'الفاتح' : 'Light') : (isAr ? 'الليلي' : 'Night')}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-1.5">
+                <button
+                  onClick={() => setTheme('standard')}
+                  className={`py-1.5 px-1 rounded-lg text-[10.5px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                    theme === 'standard'
+                      ? 'bg-amber-500 text-slate-950 shadow-sm'
+                      : 'bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60'
+                  }`}
+                >
+                  <Landmark className="w-3 h-3" />
+                  <span>{isAr ? 'قياسي' : 'Standard'}</span>
+                </button>
+                <button
+                  onClick={() => setTheme('light')}
+                  className={`py-1.5 px-1 rounded-lg text-[10.5px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                    theme === 'light'
+                      ? 'bg-amber-500 text-slate-950 shadow-sm'
+                      : 'bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60'
+                  }`}
+                >
+                  <Sun className="w-3 h-3" />
+                  <span>{isAr ? 'فاتح' : 'Light'}</span>
+                </button>
+                <button
+                  onClick={() => setTheme('night')}
+                  className={`py-1.5 px-1 rounded-lg text-[10.5px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                    theme === 'night'
+                      ? 'bg-amber-500 text-slate-950 shadow-sm'
+                      : 'bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60'
+                  }`}
+                >
+                  <Moon className="w-3 h-3" />
+                  <span>{isAr ? 'ليلي' : 'Night'}</span>
+                </button>
+              </div>
             </div>
 
             {/* زر الحساب، مع زر غرفة الأخبار حصرياً للأدمن والمشرفين والمحررين فقط بعد تسجيل الدخول */}

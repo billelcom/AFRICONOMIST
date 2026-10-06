@@ -661,15 +661,15 @@ export const CountryView: React.FC<CountryViewProps> = ({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-amber-400" />
-              <h3 className="text-xl font-black text-white">
+              <FileText className="w-5 h-5 text-amber-500 dark:text-amber-400" />
+              <h3 className="text-xl font-black text-slate-900 dark:text-white">
                 {isAr ? `التقارير والمقالات الاقتصادية المعتمدة لـ ${country.nameAr}` : `Certified Economic Bulletins for ${country.nameEn}`}
               </h3>
               <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                 {countryArticles.length} {isAr ? 'مقال معتمد' : 'articles'}
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
               {isAr 
                 ? 'تنشر المقالات المعتمدة تلقائياً وفورياً في هذه الصفحة بمجرد إنجازها بواسطة وكلاء الذكاء الاصطناعي أو اعتمادها من غرفة الأخبار'
                 : 'Articles automatically bind and publish in real-time as soon as approved by the newsroom or dispatched by AI agents'}

@@ -252,28 +252,147 @@ body[data-theme="light"],
   border-color: #E2E8F0 !important;
 }
 
-/* Primary text headings & bold labels in Light Theme */
-[data-theme="light"] .text-white,
-[data-theme="light"] .text-slate-100,
-[data-theme="light"] .text-slate-200 {
+/* النصوص العامة على خلفية الصفحة الفاتحة (خارج البطاقات الداكنة) */
+[data-theme="light"] header .text-white,
+[data-theme="light"] header span.font-brand-artistic,
+[data-theme="light"] footer .text-white,
+[data-theme="light"] section > div > div > h2.text-white,
+[data-theme="light"] section > div > h2.text-white,
+[data-theme="light"] section > div > div > h3.text-white:not(article *),
+[data-theme="light"] section > div > h3.text-white:not(article *),
+[data-theme="light"] .page-canvas-text {
   color: #0F172A !important;
 }
 
-/* Secondary body text */
-[data-theme="light"] .text-slate-300 {
-  color: #1E293B !important;
+[data-theme="light"] header .text-slate-300,
+[data-theme="light"] footer .text-slate-300 {
+  color: #334155 !important;
 }
 
-/* Subdued / Muted text */
-[data-theme="light"] .text-slate-400 {
-  color: #475569 !important;
-}
-
-[data-theme="light"] .text-slate-500 {
+[data-theme="light"] header .text-slate-400,
+[data-theme="light"] footer .text-slate-400 {
   color: #64748B !important;
 }
 
-[data-theme="light"] .text-slate-600 {
+/* =========================================================================
+   عناوين ونصوص المقالات والبطاقات في الثيمة الفاتحة
+   (زاهرة، ساطعة، ناصعة البياض والذهب، فائقة التباين والجمال)
+   ========================================================================= */
+
+/* عناوين المقالات في الصفحة الرئيسية وكافة الأقسام: بيضاء ناصعة وزاهرة */
+[data-theme="light"] article h1,
+[data-theme="light"] article h2,
+[data-theme="light"] article h3,
+[data-theme="light"] article h4,
+[data-theme="light"] article h5,
+[data-theme="light"] article .text-white,
+[data-theme="light"] .group article h3,
+[data-theme="light"] .group article h4,
+[data-theme="light"] [class*="from-[#"] h1,
+[data-theme="light"] [class*="from-[#"] h2,
+[data-theme="light"] [class*="from-[#"] h3,
+[data-theme="light"] [class*="from-[#"] h4,
+[data-theme="light"] [class*="from-[#"] h5,
+[data-theme="light"] [class*="from-[#"] .text-white,
+[data-theme="light"] [class*="bg-gradient-"] h1,
+[data-theme="light"] [class*="bg-gradient-"] h2,
+[data-theme="light"] [class*="bg-gradient-"] h3,
+[data-theme="light"] [class*="bg-gradient-"] h4,
+[data-theme="light"] [class*="bg-gradient-"] h5,
+[data-theme="light"] [class*="bg-gradient-"] .text-white,
+[data-theme="light"] [class*="bg-[#0"] h1,
+[data-theme="light"] [class*="bg-[#0"] h2,
+[data-theme="light"] [class*="bg-[#0"] h3,
+[data-theme="light"] [class*="bg-[#0"] h4,
+[data-theme="light"] [class*="bg-[#0"] h5,
+[data-theme="light"] [class*="bg-[#0"] .text-white,
+[data-theme="light"] [class*="bg-[#1"] h1,
+[data-theme="light"] [class*="bg-[#1"] h2,
+[data-theme="light"] [class*="bg-[#1"] h3,
+[data-theme="light"] [class*="bg-[#1"] h4,
+[data-theme="light"] [class*="bg-[#1"] h5,
+[data-theme="light"] [class*="bg-[#1"] .text-white,
+[data-theme="light"] [class*="bg-slate-9"] h1,
+[data-theme="light"] [class*="bg-slate-9"] h2,
+[data-theme="light"] [class*="bg-slate-9"] h3,
+[data-theme="light"] [class*="bg-slate-9"] h4,
+[data-theme="light"] [class*="bg-slate-9"] h5,
+[data-theme="light"] [class*="bg-slate-9"] .text-white {
+  color: #FFFFFF !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* توهج ذهبي عنبري باهر عند تحريك المؤشر فوق أي بطاقة مقال (Hover State) */
+[data-theme="light"] article:hover h1,
+[data-theme="light"] article:hover h2,
+[data-theme="light"] article:hover h3,
+[data-theme="light"] article:hover h4,
+[data-theme="light"] article:hover h5,
+[data-theme="light"] article:hover .text-white,
+[data-theme="light"] [class*="from-[#"]:hover h1,
+[data-theme="light"] [class*="from-[#"]:hover h2,
+[data-theme="light"] [class*="from-[#"]:hover h3,
+[data-theme="light"] [class*="from-[#"]:hover h4,
+[data-theme="light"] [class*="from-[#"]:hover .text-white,
+[data-theme="light"] [class*="bg-gradient-"]:hover h1,
+[data-theme="light"] [class*="bg-gradient-"]:hover h2,
+[data-theme="light"] [class*="bg-gradient-"]:hover h3,
+[data-theme="light"] [class*="bg-gradient-"]:hover h4,
+[data-theme="light"] [class*="bg-gradient-"]:hover .text-white,
+[data-theme="light"] .group:hover article h3,
+[data-theme="light"] .group:hover article h4,
+[data-theme="light"] .group:hover [class*="group-hover:text-amber-300"],
+[data-theme="light"] article:hover [class*="group-hover:text-amber-300"] {
+  color: #FCD34D !important;
+}
+
+/* نصوص وملخصات المقالات داخل البطاقات (فضي فاتح ناصع وسهل القراءة) */
+[data-theme="light"] article p,
+[data-theme="light"] article .text-slate-300,
+[data-theme="light"] [class*="from-[#"] p,
+[data-theme="light"] [class*="from-[#"] .text-slate-300,
+[data-theme="light"] [class*="bg-gradient-"] p,
+[data-theme="light"] [class*="bg-gradient-"] .text-slate-300,
+[data-theme="light"] [class*="bg-[#0"] p.text-slate-300,
+[data-theme="light"] [class*="bg-[#1"] p.text-slate-300 {
+  color: #E2E8F0 !important;
+}
+
+/* بيانات التوقيت والتاريخ والرموز والمؤلف داخل البطاقات */
+[data-theme="light"] article .text-slate-400,
+[data-theme="light"] [class*="from-[#"] .text-slate-400,
+[data-theme="light"] [class*="bg-gradient-"] .text-slate-400,
+[data-theme="light"] [class*="bg-[#0"] .text-slate-400,
+[data-theme="light"] [class*="bg-[#1"] .text-slate-400,
+[data-theme="light"] article span.font-mono,
+[data-theme="light"] [class*="from-[#"] span.font-mono {
+  color: #CBD5E1 !important;
+}
+
+/* أسماء الدول في الشريط العلوي لكل بطاقة */
+[data-theme="light"] article .text-slate-300.font-bold,
+[data-theme="light"] [class*="from-[#"] .text-slate-300.font-bold,
+[data-theme="light"] [class*="bg-gradient-"] .text-slate-300.font-bold {
+  color: #FFFFFF !important;
+}
+
+/* تصنيفات وقطاعات المقالات داخل البطاقات (عنبري زاهر متناسق) */
+[data-theme="light"] article [class*="text-amber-400"],
+[data-theme="light"] [class*="from-[#"] [class*="text-amber-400"],
+[data-theme="light"] [class*="bg-gradient-"] [class*="text-amber-400"] {
+  color: #FCD34D !important;
+}
+
+/* شارات دقة الحقائق والنزاهة داخل البطاقات */
+[data-theme="light"] article [class*="text-emerald-400"],
+[data-theme="light"] [class*="from-[#"] [class*="text-emerald-400"],
+[data-theme="light"] [class*="bg-gradient-"] [class*="text-emerald-400"] {
+  color: #34D399 !important;
+}
+
+/* أيقونات البطاقات */
+[data-theme="light"] article svg.text-slate-500,
+[data-theme="light"] [class*="from-[#"] svg.text-slate-500 {
   color: #94A3B8 !important;
 }
 

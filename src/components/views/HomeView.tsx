@@ -695,14 +695,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-white">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                 {isAr ? 'أحدث التقارير والتحليلات الاقتصادية' : 'Latest Economic Bulletins'}
               </h2>
               <span className="px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                 {generalFeedArticles.length} {isAr ? 'تقارير مدققة' : 'Verified Reports'}
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
               {isAr ? 'تقارير فورية مستخلصة من إفصاحات البنوك المركزية ومؤشرات التجارة ومصادر الاستثمار' : 'Direct intelligence sourced from central bank disclosures and verified commodity trade streams'}
             </p>
           </div>

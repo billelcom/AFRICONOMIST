@@ -816,7 +816,7 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
         {/* 1. مربع القصة الرئيسية الكبرى (40% من الشاشة - بعد إنقاص 10%) */}
         <div
           onClick={() => handleStoryClick(leadStory)}
-          className="w-[40%] h-full rounded-2xl overflow-hidden border border-slate-800/90 hover:border-amber-500/50 bg-gradient-to-b from-[#0f172a] via-[#0b1120] to-[#070b14] transition-all duration-300 shadow-xl group cursor-pointer flex flex-col justify-between relative shrink-0"
+          className="w-[40%] h-full rounded-2xl overflow-hidden border border-slate-800/90 hover:border-amber-500/50 bg-gradient-to-b from-[#0f172a] via-[#0b1120] to-[#070b14] transition-all duration-300 shadow-xl group cursor-pointer flex flex-col justify-between relative shrink-0 editorial-lead-dark"
         >
           {/* صورة وميديا في النصف العلوي */}
           <div className="w-full h-[320px] relative overflow-hidden bg-slate-950 shrink-0">
@@ -923,14 +923,14 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
         {/* 2. الـ 60% المتبقية: خمس بطاقات مستطيلة (60% من هذه المساحة = 36% من الإجمالي بعد إضافة 20%) + عمود رأي الخبير (40% من هذه المساحة = 24% من الإجمالي بعد إنقاص 10%) */}
         <div className="w-[60%] h-full flex flex-row items-stretch gap-3.5 shrink-0">
           {/* العمود أ: خمس بطاقات بشكل مستطيل تأخذ 60% من الـ 60% المتبقية (36% من إجمالي الشاشة) */}
-          <div className="w-[60%] h-full flex flex-col justify-between gap-2 shrink-0">
+          <div className="w-[60%] h-full flex flex-col justify-between gap-2 shrink-0 five-rectangular-cards">
             {fiveRectangularStories.map((story) => {
               const flag = getCountryFlag(story.countryCode);
               return (
                 <div
                   key={story.id}
                   onClick={() => handleStoryClick(story)}
-                  className="flex-1 min-h-0 p-2.5 rounded-xl border border-slate-800/80 hover:border-amber-500/50 bg-[#0c1220]/90 hover:bg-[#11192e] transition-all cursor-pointer group flex flex-col justify-between shadow-sm relative overflow-hidden"
+                  className="flex-1 min-h-0 p-2.5 rounded-xl border border-slate-800/80 hover:border-amber-500/50 bg-[#0c1220]/90 hover:bg-[#11192e] transition-all cursor-pointer group flex flex-col justify-between shadow-sm relative overflow-hidden five-story-item"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center justify-between text-[10.5px]">
@@ -945,7 +945,7 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
                       </span>
                     </div>
 
-                    <h4 className="text-[11.5px] xl:text-xs font-bold text-white group-hover:text-amber-300 line-clamp-2 leading-snug transition-colors">
+                    <h4 className="text-[11.5px] xl:text-xs font-bold text-white group-hover:text-amber-300 line-clamp-2 leading-snug transition-colors story-card-title">
                       {isAr ? story.title : story.titleEn}
                     </h4>
                   </div>
@@ -967,7 +967,7 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
           {/* العمود ب: بطاقة رأي خبير تأخذ النسبة المتبقية (40% من الـ 60% = 24% من إجمالي الشاشة) بشكل عمود بنفس الارتفاع */}
           <div
             onClick={() => handleStoryClick(expertStory)}
-            className="flex-1 min-w-0 h-full rounded-2xl overflow-hidden border border-amber-500/40 hover:border-amber-400/80 bg-gradient-to-b from-[#131b2e] via-[#0d1424] to-[#070b14] transition-all duration-300 shadow-2xl group cursor-pointer flex flex-col justify-between relative ring-1 ring-amber-500/20 shrink-0"
+            className="flex-1 min-w-0 h-full rounded-2xl overflow-hidden border border-amber-500/40 hover:border-amber-400/80 bg-gradient-to-b from-[#131b2e] via-[#0d1424] to-[#070b14] transition-all duration-300 shadow-2xl group cursor-pointer flex flex-col justify-between relative ring-1 ring-amber-500/20 shrink-0 editorial-lead-dark"
           >
             {/* الشريط العلوي لشارة رأي الخبير */}
             <div className="bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-transparent p-3 border-b border-amber-500/30 flex items-center justify-between shrink-0">

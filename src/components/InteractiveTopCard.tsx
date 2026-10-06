@@ -236,7 +236,7 @@ export const InteractiveTopCard: React.FC<InteractiveTopCardProps> = ({
   const activeTempMin = liveWeather?.tempMin ?? selectedCity.tempMin;
 
   return (
-    <div className={`w-full [perspective:1200px] ${className}`}>
+    <div className={`w-full [perspective:1200px] interactive-clock-widget ${className}`}>
       <div 
         className="w-full relative h-[92px] sm:h-[98px] transition-transform duration-600 ease-in-out"
         style={{

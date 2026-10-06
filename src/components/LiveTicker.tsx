@@ -13,7 +13,7 @@ export const LiveTicker: React.FC<LiveTickerProps> = ({ items, lang }) => {
 
   return (
     <div 
-      className="bg-[#0b101c] border-y border-slate-800 text-xs overflow-hidden py-2 select-none"
+      className="bg-[#0b101c] border-y border-slate-800 text-xs overflow-hidden py-2 select-none live-market-ticker-bar"
       dir="ltr"
       role="region"
       aria-label="Live Market Ticker"

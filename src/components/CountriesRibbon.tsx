@@ -66,7 +66,7 @@ export const CountriesRibbon: React.FC<CountriesRibbonProps> = ({
   };
 
   return (
-    <div className="bg-[#0b101d] border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xl">
+    <div className="bg-[#0b101d] border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xl countries-ribbon-widget">
       {/* Top Header & Sort/Filter Controls */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         {/* Title & Count Badge */}

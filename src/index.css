@@ -227,15 +227,65 @@ body[data-theme="light"],
 
 /* Header & Navigation in light mode */
 [data-theme="light"] header {
-  background-color: rgba(255, 255, 255, 0.94) !important;
+  background-color: rgba(255, 255, 255, 0.96) !important;
   border-bottom-color: #E2E8F0 !important;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] header .text-white,
+[data-theme="light"] header h1,
+[data-theme="light"] header h2,
+[data-theme="light"] header h3,
+[data-theme="light"] header span.font-brand-artistic,
+[data-theme="light"] header a,
+[data-theme="light"] header button {
+  color: #0F172A !important;
+  text-shadow: none !important;
+}
+
+[data-theme="light"] header .text-slate-300,
+[data-theme="light"] header .text-slate-200 {
+  color: #1E293B !important;
+}
+
+[data-theme="light"] header .text-slate-400 {
+  color: #475569 !important;
+}
+
+[data-theme="light"] header .text-slate-500 {
+  color: #64748B !important;
+}
+
+[data-theme="light"] header input {
+  background-color: #F1F5F9 !important;
+  color: #0F172A !important;
+  border-color: #CBD5E1 !important;
+}
+
+[data-theme="light"] header input::placeholder {
+  color: #64748B !important;
 }
 
 [data-theme="light"] footer,
 [data-theme="light"] footer.bg-\[\#070A12\] {
   background-color: #F1F5F9 !important;
   border-top-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] footer .text-white,
+[data-theme="light"] footer h2,
+[data-theme="light"] footer h3,
+[data-theme="light"] footer h4 {
+  color: #0F172A !important;
+  text-shadow: none !important;
+}
+
+[data-theme="light"] footer .text-slate-300 {
+  color: #334155 !important;
+}
+
+[data-theme="light"] footer .text-slate-400 {
+  color: #64748B !important;
 }
 
 /* Borders in Light Theme */
@@ -252,184 +302,442 @@ body[data-theme="light"],
   border-color: #E2E8F0 !important;
 }
 
-/* النصوص العامة على خلفية الصفحة الفاتحة (خارج البطاقات الداكنة) */
-[data-theme="light"] header .text-white,
-[data-theme="light"] header span.font-brand-artistic,
-[data-theme="light"] footer .text-white,
-[data-theme="light"] section > div > div > h2.text-white,
-[data-theme="light"] section > div > h2.text-white,
-[data-theme="light"] section > div > div > h3.text-white:not(article *),
-[data-theme="light"] section > div > h3.text-white:not(article *),
-[data-theme="light"] .page-canvas-text {
+/* =========================================================================
+   1. الشريط المتحرك للأسواق (LIVE TICKER) في الثيمة الفاتحة
+   ========================================================================= */
+[data-theme="light"] .live-market-ticker-bar,
+[data-theme="light"] .bg-\[\#0b101c\],
+[data-theme="light"] [role="region"][aria-label="Live Market Ticker"] {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] .animate-ticker .text-slate-200 {
+  color: #0F172A !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .animate-ticker .text-slate-400 {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .animate-ticker .text-slate-100 {
+  color: #0F172A !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="light"] .animate-ticker .text-emerald-400 {
+  color: #047857 !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .animate-ticker .text-rose-400 {
+  color: #BE123C !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .animate-ticker > div:hover {
+  background-color: #F1F5F9 !important;
+}
+
+/* =========================================================================
+   2. بطاقة الساعة والطقس والمشاركة (INTERACTIVE CLOCK & WEATHER CARD)
+   ========================================================================= */
+[data-theme="light"] .interactive-clock-widget,
+[data-theme="light"] .interactive-clock-widget [class*="rounded-2xl"],
+[data-theme="light"] [class*="perspective:1200px"] [class*="rounded-2xl"] {
+  background: #FFFFFF !important;
+  background-image: none !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* أرقام الساعة الرقمية الكبرى: واضحة وداكنة وفخمة */
+[data-theme="light"] .interactive-clock-widget span.tracking-widest,
+[data-theme="light"] [class*="perspective:1200px"] span.tracking-widest {
+  color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
+  background: none !important;
+  filter: none !important;
+  text-shadow: none !important;
+}
+
+[data-theme="light"] .interactive-clock-widget button,
+[data-theme="light"] [class*="perspective:1200px"] button {
+  background-color: #F1F5F9 !important;
+  border-color: #E2E8F0 !important;
+  color: #1E293B !important;
+}
+
+[data-theme="light"] .interactive-clock-widget button:hover,
+[data-theme="light"] [class*="perspective:1200px"] button:hover {
+  background-color: #E2E8F0 !important;
   color: #0F172A !important;
 }
 
-[data-theme="light"] header .text-slate-300,
-[data-theme="light"] footer .text-slate-300 {
+[data-theme="light"] .interactive-clock-widget .text-slate-300,
+[data-theme="light"] .interactive-clock-widget .text-slate-400,
+[data-theme="light"] .interactive-clock-widget .text-white,
+[data-theme="light"] [class*="perspective:1200px"] .text-slate-300,
+[data-theme="light"] [class*="perspective:1200px"] .text-slate-400,
+[data-theme="light"] [class*="perspective:1200px"] .text-white {
+  color: #1E293B !important;
+}
+
+[data-theme="light"] .interactive-clock-widget .text-amber-400,
+[data-theme="light"] .interactive-clock-widget .text-amber-300,
+[data-theme="light"] .interactive-clock-widget .text-amber-400\/95,
+[data-theme="light"] [class*="perspective:1200px"] .text-amber-400\/95 {
+  color: #92400E !important;
+}
+
+/* =========================================================================
+   3. البطاقات المستطيلة الخمس في القسم الأول من الصفحة الرئيسية
+   ========================================================================= */
+[data-theme="light"] .five-rectangular-cards > div,
+[data-theme="light"] .five-story-item {
+  background-color: #FFFFFF !important;
+  background-image: none !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="light"] .five-rectangular-cards > div:hover,
+[data-theme="light"] .five-story-item:hover {
+  background-color: #F8FAFC !important;
+  border-color: #CBD5E1 !important;
+}
+
+/* عناوين البطاقات الخمس: سوداء داكنة وواضحة جداً */
+[data-theme="light"] .five-rectangular-cards h4,
+[data-theme="light"] .five-story-item h4,
+[data-theme="light"] .five-story-item .story-card-title,
+[data-theme="light"] .five-rectangular-cards .text-white {
+  color: #0F172A !important;
+  text-shadow: none !important;
+}
+
+[data-theme="light"] .five-rectangular-cards > div:hover h4,
+[data-theme="light"] .five-story-item:hover h4 {
+  color: #B45309 !important;
+}
+
+[data-theme="light"] .five-rectangular-cards .text-slate-300,
+[data-theme="light"] .five-story-item .text-slate-300 {
+  color: #0F172A !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .five-rectangular-cards .text-slate-400,
+[data-theme="light"] .five-story-item .text-slate-400 {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .five-rectangular-cards .text-amber-400\/90,
+[data-theme="light"] .five-story-item .text-amber-400\/90 {
+  color: #92400E !important;
+}
+
+[data-theme="light"] .five-rectangular-cards .text-emerald-400,
+[data-theme="light"] .five-story-item .text-emerald-400 {
+  color: #047857 !important;
+}
+
+/* =========================================================================
+   4. قسم وشريط الدول الأفريقية (COUNTRIES RIBBON)
+   ========================================================================= */
+[data-theme="light"] .countries-ribbon-widget,
+[data-theme="light"] [class*="bg-[#0b101d]"] {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] .countries-ribbon-widget h3,
+[data-theme="light"] [class*="bg-[#0b101d]"] h3,
+[data-theme="light"] .countries-ribbon-widget .text-white,
+[data-theme="light"] [class*="bg-[#0b101d]"] .text-white {
+  color: #0F172A !important;
+  text-shadow: none !important;
+}
+
+[data-theme="light"] .countries-ribbon-widget p,
+[data-theme="light"] [class*="bg-[#0b101d]"] p,
+[data-theme="light"] .countries-ribbon-widget .text-slate-400,
+[data-theme="light"] [class*="bg-[#0b101d]"] .text-slate-400 {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .countries-ribbon-widget input,
+[data-theme="light"] [class*="bg-[#0b101d]"] input {
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
+  border-color: #CBD5E1 !important;
+}
+
+[data-theme="light"] .countries-ribbon-widget input::placeholder,
+[data-theme="light"] [class*="bg-[#0b101d]"] input::placeholder {
+  color: #64748B !important;
+}
+
+[data-theme="light"] .countries-ribbon-widget button,
+[data-theme="light"] [class*="bg-[#0b101d]"] button {
   color: #334155 !important;
 }
 
-[data-theme="light"] header .text-slate-400,
-[data-theme="light"] footer .text-slate-400 {
+/* بطاقات الدول داخل الشريط */
+[data-theme="light"] [class*="bg-[#0b101d]"] [class*="bg-[#0f172a]"] {
+  background-color: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+[data-theme="light"] [class*="bg-[#0b101d]"] [class*="bg-[#0f172a]"]:hover {
+  background-color: #F1F5F9 !important;
+  border-color: #CBD5E1 !important;
+}
+
+[data-theme="light"] [class*="bg-[#0b101d]"] [class*="bg-[#0f172a]"] span.font-bold,
+[data-theme="light"] [class*="bg-[#0b101d]"] [class*="bg-[#0f172a]"] .text-slate-200,
+[data-theme="light"] [class*="bg-[#0b101d]"] [class*="bg-[#0f172a]"] .text-slate-300 {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] [class*="bg-[#0b101d]"] [class*="bg-[#0f172a]"] .text-slate-400 {
+  color: #475569 !important;
+}
+
+/* =========================================================================
+   5. أشرطة وقوائم التنقل (COMPACT NAVIGATION RIBBONS & MODALS & MENUS)
+   ========================================================================= */
+[data-theme="light"] [class*="bg-[#070a12]"],
+[data-theme="light"] [class*="bg-[#060a14]"] {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] [class*="bg-[#070a12]"] button,
+[data-theme="light"] [class*="bg-[#060a14]"] button {
+  color: #334155 !important;
+}
+
+[data-theme="light"] [class*="bg-[#070a12]"] .text-slate-300,
+[data-theme="light"] [class*="bg-[#060a14]"] .text-slate-300 {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] [class*="bg-[#070a12]"] .text-slate-400,
+[data-theme="light"] [class*="bg-[#060a14]"] .text-slate-400 {
+  color: #475569 !important;
+}
+
+[data-theme="light"] [class*="bg-[#070a12]"] .text-white,
+[data-theme="light"] [class*="bg-[#060a14]"] .text-white {
+  color: #0F172A !important;
+  text-shadow: none !important;
+}
+
+[data-theme="light"] [role="dialog"],
+[data-theme="light"] .nav-modal-backdrop {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] [role="dialog"] h1,
+[data-theme="light"] [role="dialog"] h2,
+[data-theme="light"] [role="dialog"] h3,
+[data-theme="light"] [role="dialog"] h4,
+[data-theme="light"] [role="dialog"] .text-white {
+  color: #0F172A !important;
+  text-shadow: none !important;
+}
+
+[data-theme="light"] [role="dialog"] p,
+[data-theme="light"] [role="dialog"] .text-slate-300,
+[data-theme="light"] [role="dialog"] .text-slate-400 {
+  color: #334155 !important;
+}
+
+/* =========================================================================
+   6. بقية الموقع في الثيمة الفاتحة: الخطوط والعناوين سوداء وعموماً داكنة
+   ========================================================================= */
+[data-theme="light"] h1:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *),
+[data-theme="light"] h2:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *),
+[data-theme="light"] h3:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *),
+[data-theme="light"] h4:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *),
+[data-theme="light"] h5:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *),
+[data-theme="light"] h6:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *) {
+  color: #0F172A !important;
+  text-shadow: none !important;
+}
+
+[data-theme="light"] .text-white:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *):not(.bg-amber-500 *):not(.bg-amber-600 *):not(.bg-rose-600 *):not(.bg-emerald-600 *):not(.bg-blue-600 *) {
+  color: #0F172A !important;
+  text-shadow: none !important;
+}
+
+[data-theme="light"] .text-slate-100:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *),
+[data-theme="light"] .text-slate-200:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *) {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .text-slate-300:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *) {
+  color: #1E293B !important;
+}
+
+[data-theme="light"] .text-slate-400:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *) {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .text-slate-500:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *) {
   color: #64748B !important;
 }
 
 /* =========================================================================
-   عناوين ونصوص المقالات والبطاقات في الثيمة الفاتحة
-   (زاهرة، ساطعة، ناصعة البياض والذهب، فائقة التباين والجمال)
+   7. البطاقات الداكنة حصراً (DARK CARDS EXCLUSIVELY)
+   تحتفظ بخلفيتها الداكنة وتكون العناوين بيضاء مشعة ساطعة، والنصوص زاهرة واضحة
    ========================================================================= */
 
-/* عناوين المقالات في الصفحة الرئيسية وكافة الأقسام: بيضاء ناصعة وزاهرة */
+[data-theme="light"] article,
+[data-theme="light"] .dark-card,
+[data-theme="light"] .editorial-lead-dark,
+[data-theme="light"] [class*="from-[#0d1424]"],
+[data-theme="light"] [class*="from-[#0f172a]"],
+[data-theme="light"] [class*="from-[#131b2e]"],
+[data-theme="light"] [class*="from-[#11192e]"] {
+  background-color: #0d1424 !important;
+  border-color: #1e293b !important;
+}
+
+/* عناوين المقالات في البطاقات الداكنة: بيضاء ناصعة مشعة ساطعة */
 [data-theme="light"] article h1,
 [data-theme="light"] article h2,
 [data-theme="light"] article h3,
 [data-theme="light"] article h4,
 [data-theme="light"] article h5,
 [data-theme="light"] article .text-white,
-[data-theme="light"] .group article h3,
-[data-theme="light"] .group article h4,
-[data-theme="light"] [class*="from-[#"] h1,
-[data-theme="light"] [class*="from-[#"] h2,
-[data-theme="light"] [class*="from-[#"] h3,
-[data-theme="light"] [class*="from-[#"] h4,
-[data-theme="light"] [class*="from-[#"] h5,
-[data-theme="light"] [class*="from-[#"] .text-white,
-[data-theme="light"] [class*="bg-gradient-"] h1,
-[data-theme="light"] [class*="bg-gradient-"] h2,
-[data-theme="light"] [class*="bg-gradient-"] h3,
-[data-theme="light"] [class*="bg-gradient-"] h4,
-[data-theme="light"] [class*="bg-gradient-"] h5,
-[data-theme="light"] [class*="bg-gradient-"] .text-white,
-[data-theme="light"] [class*="bg-[#0"] h1,
-[data-theme="light"] [class*="bg-[#0"] h2,
-[data-theme="light"] [class*="bg-[#0"] h3,
-[data-theme="light"] [class*="bg-[#0"] h4,
-[data-theme="light"] [class*="bg-[#0"] h5,
-[data-theme="light"] [class*="bg-[#0"] .text-white,
-[data-theme="light"] [class*="bg-[#1"] h1,
-[data-theme="light"] [class*="bg-[#1"] h2,
-[data-theme="light"] [class*="bg-[#1"] h3,
-[data-theme="light"] [class*="bg-[#1"] h4,
-[data-theme="light"] [class*="bg-[#1"] h5,
-[data-theme="light"] [class*="bg-[#1"] .text-white,
-[data-theme="light"] [class*="bg-slate-9"] h1,
-[data-theme="light"] [class*="bg-slate-9"] h2,
-[data-theme="light"] [class*="bg-slate-9"] h3,
-[data-theme="light"] [class*="bg-slate-9"] h4,
-[data-theme="light"] [class*="bg-slate-9"] h5,
-[data-theme="light"] [class*="bg-slate-9"] .text-white {
+[data-theme="light"] .editorial-lead-dark h1,
+[data-theme="light"] .editorial-lead-dark h2,
+[data-theme="light"] .editorial-lead-dark h3,
+[data-theme="light"] .editorial-lead-dark h4,
+[data-theme="light"] .editorial-lead-dark .text-white,
+[data-theme="light"] [class*="from-[#0d1424]"] h1,
+[data-theme="light"] [class*="from-[#0d1424]"] h2,
+[data-theme="light"] [class*="from-[#0d1424]"] h3,
+[data-theme="light"] [class*="from-[#0d1424]"] h4,
+[data-theme="light"] [class*="from-[#0d1424]"] .text-white,
+[data-theme="light"] [class*="from-[#0f172a]"] h1,
+[data-theme="light"] [class*="from-[#0f172a]"] h2,
+[data-theme="light"] [class*="from-[#0f172a]"] h3,
+[data-theme="light"] [class*="from-[#0f172a]"] h4,
+[data-theme="light"] [class*="from-[#0f172a]"] .text-white,
+[data-theme="light"] [class*="from-[#131b2e]"] h1,
+[data-theme="light"] [class*="from-[#131b2e]"] h2,
+[data-theme="light"] [class*="from-[#131b2e]"] h3,
+[data-theme="light"] [class*="from-[#131b2e]"] h4,
+[data-theme="light"] [class*="from-[#131b2e]"] .text-white,
+[data-theme="light"] [class*="from-[#11192e]"] h1,
+[data-theme="light"] [class*="from-[#11192e]"] h2,
+[data-theme="light"] [class*="from-[#11192e]"] h3,
+[data-theme="light"] [class*="from-[#11192e]"] .text-white {
   color: #FFFFFF !important;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
-/* توهج ذهبي عنبري باهر عند تحريك المؤشر فوق أي بطاقة مقال (Hover State) */
+/* توهج ذهبي عنبري عند تحريك المؤشر فوق البطاقة الداكنة */
 [data-theme="light"] article:hover h1,
 [data-theme="light"] article:hover h2,
 [data-theme="light"] article:hover h3,
 [data-theme="light"] article:hover h4,
-[data-theme="light"] article:hover h5,
 [data-theme="light"] article:hover .text-white,
-[data-theme="light"] [class*="from-[#"]:hover h1,
-[data-theme="light"] [class*="from-[#"]:hover h2,
-[data-theme="light"] [class*="from-[#"]:hover h3,
-[data-theme="light"] [class*="from-[#"]:hover h4,
-[data-theme="light"] [class*="from-[#"]:hover .text-white,
-[data-theme="light"] [class*="bg-gradient-"]:hover h1,
-[data-theme="light"] [class*="bg-gradient-"]:hover h2,
-[data-theme="light"] [class*="bg-gradient-"]:hover h3,
-[data-theme="light"] [class*="bg-gradient-"]:hover h4,
-[data-theme="light"] [class*="bg-gradient-"]:hover .text-white,
-[data-theme="light"] .group:hover article h3,
-[data-theme="light"] .group:hover article h4,
-[data-theme="light"] .group:hover [class*="group-hover:text-amber-300"],
-[data-theme="light"] article:hover [class*="group-hover:text-amber-300"] {
+[data-theme="light"] article:hover [class*="group-hover:text-amber-300"],
+[data-theme="light"] .editorial-lead-dark:hover h3,
+[data-theme="light"] [class*="from-[#0f172a]"]:hover h3,
+[data-theme="light"] [class*="from-[#131b2e]"]:hover h3,
+[data-theme="light"] [class*="from-[#0d1424]"]:hover h3 {
   color: #FCD34D !important;
 }
 
-/* نصوص وملخصات المقالات داخل البطاقات (فضي فاتح ناصع وسهل القراءة) */
+/* نصوص وملخصات المقالات داخل البطاقات الداكنة */
 [data-theme="light"] article p,
 [data-theme="light"] article .text-slate-300,
-[data-theme="light"] [class*="from-[#"] p,
-[data-theme="light"] [class*="from-[#"] .text-slate-300,
-[data-theme="light"] [class*="bg-gradient-"] p,
-[data-theme="light"] [class*="bg-gradient-"] .text-slate-300,
-[data-theme="light"] [class*="bg-[#0"] p.text-slate-300,
-[data-theme="light"] [class*="bg-[#1"] p.text-slate-300 {
+[data-theme="light"] .editorial-lead-dark p,
+[data-theme="light"] [class*="from-[#0f172a]"] p,
+[data-theme="light"] [class*="from-[#131b2e]"] p,
+[data-theme="light"] [class*="from-[#0d1424]"] p {
   color: #E2E8F0 !important;
 }
 
-/* بيانات التوقيت والتاريخ والرموز والمؤلف داخل البطاقات */
+/* بيانات التوقيت والتاريخ والكاتب داخل البطاقات الداكنة */
 [data-theme="light"] article .text-slate-400,
-[data-theme="light"] [class*="from-[#"] .text-slate-400,
-[data-theme="light"] [class*="bg-gradient-"] .text-slate-400,
-[data-theme="light"] [class*="bg-[#0"] .text-slate-400,
-[data-theme="light"] [class*="bg-[#1"] .text-slate-400,
+[data-theme="light"] .editorial-lead-dark .text-slate-400,
+[data-theme="light"] [class*="from-[#0f172a]"] .text-slate-400,
+[data-theme="light"] [class*="from-[#131b2e]"] .text-slate-400,
+[data-theme="light"] [class*="from-[#0d1424]"] .text-slate-400,
 [data-theme="light"] article span.font-mono,
-[data-theme="light"] [class*="from-[#"] span.font-mono {
+[data-theme="light"] .editorial-lead-dark span.font-mono {
   color: #CBD5E1 !important;
 }
 
-/* أسماء الدول في الشريط العلوي لكل بطاقة */
+/* اسم الدولة في الشريط العلوي للبطاقة الداكنة */
 [data-theme="light"] article .text-slate-300.font-bold,
-[data-theme="light"] [class*="from-[#"] .text-slate-300.font-bold,
-[data-theme="light"] [class*="bg-gradient-"] .text-slate-300.font-bold {
+[data-theme="light"] .editorial-lead-dark .text-slate-300.font-bold,
+[data-theme="light"] [class*="from-[#0f172a]"] .text-white.font-bold {
   color: #FFFFFF !important;
 }
 
-/* تصنيفات وقطاعات المقالات داخل البطاقات (عنبري زاهر متناسق) */
+/* تصنيف المقال داخل البطاقة الداكنة */
 [data-theme="light"] article [class*="text-amber-400"],
-[data-theme="light"] [class*="from-[#"] [class*="text-amber-400"],
-[data-theme="light"] [class*="bg-gradient-"] [class*="text-amber-400"] {
+[data-theme="light"] .editorial-lead-dark [class*="text-amber-400"],
+[data-theme="light"] [class*="from-[#0f172a]"] [class*="text-amber-300"] {
   color: #FCD34D !important;
 }
 
-/* شارات دقة الحقائق والنزاهة داخل البطاقات */
+/* شارات الدقة والنزاهة داخل البطاقة الداكنة */
 [data-theme="light"] article [class*="text-emerald-400"],
-[data-theme="light"] [class*="from-[#"] [class*="text-emerald-400"],
-[data-theme="light"] [class*="bg-gradient-"] [class*="text-emerald-400"] {
+[data-theme="light"] .editorial-lead-dark [class*="text-emerald-400"],
+[data-theme="light"] [class*="from-[#0f172a]"] [class*="text-emerald-400"] {
   color: #34D399 !important;
 }
 
-/* أيقونات البطاقات */
+/* أيقونات البطاقة الداكنة */
 [data-theme="light"] article svg.text-slate-500,
-[data-theme="light"] [class*="from-[#"] svg.text-slate-500 {
+[data-theme="light"] .editorial-lead-dark svg.text-slate-500 {
   color: #94A3B8 !important;
 }
 
 /* Amber/Yellow conversion in Light Theme for WCAG AAA compliance:
    Light yellow is unreadable on white; we convert it to rich elegant dark bronze/amber */
-[data-theme="light"] .text-amber-400,
-[data-theme="light"] .text-amber-300,
-[data-theme="light"] .text-amber-200,
-[data-theme="light"] .text-yellow-400,
-[data-theme="light"] .text-yellow-300 {
+[data-theme="light"] .text-amber-400:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *),
+[data-theme="light"] .text-amber-300:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *),
+[data-theme="light"] .text-amber-200:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *),
+[data-theme="light"] .text-yellow-400:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *),
+[data-theme="light"] .text-yellow-300:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *) {
   color: #B45309 !important;
 }
 
-[data-theme="light"] .text-amber-500 {
+[data-theme="light"] .text-amber-500:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *) {
   color: #92400E !important;
 }
 
 /* Emerald/Green conversion */
-[data-theme="light"] .text-emerald-400,
-[data-theme="light"] .text-emerald-300,
-[data-theme="light"] .text-green-400 {
+[data-theme="light"] .text-emerald-400:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *),
+[data-theme="light"] .text-emerald-300:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *),
+[data-theme="light"] .text-green-400:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *) {
   color: #047857 !important;
 }
 
 /* Rose/Red conversion */
-[data-theme="light"] .text-rose-400,
-[data-theme="light"] .text-rose-300,
-[data-theme="light"] .text-red-400 {
+[data-theme="light"] .text-rose-400:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *),
+[data-theme="light"] .text-rose-300:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *),
+[data-theme="light"] .text-red-400:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *) {
   color: #BE123C !important;
 }
 
 /* Blue/Teal conversion */
-[data-theme="light"] .text-blue-400,
-[data-theme="light"] .text-blue-300,
-[data-theme="light"] .text-sky-400,
-[data-theme="light"] .text-teal-400,
-[data-theme="light"] .text-cyan-400 {
+[data-theme="light"] .text-blue-400:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *),
+[data-theme="light"] .text-blue-300:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *),
+[data-theme="light"] .text-sky-400:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *),
+[data-theme="light"] .text-teal-400:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *),
+[data-theme="light"] .text-cyan-400:not(article *):not([class*="from-[#0d1424]"] *):not([class*="from-[#0f172a]"] *):not([class*="from-[#131b2e]"] *):not([class*="editorial-lead-dark"] *) {
   color: #1D4ED8 !important;
 }
 

@@ -813,10 +813,10 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
         =======================================================================
       */}
       <div className="hidden lg:flex flex-row items-stretch gap-4 w-full h-[620px] select-none">
-        {/* 1. مربع القصة الرئيسية الكبرى (50% من الشاشة) */}
+        {/* 1. مربع القصة الرئيسية الكبرى (40% من الشاشة - بعد إنقاص 10%) */}
         <div
           onClick={() => handleStoryClick(leadStory)}
-          className="w-1/2 h-full rounded-2xl overflow-hidden border border-slate-800/90 hover:border-amber-500/50 bg-gradient-to-b from-[#0f172a] via-[#0b1120] to-[#070b14] transition-all duration-300 shadow-xl group cursor-pointer flex flex-col justify-between relative shrink-0"
+          className="w-[40%] h-full rounded-2xl overflow-hidden border border-slate-800/90 hover:border-amber-500/50 bg-gradient-to-b from-[#0f172a] via-[#0b1120] to-[#070b14] transition-all duration-300 shadow-xl group cursor-pointer flex flex-col justify-between relative shrink-0"
         >
           {/* صورة وميديا في النصف العلوي */}
           <div className="w-full h-[320px] relative overflow-hidden bg-slate-950 shrink-0">
@@ -920,10 +920,10 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
           </div>
         </div>
 
-        {/* 2. الـ 50% المتبقية: خمس بطاقات مستطيلة (33%) + عمود رأي الخبير (النسبة المتبقية 67%) */}
-        <div className="w-1/2 h-full flex flex-row items-stretch gap-3.5 shrink-0">
-          {/* العمود أ: خمس بطاقات بشكل مستطيل تأخذ 33% من الـ 50% المتبقية */}
-          <div className="w-[33%] h-full flex flex-col justify-between gap-2 shrink-0">
+        {/* 2. الـ 60% المتبقية: خمس بطاقات مستطيلة (60% من هذه المساحة = 36% من الإجمالي بعد إضافة 20%) + عمود رأي الخبير (40% من هذه المساحة = 24% من الإجمالي بعد إنقاص 10%) */}
+        <div className="w-[60%] h-full flex flex-row items-stretch gap-3.5 shrink-0">
+          {/* العمود أ: خمس بطاقات بشكل مستطيل تأخذ 60% من الـ 60% المتبقية (36% من إجمالي الشاشة) */}
+          <div className="w-[60%] h-full flex flex-col justify-between gap-2 shrink-0">
             {fiveRectangularStories.map((story) => {
               const flag = getCountryFlag(story.countryCode);
               return (
@@ -951,7 +951,7 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
                   </div>
 
                   <div className="flex items-center justify-between text-[9.5px] pt-1 border-t border-slate-800/60 text-slate-400 font-mono">
-                    <span className="truncate max-w-[85px] text-slate-400 font-sans">
+                    <span className="truncate max-w-[150px] text-slate-400 font-sans">
                       {isAr ? story.sector : story.sectorEn}
                     </span>
                     <span className="text-emerald-400 font-bold flex items-center gap-0.5">
@@ -964,7 +964,7 @@ export const EditorialLeadCarousel: React.FC<EditorialLeadCarouselProps> = ({
             })}
           </div>
 
-          {/* العمود ب: بطاقة رأي خبير تأخذ النسبة المتبقية (67%) بشكل عمود يأخذ نفس ارتفاع الـ 5 بطاقات والبطاقة الكبيرة */}
+          {/* العمود ب: بطاقة رأي خبير تأخذ النسبة المتبقية (40% من الـ 60% = 24% من إجمالي الشاشة) بشكل عمود بنفس الارتفاع */}
           <div
             onClick={() => handleStoryClick(expertStory)}
             className="flex-1 min-w-0 h-full rounded-2xl overflow-hidden border border-amber-500/40 hover:border-amber-400/80 bg-gradient-to-b from-[#131b2e] via-[#0d1424] to-[#070b14] transition-all duration-300 shadow-2xl group cursor-pointer flex flex-col justify-between relative ring-1 ring-amber-500/20 shrink-0"

@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import App from "../App";
-import { AuthProvider } from "../context/AuthContext";
-import { ThemeProvider } from "../context/ThemeContext";
+import dynamic from "next/dynamic";
 
+const App = dynamic(() => import("../App"), { ssr: false });
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
 
@@ -27,10 +26,6 @@ export default function HomePage() {
   }
 
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    </ThemeProvider>
+    <App />
   );
 }

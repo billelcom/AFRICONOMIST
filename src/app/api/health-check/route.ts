@@ -1,7 +1,7 @@
 // src/app/api/health-check/route.ts
 import { NextResponse } from "next/server";
 import { connectToDatabase, getLastConnectionError } from "@/lib/services/mongodb";
-import { auth, dbRealtime } from "@/lib/services/firebase";
+import { auth, dbRealtime } from "@/lib/firebase";
 
 export const dynamic = "force-dynamic";
 

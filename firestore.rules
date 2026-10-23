@@ -1,114 +1,124 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Default-deny catch-all
+    // 1. Global Safety Net
     match /{document=**} {
       allow read, write: if false;
     }
 
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isValidId(id) {
-      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
-    }
-
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    function isAdmin() {
+    // 2. Hardened Helpers
+    function isSignedIn() { return request.auth != null; }
+    function isEmailVerified() { return isSignedIn() && request.auth.token.email_verified == true; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    
+    // Admin check: bootstrapped email or entry in /admins collection
+    function isAdmin() { 
       return isSignedIn() && (
-        request.auth.token.email == 'bbillel87@gmail.com' ||
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN')
+        request.auth.token.email == 'bbillel87@gmail.com' || 
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
       );
     }
-
-    function isSupervisor() {
-      return isSignedIn() && (
-        isAdmin() ||
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'SUPERVISOR')
-      );
+    
+    function isEditor() {
+      return isAdmin() || (isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['editor', 'admin', 'supervisor']);
     }
 
-    // 1. Users collection and subcollections
+    // 3. Validation Blueprints
+    function isValidUser(data) {
+      return data.uid == request.auth.uid
+        && data.email is string && data.email.size() <= 256
+        && (data.displayName == null || (data.displayName is string && data.displayName.size() <= 100))
+        && (data.photoURL == null || (data.photoURL is string && data.photoURL.size() <= 1024))
+        && data.role in ['reader', 'editor', 'admin', 'supervisor']
+        && data.createdAt == request.time
+        && data.updatedAt == request.time;
+    }
+
+    function isValidSavedArticle(data, userId) {
+      return data.userId == userId
+        && data.articleId is string && data.articleId.size() <= 128
+        && data.title is string && data.title.size() <= 200
+        && data.slug is string && data.slug.size() <= 200
+        && data.savedAt == request.time;
+    }
+
+    function isValidNotification(data, userId) {
+      return data.userId == userId
+        && data.title is string && data.title.size() <= 100
+        && data.message is string && data.message.size() <= 500
+        && data.type in ['info', 'alert', 'editorial']
+        && data.read is bool
+        && data.createdAt == request.time;
+    }
+
+    function isValidArticleStatus(data) {
+      return data.articleId is string && data.articleId.size() <= 128
+        && data.status in ['pending_review', 'published', 'archived']
+        && data.aiGenerated is bool
+        && data.createdAt is timestamp
+        && data.updatedAt == request.time;
+    }
+
+    // 4. Resource Matches
+    
+    // Users Collection
     match /users/{userId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-
-      allow create: if isSignedIn() && isValidId(userId)
-        && (isOwner(userId) || isAdmin())
-        && request.resource.data.uid == userId
-        && request.resource.data.email is string
-        && (request.resource.data.role == 'READER' || isAdmin());
-
-      allow update: if isSignedIn() && isValidId(userId) && (
-        isAdmin() ||
-        isSupervisor() ||
-        (isOwner(userId) && request.resource.data.role == resource.data.role)
-      );
-
-      allow delete: if isAdmin() && isValidId(userId);
-
-      // Subcollection: Saved Articles
-      match /savedArticles/{saveId} {
-        allow get, list: if isSignedIn() && (isOwner(userId) || isSupervisor());
-        allow create, update, delete: if isSignedIn() && (isOwner(userId) || isAdmin());
-      }
-
-      // Subcollection: Published Articles (for Editors, Supervisors, Admins)
-      match /publishedArticles/{articleId} {
-        allow get, list: if true;
-        allow create, update, delete: if isSignedIn() && (isOwner(userId) || isSupervisor() || isAdmin());
-      }
-
-      // Subcollection: Account Operations & Activities
-      match /activities/{activityId} {
-        allow get, list: if isSignedIn() && (isOwner(userId) || isSupervisor());
-        allow create: if isSignedIn() && (isOwner(userId) || isSupervisor() || isAdmin());
-        allow update, delete: if isAdmin();
-      }
-
-      // Subcollection: User Notifications
-      match /notifications/{notifId} {
-        allow get, list: if isSignedIn() && (isOwner(userId) || isSupervisor());
-        allow create, update, delete: if isSignedIn() && (isOwner(userId) || isSupervisor());
-      }
+      allow get: if isOwner(userId) || isEditor();
+      allow list: if isAdmin();
+      
+      allow create: if isOwner(userId) 
+        && isValidUser(incoming())
+        && incoming().role == 'reader'; // Default role for new users
+        
+      allow update: if isOwner(userId)
+        && (
+          // Action: Profile Update
+          (incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'updatedAt'])
+           && incoming().updatedAt == request.time) ||
+          // Action: Admin Role Update
+          (isAdmin() && incoming().diff(existing()).affectedKeys().hasOnly(['role', 'updatedAt']))
+        );
     }
 
-    // 2. Saved Articles collection
-    match /savedArticles/{saveId} {
-      allow get: if isSignedIn() && isValidId(saveId) && (resource.data.userId == request.auth.uid || isAdmin());
-      allow list: if isSignedIn();
-
-      allow create: if isSignedIn() && isValidId(saveId)
-        && request.resource.data.userId == request.auth.uid
-        && request.resource.data.articleId is string
-        && request.resource.data.articleTitle is string;
-
-      allow update: if isSignedIn() && isValidId(saveId)
-        && resource.data.userId == request.auth.uid;
-
-      allow delete: if isSignedIn() && isValidId(saveId) && (resource.data.userId == request.auth.uid || isAdmin());
+    // Saved Articles
+    match /users/{userId}/savedArticles/{articleId} {
+      allow list: if isOwner(userId);
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidSavedArticle(incoming(), userId);
+      allow delete: if isOwner(userId);
     }
 
-    // 3. Notifications collection
-    match /notifications/{notificationId} {
-      allow get: if isSignedIn() && isValidId(notificationId) && (resource.data.userId == request.auth.uid || resource.data.userId == 'ALL');
-      allow list: if isSignedIn();
+    // Notifications
+    match /users/{userId}/notifications/{notificationId} {
+      allow list: if isOwner(userId);
+      allow get: if isOwner(userId);
+      allow create: if isEditor(); // Only editors/admins can send notifications
+      allow update: if isOwner(userId) 
+        && incoming().diff(existing()).affectedKeys().hasOnly(['read']);
+    }
 
-      allow create: if isSignedIn() && isValidId(notificationId) && (
-        isSupervisor() || request.resource.data.userId == request.auth.uid || request.resource.data.userId == 'ALL'
+    // Article Status (Master Gate for Review Loop)
+    match /articleStatus/{articleId} {
+      allow read: if isSignedIn(); // All signed in users can see status (to know if it's published)
+      
+      allow create: if isEditor();
+      
+      allow update: if isEditor() && (
+        // Action: Review
+        (incoming().diff(existing()).affectedKeys().hasOnly(['status', 'humanEditorId', 'updatedAt'])
+         && incoming().status in ['published', 'archived']
+         && incoming().humanEditorId == request.auth.uid) ||
+        // Action: Metadata Edit
+        (isAdmin() && incoming().diff(existing()).affectedKeys().hasOnly(['citations', 'updatedAt']))
       );
+    }
 
-      allow update: if isSignedIn() && isValidId(notificationId)
-        && (resource.data.userId == request.auth.uid || isSupervisor());
-
-      allow delete: if isSignedIn() && isValidId(notificationId) && (resource.data.userId == request.auth.uid || isSupervisor());
+    // Admin List
+    match /admins/{userId} {
+      allow read: if isAdmin();
     }
   }
 }

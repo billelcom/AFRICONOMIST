@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "../index.css";
-import { PWAInitializer } from "../components/pwa/PWAInitializer";
+import { PWAClientWrapper } from "../components/pwa/PWAClientWrapper";
 
 export const viewport: Viewport = {
   themeColor: "#070A12",
@@ -13,12 +13,18 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "لافريكونوميست | صحيفة الاقتصاد الإفريقي",
   description: "لافريكونوميست - صحيفة الاقتصاد الإفريقي، رصد وتدقيق أسواق المال والسياسات النقدية واستثمارات 54 دولة أفريقية",
-  manifest: "/manifest.webmanifest",
+  manifest: "/manifest.json", // This will match the generated manifest from manifest.ts
   applicationName: "لافريكونوميست",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "لافريكونوميست",
+    startupImage: [
+      {
+        url: "/pwa-512x512.png",
+        media: "(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)",
+      },
+    ],
   },
   formatDetection: {
     telephone: false,
@@ -36,6 +42,9 @@ export const metadata: Metadata = {
   },
 };
 
+import { AuthProvider } from "../context/AuthContext";
+import { ThemeProvider } from "../context/ThemeContext";
+
 export default function RootLayout({
   children,
 }: {
@@ -44,6 +53,9 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" className="dark" data-theme="standard" suppressHydrationWarning>
       <head>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){
@@ -64,8 +76,12 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-[#080C14] text-slate-100 min-h-screen" suppressHydrationWarning>
-        <PWAInitializer />
-        {children}
+        <ThemeProvider>
+          <AuthProvider>
+            <PWAClientWrapper />
+            {children}
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

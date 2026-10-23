@@ -197,16 +197,21 @@ export default function App() {
     if (isAutomatedIngesting) return;
     setIsAutomatedIngesting(true);
     try {
-      // 1. اختيار عشوائي كامل وشامل: دولة من الـ 54 دولة، قطاع من الـ 28 قطاعاً، قالب صحفي من الـ 18 قالباً
+      // 1. اختيار عشوائي كامل وشامل
       const randomCountry = ALL_54_AFRICAN_COUNTRIES[Math.floor(Math.random() * ALL_54_AFRICAN_COUNTRIES.length)];
       const randomSector = ECONOMIC_SECTORS[Math.floor(Math.random() * ECONOMIC_SECTORS.length)];
       const randomGenre = JOURNALISTIC_GENRES[Math.floor(Math.random() * JOURNALISTIC_GENRES.length)];
 
       let createdReport: Article | null = null;
       try {
+        // 🔐 تأمين النداء: الحصول على توكن الهوية من فايربيز
+        const idToken = await user?.getIdToken();
         const res = await fetch('/api/agents/pipeline', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': idToken ? `Bearer ${idToken}` : ''
+          },
           body: JSON.stringify({
             country: randomCountry.nameAr,
             countryCode: randomCountry.code,
@@ -406,9 +411,13 @@ export default function App() {
 
     // 2. إرسال التحديث لـ MongoDB ليتم حفظه في السحابة
     try {
+      const idToken = await user?.getIdToken();
       await fetch('/api/articles', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': idToken ? `Bearer ${idToken}` : ''
+        },
         body: JSON.stringify({
           id: articleId,
           action: status === 'published' ? 'publish' : 'reject'
@@ -419,7 +428,7 @@ export default function App() {
     }
   };
 
-  const handleAddNewDraft = (newArticle: Article) => {
+  const handleAddNewDraft = async (newArticle: Article) => {
     setArticles(prev => {
       const updated = [newArticle, ...prev];
       saveArticlesToLocal(updated);
@@ -428,9 +437,13 @@ export default function App() {
 
     // إرسال المسودة الجديدة لقاعدة البيانات في الخلفية
     try {
+      const idToken = await user?.getIdToken();
       fetch('/api/articles', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': idToken ? `Bearer ${idToken}` : ''
+        },
         body: JSON.stringify(newArticle)
       }).catch(err => console.warn('Background article sync notice:', err));
     } catch {
@@ -482,9 +495,13 @@ export default function App() {
     genreName: string
   ) => {
     try {
+      const idToken = await user?.getIdToken();
       const res = await fetch('/api/agents/pipeline', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': idToken ? `Bearer ${idToken}` : ''
+        },
         body: JSON.stringify({
           country: country.nameAr,
           countryCode: country.code,
@@ -551,6 +568,7 @@ export default function App() {
       console.warn('Instant report API error:', e);
     }
   };
+
 
   const currentCountry = countries.find(c => c.slug === selectedCountrySlug) || countries[0];
 

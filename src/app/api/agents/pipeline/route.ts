@@ -1,16 +1,22 @@
-// src/app/api/agents/pipeline/route.ts
 import { NextResponse } from 'next/server';
 import { 
   generateReportPipeline, 
   generateRandomAutonomousReport, 
   AgentTaskRequest 
 } from "@/lib/services/articleGenerator";
+import { validateAuth } from "@/lib/auth-server";
 
 export const dynamic = "force-dynamic";
 
 // دالة POST: التوليد التحريري الفوري بناءً على خيارات المشرف أو استدعاء يدوي
 export async function POST(req: Request) {
   try {
+    // ⚠️ حماية الخادم: التحقق من الصلاحيات قبل استهلاك Gemini API
+    const auth = await validateAuth(req, ['ADMIN', 'SUPERVISOR', 'EDITOR']);
+    if (!auth) {
+      return NextResponse.json({ success: false, error: "غير مصرح لك بتوليد تقارير جديدة" }, { status: 401 });
+    }
+
     let body: AgentTaskRequest = {};
     try {
       body = await req.json();
@@ -36,6 +42,7 @@ export async function POST(req: Request) {
 }
 
 // دالة GET: دورة الرصد التلقائي كل نصف ساعة (Autonomous Cron / Background Ingest)
+// ⚠️ ملاحظة: يفضل مستقبلاً إضافة مفتاح سري (Secret Key) في الترويسة للتحقق من أن النداء قادم من Cron موثوق
 export async function GET(req: Request) {
   try {
     const report = await generateRandomAutonomousReport();
@@ -54,3 +61,4 @@ export async function GET(req: Request) {
     }, { status: 500 });
   }
 }
+

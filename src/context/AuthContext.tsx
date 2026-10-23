@@ -159,6 +159,71 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
+  // 6. Data Integrity: Verify Saved Articles exist in MongoDB
+  useEffect(() => {
+    if (!user || savedArticles.length === 0 || loading) return;
+
+    const verifySavedArticles = async () => {
+      try {
+        const idToken = await user.getIdToken();
+        const savedIds = savedArticles.map(a => a.articleId || a.id);
+        const notificationIdsWithArticles = notifications
+          .filter(n => n.articleId && !n.articleDeleted)
+          .map(n => n.articleId as string);
+          
+        const articleIds = Array.from(new Set([...savedIds, ...notificationIdsWithArticles]));
+        
+        if (articleIds.length === 0) return;
+
+        const res = await fetch('/api/sync/verify-saved', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+          },
+          body: JSON.stringify({ articleIds })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const existingIds = data.existingIds || [];
+          
+          // 1. Prune Dead Bookmarks
+          const deadSavedIds = savedIds.filter(id => !existingIds.includes(id));
+          if (deadSavedIds.length > 0) {
+            console.log(`[Data Integrity] Pruning ${deadSavedIds.length} dead bookmarks`);
+            for (const deadId of deadSavedIds) {
+              const docRef = doc(db, 'users', user.uid, 'savedArticles', deadId);
+              deleteDoc(docRef).catch(console.error);
+            }
+          }
+
+          // 2. Mark Dead Notifications
+          const deadNotifIds = notificationIdsWithArticles.filter(id => !existingIds.includes(id));
+          if (deadNotifIds.length > 0) {
+             console.log(`[Data Integrity] Marking ${deadNotifIds.length} notifications as dead`);
+             for (const deadId of deadNotifIds) {
+               // Find notification docs that point to this dead ID
+               const deadNotifications = notifications.filter(n => n.articleId === deadId && !n.articleDeleted);
+               for (const notif of deadNotifications) {
+                 if (notif.id) {
+                    const docRef = doc(db, 'users', user.uid, 'notifications', notif.id);
+                    setDoc(docRef, { articleDeleted: true }, { merge: true }).catch(console.error);
+                 }
+               }
+             }
+          }
+        }
+      } catch (err) {
+        console.error('[Data Integrity] Verification failed:', err);
+      }
+    };
+
+    // Run after a delay to ensure data is settled
+    const timeout = setTimeout(verifySavedArticles, 8000);
+    return () => clearTimeout(timeout);
+  }, [user, savedArticles, notifications, loading]);
+
   const signIn = async () => {
     try {
       await signInWithPopup(auth, googleProvider);

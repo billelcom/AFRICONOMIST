@@ -1,8 +1,13 @@
-// src/app/api/sync/queue/route.ts
 import { NextRequest, NextResponse } from 'next/server';
+import { validateAuth } from '@/lib/auth-server';
 
 export async function POST(req: NextRequest) {
   try {
+    const authResult = await validateAuth(req);
+    if (!authResult) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await req.json();
     const { items } = body;
 

@@ -204,12 +204,22 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
 
                   {/* إجراء سريع إذا كان مرتبطاً بمقال */}
                   <div className="flex items-center gap-3 text-[11px]">
-                    {linkedArticle && (
+                    {n.articleDeleted ? (
+                      <span className="text-slate-500 font-bold flex items-center gap-1 italic">
+                        <AlertCircle className="w-3 h-3" />
+                        <span>{isAr ? 'المقال لم يعد متاحاً' : 'Article no longer available'}</span>
+                      </span>
+                    ) : linkedArticle ? (
                       <span className="text-amber-400 group-hover:text-amber-300 font-bold flex items-center gap-1">
                         <span>{isAr ? 'عرض المقال المعني' : 'View Article'}</span>
                         {isAr ? <ArrowLeft className="w-3 h-3" /> : <ArrowRight className="w-3 h-3" />}
                       </span>
-                    )}
+                    ) : n.articleId ? (
+                       <span className="text-slate-500 font-bold flex items-center gap-1 italic">
+                        <Clock className="w-3 h-3" />
+                        <span>{isAr ? 'جاري التحقق من التوفر...' : 'Verifying availability...'}</span>
+                      </span>
+                    ) : null}
 
                     {canAccessNewsroom && onNavigateToNewsroom && (n.type === 'editorial_review' || n.type === 'revision_requested') && (
                       <button

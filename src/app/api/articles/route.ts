@@ -1,6 +1,7 @@
-// src/app/api/articles/route.ts
 import { NextResponse } from "next/server";
 import { getArticlesCollection } from "@/lib/services/mongodb";
+import { validateAuth } from "@/lib/auth-server";
+import { pruneArticleReferencesAcrossUsers } from "@/lib/integrity-service";
 
 export const dynamic = "force-dynamic";
 
@@ -29,9 +30,45 @@ export async function GET(req: Request) {
   }
 }
 
-// PATCH: اعتماد التقرير أو رفضه
+// POST: حفظ مسودة مقال جديدة (مؤمنة للمحررين فقط)
+export async function POST(req: Request) {
+  try {
+    // ⚠️ حماية الخادم: التحقق من الصلاحيات قبل المعالجة
+    const auth = await validateAuth(req, ['ADMIN', 'SUPERVISOR', 'EDITOR']);
+    if (!auth) {
+      return NextResponse.json({ success: false, error: "غير مصرح لك بتنفيذ هذا الإجراء" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const collection = await getArticlesCollection();
+    if (!collection) {
+      return NextResponse.json({ success: false, error: "قاعدة بيانات MongoDB غير متصلة" }, { status: 503 });
+    }
+
+    const articleData = {
+      ...body,
+      status: "pending_review", // فرض حالة المراجعة دائماً عند الحفظ الأولي
+      created_at: new Date().toISOString(),
+      author_uid: auth.uid
+    };
+
+    const result = await collection.insertOne(articleData);
+    return NextResponse.json({ success: true, message: "تم حفظ المسودة بنجاح", result });
+  } catch (error: any) {
+    console.error("Error saving article:", error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
+
+// PATCH: اعتماد التقرير أو رفضه (مؤمنة للمشرفين والمحررين فقط)
 export async function PATCH(req: Request) {
   try {
+    // ⚠️ حماية الخادم: التحقق من الصلاحيات قبل التعديل
+    const auth = await validateAuth(req, ['ADMIN', 'SUPERVISOR', 'EDITOR']);
+    if (!auth) {
+      return NextResponse.json({ success: false, error: "غير مصرح لك بتعديل حالة المقالات" }, { status: 401 });
+    }
+
     const body = await req.json();
     const { id, action } = body;
 
@@ -50,7 +87,8 @@ export async function PATCH(req: Request) {
         { 
           $set: { 
             status: "published", 
-            published_at: new Date().toISOString() 
+            published_at: new Date().toISOString(),
+            reviewed_by_uid: auth.uid
           } 
         }
       );
@@ -58,8 +96,19 @@ export async function PATCH(req: Request) {
     } else if (action === "reject") {
       const updateResult = await collection.updateOne(
         { id },
-        { $set: { status: "rejected" } }
+        { 
+          $set: { 
+            status: "rejected",
+            reviewed_by_uid: auth.uid
+          } 
+        }
       );
+
+      // 🧹 Integrity: Prune references in Firebase when rejected
+      await pruneArticleReferencesAcrossUsers(id, true).catch(err => 
+        console.error("[API] Proactive prune failed:", err)
+      );
+
       return NextResponse.json({ success: true, message: "تم رفض المقال وتأجيله", updateResult });
     }
 
@@ -69,3 +118,4 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+

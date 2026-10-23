@@ -47,16 +47,14 @@ import { ALL_54_AFRICAN_COUNTRIES } from '../../data/africanCountries';
 import { JOURNALISTIC_GENRES, ECONOMIC_SECTORS } from '../../data/reportOptions';
 import { getSecondsUntilNextCycle, resetNextCycleTarget } from '../../lib/cycleScheduler';
 import { 
-  GENRE_AGENT_DIRECTIVES, 
-  SECTOR_AGENT_DIRECTIVES, 
-  buildCompositeAgentDirective, 
-  getGenreDirective, 
-  getSectorDirective 
-} from '../../lib/agents/personasRegistry';
-import { 
   ALL_OFFICIAL_GROUNDING_SOURCES, 
   getOfficialSourcesForCountry 
 } from '../../lib/agents/officialSourcesLedger';
+import { NewsroomSidebar, NewsroomTab } from '../editorial/NewsroomSidebar';
+import { SimulationWorkbench } from '../editorial/SimulationWorkbench';
+import { SectorNewsGrid } from '../editorial/SectorNewsGrid';
+import { EditorialArticleCard } from '../editorial/EditorialArticleCard';
+import { NewsroomTabsMobile } from '../editorial/NewsroomTabsMobile';
 
 interface EditorialViewProps {
   articles: Article[];
@@ -70,7 +68,7 @@ interface EditorialViewProps {
   onTriggerAutomatedCycleNow?: () => void;
 }
 
-type NewsroomTab = 'overview' | 'editor' | 'pending' | 'training' | 'library' | 'archive' | 'commission';
+
 
 interface SectorSection {
   id: string;
@@ -219,9 +217,13 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
     setIsSimulating(true);
     setSimulationResult(null);
     try {
+      const idToken = await user?.getIdToken();
       const res = await fetch('/api/agents/pipeline', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': idToken ? `Bearer ${idToken}` : ''
+        },
         body: JSON.stringify({
           country: simCountry,
           sector: simSector,
@@ -491,9 +493,13 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
     if (!currentActiveArticle) return;
     setIsAiRefining(true);
     try {
+      const idToken = await user?.getIdToken();
       const response = await fetch('/api/agents/pipeline', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': idToken ? `Bearer ${idToken}` : ''
+        },
         body: JSON.stringify({
           country: currentActiveArticle.countryName,
           countryCode: currentActiveArticle.countryCode,
@@ -551,9 +557,13 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
 
       let createdArticle: Article | null = null;
       try {
+        const idToken = await user?.getIdToken();
         const response = await fetch('/api/agents/pipeline', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': idToken ? `Bearer ${idToken}` : ''
+          },
           body: JSON.stringify({
             country: isAr ? randomCountry.nameAr : randomCountry.nameEn,
             countryCode: randomCountry.code,
@@ -780,77 +790,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
     }
   };
 
-  // بطاقة المقال الموحدة لقطاعات الأخبار (متجاوبة تماماً مع الهاتف والحاسوب)
-  const renderSectorArticleCard = (art: Article, idx: number, isMobile: boolean, totalCount: number) => {
-    const isPending = art.status === 'pending_review';
-    return (
-      <div
-        key={art.id || idx}
-        onClick={() => handleOpenInEditor(art)}
-        className={`${
-          isMobile 
-            ? 'w-full min-w-full max-w-full shrink-0 snap-center' 
-            : 'w-full min-w-0 max-w-full'
-        } bg-[#0A0F1D] hover:bg-[#0E1528] border border-slate-800 hover:border-amber-500/50 rounded-2xl p-4 space-y-3 cursor-pointer transition-all duration-200 group shadow-lg flex flex-col justify-between overflow-hidden break-words`}
-      >
-        {/* Top Bar: Country & Journalistic Genre */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs gap-1.5">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-xs px-2 py-0.5 rounded-md bg-slate-800 text-amber-300 font-bold border border-slate-700 truncate">
-                🌍 {art.countryName}
-              </span>
-              <span className="text-[10px] text-slate-400 font-mono shrink-0">
-                {art.countryCode}
-              </span>
-            </div>
 
-            <div className="flex items-center gap-1.5 shrink-0">
-              {isMobile && (
-                <span className="text-[10px] font-mono text-slate-500 sm:hidden">
-                  [{idx + 1}/{totalCount}]
-                </span>
-              )}
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold font-mono ${
-                isPending 
-                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' 
-                  : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-              }`}>
-                {isPending ? (isAr ? 'قيد المراجعة' : 'Pending') : (isAr ? 'منشور' : 'Published')}
-              </span>
-            </div>
-          </div>
-
-          {/* Journalistic Genre Pill */}
-          <div className="inline-block text-[11px] font-bold text-amber-400/90 bg-amber-500/10 px-2.5 py-0.5 rounded-lg border border-amber-500/20 max-w-full truncate">
-            📰 {art.journalisticType || (isAr ? 'التحقيق الصحفي' : 'Investigative')}
-          </div>
-
-          {/* Title */}
-          <h4 className="text-sm sm:text-base md:text-lg font-bold text-white group-hover:text-amber-400 transition-colors line-clamp-2 leading-snug break-words">
-            {art.title}
-          </h4>
-
-          {/* Summary preview */}
-          <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed break-words">
-            {art.summary}
-          </p>
-        </div>
-
-        {/* Footer of Card */}
-        <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
-          <span className="flex items-center gap-1 shrink-0">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>{art.factCheck?.score || 96}% {isAr ? 'دقة' : 'score'}</span>
-          </span>
-          <span className="text-amber-400/90 group-hover:translate-x-1 transition-transform flex items-center gap-0.5 font-bold shrink-0">
-            <span>{isAr ? 'فتح المحرر' : 'Open Editor'}</span>
-            <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-0 ltr:rotate-180" />
-          </span>
-        </div>
-      </div>
-    );
-  };
 
   // حظر الوصول المباشر لغير المعتمدين (Zero-Trust Guard)
   if (!canAccessNewsroom) {
@@ -878,120 +818,17 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
       {/* =========================================================================
           1. MOBILE TOP HORIZONTAL SCROLLING MENU (قائمة الهاتف الأفقية بدون سكرول بار)
          ========================================================================= */}
-      <div className="md:hidden sticky top-14 z-30 bg-[#080C16]/95 backdrop-blur-xl border-b border-slate-800/80 px-2 py-2 shadow-lg w-full">
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth">
-          {/* 1. زر التوليد الآلي كل 30 د */}
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 border transition-all ${
-              activeTab === 'overview'
-                ? 'bg-amber-500/15 text-amber-300 border-amber-500/40 shadow-sm'
-                : 'bg-slate-900/80 text-slate-300 border-slate-800 hover:text-white'
-            }`}
-          >
-            <Clock className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-            <span>{isAr ? 'الرصد الآلي:' : 'Auto Pulse:'}</span>
-            <span className="font-mono text-[11px] text-amber-400 bg-amber-950/40 px-1.5 py-0.2 rounded border border-amber-500/30">
-              {formatTime(secondsUntilNextCycle)}
-            </span>
-          </button>
-
-          {/* 2. زر التوليد الفوري العشوائي */}
-          <button
-            onClick={handleTriggerInstantRandomGeneration}
-            disabled={isAutomatedIngesting}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap shrink-0 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md shadow-amber-500/20 active:scale-95 transition-all"
-          >
-            <Zap className={`w-3.5 h-3.5 ${isAutomatedIngesting ? 'animate-spin' : 'fill-current'}`} />
-            <span>{isAutomatedIngesting ? (isAr ? 'جاري الرصد...' : 'Pulsing...') : (isAr ? 'توليد فوري عشوائي' : 'Instant Random')}</span>
-          </button>
-
-          {/* 3. زر التوليد المخصص (انتقال سلس بدون popup) */}
-          <button
-            onClick={() => setActiveTab('commission')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 border transition-all ${
-              activeTab === 'commission'
-                ? 'bg-blue-500/20 text-blue-300 border-blue-500/40 shadow-sm'
-                : 'bg-slate-900/80 text-slate-200 border border-slate-800 hover:border-slate-700'
-            }`}
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-blue-400" />
-            <span>{isAr ? 'توليد مخصص' : 'Custom Report'}</span>
-          </button>
-
-          {/* 4. زر المقالات التي تحتاج معالجة */}
-          <button
-            onClick={() => setActiveTab('pending')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 border transition-all ${
-              activeTab === 'pending'
-                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm'
-                : 'bg-slate-900/80 text-slate-300 border-slate-800'
-            }`}
-          >
-            <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
-            <span>{isAr ? 'تحتاج معالجة' : 'Pending Review'}</span>
-            {pendingArticles.length > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white font-mono">
-                {pendingArticles.length}
-              </span>
-            )}
-          </button>
-
-          {/* 5. زر تحرير */}
-          <button
-            onClick={() => {
-              if (currentActiveArticle) setActiveTab('editor');
-            }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 border transition-all ${
-              activeTab === 'editor'
-                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm'
-                : 'bg-slate-900/80 text-slate-300 border-slate-800'
-            }`}
-          >
-            <FileEdit className="w-3.5 h-3.5 text-emerald-400" />
-            <span>{isAr ? 'محرر الأخبار' : 'Editor'}</span>
-          </button>
-
-          {/* 6. زر تدريب الوكيل */}
-          <button
-            onClick={() => setActiveTab('training')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 border transition-all ${
-              activeTab === 'training'
-                ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
-                : 'bg-slate-900/80 text-slate-300 border-slate-800'
-            }`}
-          >
-            <Brain className="w-3.5 h-3.5 text-purple-400" />
-            <span>{isAr ? 'تدريب الوكيل' : 'Agent Training'}</span>
-          </button>
-
-          {/* 7. زر المكتبة */}
-          <button
-            onClick={() => setActiveTab('library')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 border transition-all ${
-              activeTab === 'library'
-                ? 'bg-teal-500/20 text-teal-300 border-teal-500/40'
-                : 'bg-slate-900/80 text-slate-300 border-slate-800'
-            }`}
-          >
-            <BookOpen className="w-3.5 h-3.5 text-teal-400" />
-            <span>{isAr ? 'المكتبة' : 'Library'}</span>
-          </button>
-
-          {/* 8. زر الارشيف */}
-          <button
-            onClick={() => setActiveTab('archive')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 border transition-all ${
-              activeTab === 'archive'
-                ? 'bg-slate-700/40 text-slate-200 border-slate-600'
-                : 'bg-slate-900/80 text-slate-400 border-slate-800'
-            }`}
-          >
-            <Archive className="w-3.5 h-3.5 text-slate-400" />
-            <span>{isAr ? 'الأرشيف' : 'Archive'}</span>
-          </button>
-        </div>
-      </div>
+      <NewsroomTabsMobile
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        isAr={isAr}
+        secondsUntilNextCycle={secondsUntilNextCycle}
+        formatTime={formatTime}
+        isAutomatedIngesting={isAutomatedIngesting}
+        handleTriggerInstantRandomGeneration={handleTriggerInstantRandomGeneration}
+        pendingArticlesCount={pendingArticles.length}
+        currentActiveArticle={currentActiveArticle}
+      />
 
       {/* =========================================================================
           2. MAIN WORKSPACE WITH DYNAMIC DESKTOP SIDEBAR + CONTENT AREA
@@ -1008,247 +845,25 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
         {/* =======================================================================
             DESKTOP DYNAMIC SIDEBAR (أيقونات فقط ديناميكية مع بطاقة العنوان التفاعلية)
            ======================================================================= */}
-        <aside className="hidden md:flex flex-col w-16 md:w-20 shrink-0 bg-gradient-to-b from-[#090D18] via-[#070A14] to-[#05070E] border-x border-slate-800/80 py-5 px-2 items-center justify-between select-none shadow-2xl relative z-40">
-          <div className="w-full flex flex-col items-center space-y-4">
-            {/* أيقونة شارة غرفة الأخبار بالأعلى */}
-            <div 
-              className="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-sm relative group cursor-default"
-              title={isAr ? 'غرفة الأخبار والرقابة الإفريقية' : 'Newsroom Master Desk'}
-            >
-              <ShieldCheck className="w-5 h-5 text-rose-400" />
-              <span className="absolute -bottom-1 w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50 animate-pulse" />
-            </div>
-
-            <div className="w-8 h-px bg-slate-800/80 my-1" />
-
-            {/* قائمة الأيقونات الثمانية: تظهر الأيقونات فقط وعند الضغط يظهر العنوان */}
-            <nav className="space-y-2.5 w-full flex flex-col items-center" aria-label="Newsroom Navigation">
-              {[
-                {
-                  id: 'overview' as const,
-                  nameAr: 'التوليد الآلي (كل 30 د)',
-                  nameEn: 'Autonomous Cycle (30m)',
-                  descAr: 'رصد دوري للـ 54 دولة مع عداد التوليد التلقائي',
-                  descEn: 'Periodic continental pulse with automated timer',
-                  category: isAr ? 'رصد آلي' : 'Autonomous',
-                  icon: Clock,
-                  badge: formatTime(secondsUntilNextCycle),
-                  isPulse: true,
-                  activeColor: 'from-amber-500/25 to-amber-600/15 border-amber-400 text-amber-300'
-                },
-                {
-                  id: 'instant_random' as const,
-                  nameAr: 'توليد فوري عشوائي',
-                  nameEn: 'Instant Random Report',
-                  descAr: 'دولة · قطاع · قالب بنقرة واحدة فوراً دون انتظار',
-                  descEn: '1-click immediate report generation',
-                  category: isAr ? 'توليد فوري' : 'Instant',
-                  icon: Zap,
-                  activeColor: 'from-amber-400/30 to-amber-500/20 border-amber-400 text-amber-300'
-                },
-                {
-                  id: 'commission' as const,
-                  nameAr: 'توليد مخصص',
-                  nameEn: 'Commission Custom Report',
-                  descAr: 'معالج تفاعلي لتحديد الدولة والقطاع والقالب الصحفي',
-                  descEn: 'Interactive step-by-step reporting wizard',
-                  category: isAr ? 'تكليف صحفي' : 'Commission',
-                  icon: SlidersHorizontal,
-                  activeColor: 'from-blue-500/25 to-blue-600/15 border-blue-400 text-blue-300'
-                },
-                {
-                  id: 'pending' as const,
-                  nameAr: 'مقالات تحتاج معالجة',
-                  nameEn: 'Pending Review Queue',
-                  descAr: 'بانتظار إجازة واعتماد المشرف البشري (مخرجات الذكاء ومسودات المحررين)',
-                  descEn: 'Human review & approval queue for AI and editor drafts',
-                  category: isAr ? 'الرقابة والتدقيق' : 'Review Queue',
-                  icon: AlertTriangle,
-                  badge: pendingArticles.length > 0 ? pendingArticles.length : null,
-                  activeColor: 'from-rose-500/25 to-rose-600/15 border-rose-400 text-rose-300'
-                },
-                {
-                  id: 'editor' as const,
-                  nameAr: 'محرر الأخبار المباشر',
-                  nameEn: 'Live Editorial Desk',
-                  descAr: 'نشر ومصادقة المقالات، تعديل العناوين والمتون، وإعادة التوجيه',
-                  descEn: 'Live editing, fact-checking and publishing desk',
-                  category: isAr ? 'التحرير المباشر' : 'Live Editor',
-                  icon: FileEdit,
-                  activeColor: 'from-emerald-500/25 to-emerald-600/15 border-emerald-400 text-emerald-300'
-                },
-                {
-                  id: 'training' as const,
-                  nameAr: 'تدريب الوكيل',
-                  nameEn: 'Agent Training Workbench',
-                  descAr: 'ضبط النبرة التحريرية وقواعد التحقق الصارم من المصادر والأرقام',
-                  descEn: 'Prompt tuning & strict verification rules',
-                  category: isAr ? 'هندسة الأوامر' : 'AI Training',
-                  icon: Brain,
-                  activeColor: 'from-purple-500/25 to-purple-600/15 border-purple-400 text-purple-300'
-                },
-                {
-                  id: 'library' as const,
-                  nameAr: 'المكتبة والتقارير',
-                  nameEn: 'Editorial Library',
-                  descAr: `${publishedArticles.length} تقارير منشورة ومعتمدة للجمهور`,
-                  descEn: `${publishedArticles.length} published reports in live feed`,
-                  category: isAr ? 'الأرشيف الحي' : 'Library',
-                  icon: BookOpen,
-                  badge: publishedArticles.length > 0 ? publishedArticles.length : null,
-                  activeColor: 'from-teal-500/25 to-teal-600/15 border-teal-400 text-teal-300'
-                },
-                {
-                  id: 'archive' as const,
-                  nameAr: 'الأرشيف والمرفوضات',
-                  nameEn: 'Editorial Archive',
-                  descAr: 'المقالات المستبعدة والمسودات المؤرشفة للمراجعة اللاحقة',
-                  descEn: 'Archived and rejected editorial records',
-                  category: isAr ? 'المحفوظات' : 'Archive',
-                  icon: Archive,
-                  badge: archivedArticles.length > 0 ? archivedArticles.length : null,
-                  activeColor: 'from-slate-700/40 to-slate-800/20 border-slate-500 text-slate-300'
-                }
-              ].map((item) => {
-                const isActive = activeTab === item.id;
-                const isExpanded = expandedSidebarTab === item.id;
-                const ItemIcon = item.icon;
-
-                const handleActivate = () => {
-                  if (item.id === 'instant_random') {
-                    handleTriggerInstantRandomGeneration();
-                  } else {
-                    if (item.id === 'editor' && !currentActiveArticle && articles.length > 0) {
-                      setSelectedArticleId(articles[0].id);
-                    }
-                    setActiveTab(item.id);
-                  }
-                  // عند الضغط تعرض الصفحة ويختفي العنوان وتبقى الأيقونة ظاهرة
-                  setExpandedSidebarTab(null);
-                };
-
-                return (
-                  <div key={item.id} className="relative w-full flex justify-center">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (isExpanded) {
-                          // الضغط مجدداً: تعرض الصفحة ويختفي العنوان وتبقى الأيقونة ظاهرة
-                          handleActivate();
-                        } else {
-                          // الضغط الأول: يظهر العنوان الخاص بالأيقونة
-                          setExpandedSidebarTab(item.id);
-                        }
-                      }}
-                      className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all cursor-pointer relative group ${
-                        isActive
-                          ? `bg-gradient-to-br ${item.activeColor} border-2 shadow-lg shadow-amber-500/15 scale-105`
-                          : isExpanded
-                          ? 'bg-amber-500/20 text-amber-300 border-2 border-amber-400/80 shadow-md ring-2 ring-amber-400/20'
-                          : 'bg-slate-900/80 hover:bg-slate-850 text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
-                      }`}
-                      title={isAr ? item.nameAr : item.nameEn}
-                    >
-                      <ItemIcon className={`w-5 h-5 transition-transform group-hover:scale-110 ${item.id === 'instant_random' && isAutomatedIngesting ? 'animate-spin' : ''}`} />
-
-                      {/* شارة رقمية مصغرة (مثل المقالات المعلقة أو عداد الوقت) */}
-                      {item.badge !== undefined && item.badge !== null && (
-                        <span className={`absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold border border-slate-900 shadow-sm ${
-                          item.isPulse
-                            ? 'bg-amber-500 text-slate-950 font-bold'
-                            : 'bg-rose-500 text-white'
-                        }`}>
-                          {item.badge}
-                        </span>
-                      )}
-
-                      {/* نقطة النشاط عند اختيار الأيقونة */}
-                      {isActive && (
-                        <span className="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400" />
-                      )}
-                    </button>
-
-                    {/* =========================================================================
-                        بطاقة العنوان التفاعلية: تظهر عند الضغط على الأيقونة
-                        وعند الضغط تعرض الصفحة ويختفي العنوان وتبقى الأيقونة ظاهرة مع باقي الأيقونات
-                       ========================================================================= */}
-                    {isExpanded && (
-                      <div 
-                        className="absolute rtl:right-[100%] rtl:mr-3 ltr:left-[100%] ltr:ml-3 top-1/2 -translate-y-1/2 z-50 w-72 sm:w-80 p-4 rounded-2xl bg-gradient-to-br from-[#0F172A] via-[#0B101E] to-[#080C16] border-2 border-amber-500/70 shadow-2xl shadow-black/95 space-y-3 animate-in fade-in zoom-in-95 duration-150 text-right rtl:text-right ltr:text-left cursor-pointer"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleActivate();
-                        }}
-                      >
-                        <div className="flex items-start justify-between gap-2 border-b border-slate-800/80 pb-2.5">
-                          <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
-                              <ItemIcon className="w-4 h-4" />
-                            </div>
-                            <div>
-                              <h4 className="text-xs sm:text-sm font-black text-white">
-                                {isAr ? item.nameAr : item.nameEn}
-                              </h4>
-                              <span className="text-[10px] text-amber-400/90 font-mono font-bold">
-                                {item.category}
-                              </span>
-                            </div>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setExpandedSidebarTab(null);
-                            }}
-                            className="p-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer"
-                            title={isAr ? 'إغلاق العنوان' : 'Close'}
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-
-                        <p className="text-[11px] text-slate-300 leading-relaxed">
-                          {isAr ? item.descAr : item.descEn}
-                        </p>
-
-                        {item.badge !== undefined && item.badge !== null && (
-                          <div className="p-2 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between text-[11px]">
-                            <span className="text-slate-400">{isAr ? 'الحالة / الرصد:' : 'Status / Pulse:'}</span>
-                            <span className="font-mono font-bold text-amber-400">{item.badge}</span>
-                          </div>
-                        )}
-
-                        {/* زر عرض الصفحة: عند الضغط تعرض الصفحة ويختفي العنوان وتبقى الأيقونة */}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleActivate();
-                          }}
-                          className="w-full py-2.5 px-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-95 transition-all cursor-pointer"
-                        >
-                          <span>
-                            {item.id === 'instant_random' 
-                              ? (isAr ? 'تشغيل التوليد الفوري الآن' : 'Trigger Generation Now') 
-                              : (isAr ? 'عرض الصفحة الآن' : 'Display Page View')}
-                          </span>
-                          <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-0 ltr:rotate-180" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </nav>
-          </div>
-
-          {/* تذييل مصغر في أسفل الشريط */}
-          <div className="pt-3 border-t border-slate-800/80 flex flex-col items-center gap-1 text-[9px] text-slate-500 font-mono">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>AI</span>
-          </div>
-        </aside>
+        <NewsroomSidebar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          expandedSidebarTab={expandedSidebarTab}
+          setExpandedSidebarTab={setExpandedSidebarTab}
+          isAr={isAr}
+          secondsUntilNextCycle={secondsUntilNextCycle}
+          isAutomatedIngesting={isAutomatedIngesting}
+          pendingArticlesCount={pendingArticles.length}
+          publishedArticlesCount={publishedArticles.length}
+          archivedArticlesCount={archivedArticles.length}
+          onTriggerInstantRandomGeneration={handleTriggerInstantRandomGeneration}
+          onOpenEditor={() => {
+            if (!currentActiveArticle && articles.length > 0) {
+              setSelectedArticleId(articles[0].id);
+            }
+          }}
+          formatTime={formatTime}
+        />
 
         {/* =======================================================================
             MAIN CONTENT AREA (متجاوبة بالكامل وتمنع خروج المقالات عن حدود الصفحة)
@@ -1455,9 +1070,13 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
               onAiRefine={async (customNotes, promptHeadline) => {
                 setIsAiRefining(true);
                 try {
+                  const idToken = await user?.getIdToken();
                   const response = await fetch('/api/agents/pipeline', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                      'Content-Type': 'application/json',
+                      'Authorization': idToken ? `Bearer ${idToken}` : ''
+                    },
                     body: JSON.stringify({
                       country: currentActiveArticle.countryName,
                       countryCode: currentActiveArticle.countryCode,
@@ -1823,217 +1442,20 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                   SUB-TAB 1: 3D MATRIX SANDBOX & SIMULATOR (المحاكاة الثلاثية)
                  ------------------------------------------------------------- */}
               {trainingSubTab === 'matrix' && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                    {/* Column 1: Configurator Controls */}
-                    <div className="lg:col-span-1 p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
-                      <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
-                        <Sparkles className="w-4 h-4 text-purple-400" />
-                        <h3 className="text-sm font-bold text-white">
-                          {isAr ? 'توليف فرقة العمل الرقمية الثلاثية' : '3D Task Force Configuration'}
-                        </h3>
-                      </div>
-
-                      {/* 1. Country Selector */}
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
-                          <span>{isAr ? '1. وكيل الدولة الإفريقية:' : '1. African Nation Agent:'}</span>
-                          <span className="text-[10px] text-amber-400 font-mono">54 {isAr ? 'دولة' : 'Nations'}</span>
-                        </label>
-                        <select
-                          value={simCountry}
-                          onChange={(e) => setSimCountry(e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-purple-500"
-                        >
-                          {ALL_54_AFRICAN_COUNTRIES.map((c) => (
-                            <option key={c.code} value={c.nameAr}>
-                              {c.nameAr} ({c.nameEn}) - {c.currency}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* 2. Sector Selector */}
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
-                          <span>{isAr ? '2. وكيل القطاع الاقتصادي:' : '2. Economic Sector Agent:'}</span>
-                          <span className="text-[10px] text-purple-400 font-mono">28 {isAr ? 'قطاعاً' : 'Sectors'}</span>
-                        </label>
-                        <select
-                          value={simSector}
-                          onChange={(e) => setSimSector(e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-purple-500"
-                        >
-                          {ECONOMIC_SECTORS.map((s) => (
-                            <option key={s.id} value={s.nameAr}>
-                              {s.nameAr} ({s.groupNameAr})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* 3. Genre Selector */}
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
-                          <span>{isAr ? '3. وكيل النوع الصحفي والقالب:' : '3. Journalistic Genre Agent:'}</span>
-                          <span className="text-[10px] text-emerald-400 font-mono">18 {isAr ? 'نوعاً' : 'Genres'}</span>
-                        </label>
-                        <select
-                          value={simGenre}
-                          onChange={(e) => setSimGenre(e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-purple-500"
-                        >
-                          {JOURNALISTIC_GENRES.map((g) => (
-                            <option key={g.id} value={g.nameAr}>
-                              {g.nameAr} ({g.category})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* Run Simulation Button */}
-                      <div className="pt-2">
-                        <button
-                          type="button"
-                          onClick={handleRunMatrixSimulation}
-                          disabled={isSimulating}
-                          className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-xs shadow-lg shadow-purple-600/25 flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50"
-                        >
-                          {isSimulating ? (
-                            <>
-                              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                              <span>{isAr ? 'جاري تشغيل الوكلاء ومحاكاة الإنتاج...' : 'Simulating Agent Pipeline...'}</span>
-                            </>
-                          ) : (
-                            <>
-                              <Play className="w-4 h-4 fill-current text-white" />
-                              <span>{isAr ? 'تشغيل تجربة محاكاة وتدريب الوكلاء فوراً' : 'Run Matrix Simulation & Generate Draft'}</span>
-                            </>
-                          )}
-                        </button>
-                        <p className="text-[10px] text-slate-500 mt-2 text-center">
-                          {isAr ? '⚠️ معيار أمني صارم: تحفظ المسودة المولدة في MongoDB بحالة (قيد المراجعة) لاعتمادها لاحقاً.' : 'Strict Security: Generated draft is committed as pending_review.'}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Column 2 & 3: Composite Directive Inspector */}
-                    <div className="lg:col-span-2 p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
-                      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                        <div className="flex items-center gap-2">
-                          <Layers className="w-4 h-4 text-emerald-400" />
-                          <h3 className="text-sm font-bold text-white">
-                            {isAr ? 'معاينة الموجه التدريبي الموحد للفرقة الرقمية (Composite Directive Preview)' : 'Composite Agent Directive Preview'}
-                          </h3>
-                        </div>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                          {isAr ? 'توليف ثلاثي ديناميكي' : '3D Dynamic Synthesis'}
-                        </span>
-                      </div>
-
-                      {/* Live Generated Prompt Preview */}
-                      {(() => {
-                        const matchedG = Object.values(GENRE_AGENT_DIRECTIVES).find(g => g.nameAr === simGenre) || GENRE_AGENT_DIRECTIVES['news_report'];
-                        const matchedS = Object.values(SECTOR_AGENT_DIRECTIVES).find(s => s.nameAr === simSector) || SECTOR_AGENT_DIRECTIVES['macroeconomics'];
-                        const directiveText = buildCompositeAgentDirective({
-                          genreId: matchedG.genreId,
-                          sectorId: matchedS.sectorId,
-                          countryName: simCountry,
-                          countryCode: 'AFRICA',
-                          stage: 'writer',
-                          customNotes: isAr ? 'مراعاة ربط التطورات الحالية بالسلاسل الزمنية التاريخية' : 'Correlate with historical time-series'
-                        });
-
-                        return (
-                          <div className="space-y-3">
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                              <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
-                                <span className="text-slate-500 block text-[10px]">{isAr ? 'وكيل الصياغة المتخصص' : 'Specialist Agent'}</span>
-                                <span className="font-bold text-amber-400 truncate block">{matchedG.agentRoleAr}</span>
-                              </div>
-                              <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
-                                <span className="text-slate-500 block text-[10px]">{isAr ? 'المحلل القطاعي المالي' : 'Sector Specialist'}</span>
-                                <span className="font-bold text-purple-400 truncate block">{matchedS.specialistTitleAr}</span>
-                              </div>
-                              <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
-                                <span className="text-slate-500 block text-[10px]">{isAr ? 'الهدف اللفظي' : 'Target Length'}</span>
-                                <span className="font-bold text-emerald-400 block">{matchedG.wordCountTarget.recommended} {isAr ? 'كلمة' : 'words'}</span>
-                              </div>
-                            </div>
-
-                            <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-[11px] text-slate-300 leading-relaxed max-h-72 overflow-y-auto whitespace-pre-wrap no-scrollbar">
-                              {directiveText}
-                            </div>
-                          </div>
-                        );
-                      })()}
-
-                      {/* Simulation Result Box */}
-                      {simulationResult && (
-                        <div className={`p-4 rounded-xl border animate-in fade-in duration-200 ${
-                          simulationResult.success 
-                            ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-200' 
-                            : 'bg-rose-950/30 border-rose-500/40 text-rose-200'
-                        }`}>
-                          {simulationResult.success ? (
-                            <div className="space-y-2">
-                              <div className="flex items-center justify-between">
-                                <span className="font-black text-xs flex items-center gap-1.5">
-                                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                                  <span>{isAr ? '✨ نجحت دورة المحاكاة والتدريب! أُرسلت المسودة إلى قائمة قيد المراجعة:' : 'Simulation Succeeded! Draft added to Pending Queue:'}</span>
-                                </span>
-                                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                                  {simulationResult.report?.agent_metrics?.ai_engine || 'AI Engine'}
-                                </span>
-                              </div>
-                              <p className="text-xs font-bold text-white">{simulationResult.report?.title}</p>
-                              <div className="flex items-center gap-3 text-[11px] text-slate-400">
-                                <span>{isAr ? 'الكلمات:' : 'Words:'} {simulationResult.report?.agent_metrics?.word_count || 600}</span>
-                                <span>•</span>
-                                <span>{isAr ? 'صرامة الاستشهاد:' : 'Citations Strictness:'} 98%</span>
-                                <span>•</span>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setActiveTab('pending');
-                                    setPendingSubFilter('ai');
-                                  }}
-                                  className="text-amber-400 underline font-bold cursor-pointer hover:text-amber-300"
-                                >
-                                  {isAr ? 'فتح المسودة في قائمة المراجعة ⬅️' : 'Review in Pending Queue ➡️'}
-                                </button>
-                              </div>
-
-                              {/* Fact-Check Audit Summary Certificate */}
-                              {simulationResult.report?.factCheck && (
-                                <div className="p-3 rounded-xl bg-slate-950/80 border border-emerald-500/30 space-y-1.5 text-xs">
-                                  <div className="flex flex-wrap items-center justify-between gap-2">
-                                    <span className="font-black text-emerald-300 flex items-center gap-1.5">
-                                      <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                                      <span>{simulationResult.report.factCheck.institutionAuthorityBadge || '🏛️ موثق بسجلات البنك المركزي الرسمي'}</span>
-                                    </span>
-                                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                                      {isAr ? 'فحص رياضي خالٍ من الهلوسة' : 'Zero Hallucinations Verified'}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-4 text-[11px] text-slate-400 font-mono">
-                                    <span>{isAr ? 'مطابقة المؤشرات:' : 'Match Score:'} <strong className="text-emerald-400">{simulationResult.report.factCheck.score || 98}%</strong></span>
-                                    <span>{isAr ? 'الحقائق المفحوصة:' : 'Verified Claims:'} <strong className="text-white">{simulationResult.report.factCheck.verifiedClaimsCount || 6}/{simulationResult.report.factCheck.totalClaimsCount || 6}</strong></span>
-                                    <span>{isAr ? 'مستوى المخاطر:' : 'Risk:'} <strong className="text-emerald-400">{isAr ? 'منخفض للغاية' : 'Low'}</strong></span>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="text-xs font-bold text-rose-300">
-                              {isAr ? '⚠️ تعذر إتمام المحاكاة:' : 'Simulation Error:'} {simulationResult.error}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                <SimulationWorkbench
+                  isAr={isAr}
+                  simCountry={simCountry}
+                  setSimCountry={setSimCountry}
+                  simSector={simSector}
+                  setSimSector={setSimSector}
+                  simGenre={simGenre}
+                  setSimGenre={setSimGenre}
+                  isSimulating={isSimulating}
+                  handleRunMatrixSimulation={handleRunMatrixSimulation}
+                  simulationResult={simulationResult}
+                  setActiveTab={setActiveTab}
+                  setPendingSubFilter={setPendingSubFilter}
+                />
               )}
 
               {/* -------------------------------------------------------------

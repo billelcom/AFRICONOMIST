@@ -237,24 +237,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async () => {
     try {
-      // First attempt with popup
+      // Execute popup directly to minimize async delay which can trigger mobile popup blockers
       await signInWithPopup(auth, googleProvider);
     } catch (error: any) {
-      console.error("Login attempt failed:", error);
+      console.error("Auth Exception:", error);
       
-      // Better error handling for mobile
+      // Handle mobile-specific blocked popup errors
       if (error.code === 'auth/popup-blocked') {
-        alert(role === 'ADMIN' || !profile ? 
-          'تم حظر النافذة المنبثقة. يرجى السماح بالنوافذ المنبثقة في إعدادات متصفح الهاتف للمتابعة.' : 
-          'Popup blocked. Please allow popups in your mobile browser settings to continue.');
-      } else if (error.code === 'auth/internal-error' || error.code === 'auth/network-request-failed') {
-        alert(role === 'ADMIN' || !profile ?
-          'فشل الاتصال بخادم تسجيل الدخول. يرجى التأكد من أن متصفحك يسمح بملفات تعريف الارتباط للجهات الخارجية (Third-party cookies) أو حاول استخدام متصفح آخر مثل Chrome.' :
-          'Auth server connection failed. Ensure your browser allows third-party cookies or try another browser like Chrome.');
+        alert(isAr ? 
+          '⚠️ تم حظر النافذة المنبثقة. يرجى السماح بالنوافذ المنبثقة من إعدادات المتصفح لإتمام تسجيل الدخول.' : 
+          '⚠️ Popup blocked. Please enable popups in your browser settings to continue.');
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        // User closed the window before finishing, no action needed
       } else {
-        alert(role === 'ADMIN' || !profile ?
-          `فشل تسجيل الدخول: ${error.message}` :
-          `Login failed: ${error.message}`);
+        alert(isAr ?
+          `فشل الدخول: يرجى التأكد من استقرار الإنترنت والمحاولة مجدداً. (${error.code})` :
+          `Login Failed: Please check your connection and try again. (${error.code})`);
       }
     }
   };

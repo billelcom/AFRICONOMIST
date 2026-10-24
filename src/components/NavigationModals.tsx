@@ -185,6 +185,19 @@ export const NavigationModals: React.FC<NavigationModalsProps> = ({
                     </>
                   )}
                 </button>
+                
+                {/* Mobile Troubleshooting Hint */}
+                {isAr && (
+                  <p className="text-[9px] text-slate-500 leading-relaxed text-center px-4">
+                    💡 لمستخدمي الهاتف: إذا واجهت مشكلة، يرجى التأكد من تفعيل &quot;النوافذ المنبثقة&quot; والسماح بـ &quot;ملفات تعريف الارتباط للجهات الخارجية&quot; في إعدادات المتصفح.
+                  </p>
+                )}
+                {!isAr && (
+                  <p className="text-[9px] text-slate-500 leading-relaxed text-center px-4">
+                    💡 Mobile Users: If login fails, ensure &quot;Popups&quot; are enabled and &quot;Third-party cookies&quot; are allowed in your browser settings.
+                  </p>
+                )}
+
                 {authError && <p className="text-[10px] text-rose-400 text-center">{authError}</p>}
                 {authSuccess && <p className="text-[10px] text-emerald-400 text-center">{authSuccess}</p>}
               </div>

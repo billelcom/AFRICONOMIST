@@ -16,7 +16,7 @@ import {
   where,
   addDoc
 } from 'firebase/firestore';
-import { auth, db, googleProvider, signInWithPopup, signOut } from '@/lib/firebase';
+import { auth, db, googleProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut } from '@/lib/firebase';
 import { Article } from '@/types';
 
 export interface UserProfile {
@@ -71,6 +71,7 @@ interface AuthContextType {
   markNotificationAsRead: (notificationId: string) => Promise<void>;
   markAllNotificationsAsRead: () => Promise<void>;
   sendNotification: (notification: Omit<AppNotification, 'id' | 'read' | 'createdAt'>) => Promise<void>;
+  isMobile: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -84,8 +85,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsMobile(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+    }
+  }, []);
+
+  useEffect(() => {
+    // 0. Handle Redirect Result (Mobile Fallback)
+    getRedirectResult(auth).catch(console.error);
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       
@@ -226,9 +237,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async () => {
     try {
+      // First attempt with popup
       await signInWithPopup(auth, googleProvider);
-    } catch (error) {
-      console.error("Login failed:", error);
+    } catch (error: any) {
+      console.error("Login attempt failed:", error);
+      
+      // Better error handling for mobile
+      if (error.code === 'auth/popup-blocked') {
+        alert(role === 'ADMIN' || !profile ? 
+          'تم حظر النافذة المنبثقة. يرجى السماح بالنوافذ المنبثقة في إعدادات متصفح الهاتف للمتابعة.' : 
+          'Popup blocked. Please allow popups in your mobile browser settings to continue.');
+      } else if (error.code === 'auth/internal-error' || error.code === 'auth/network-request-failed') {
+        alert(role === 'ADMIN' || !profile ?
+          'فشل الاتصال بخادم تسجيل الدخول. يرجى التأكد من أن متصفحك يسمح بملفات تعريف الارتباط للجهات الخارجية (Third-party cookies) أو حاول استخدام متصفح آخر مثل Chrome.' :
+          'Auth server connection failed. Ensure your browser allows third-party cookies or try another browser like Chrome.');
+      } else {
+        alert(role === 'ADMIN' || !profile ?
+          `فشل تسجيل الدخول: ${error.message}` :
+          `Login failed: ${error.message}`);
+      }
     }
   };
 
@@ -355,7 +382,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       fetchAllUsers,
       markNotificationAsRead,
       markAllNotificationsAsRead,
-      sendNotification
+      sendNotification,
+      isMobile
     }}>
       {children}
     </AuthContext.Provider>

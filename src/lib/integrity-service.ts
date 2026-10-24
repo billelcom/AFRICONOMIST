@@ -14,39 +14,36 @@ export async function pruneArticleReferencesAcrossUsers(articleId: string, isAr:
   try {
     console.log(`[IntegrityService] Starting global prune for article: ${articleId}`);
     
-    // 1. Get all users who have this article saved
-    // Note: In a large system, you might use a more efficient query or a message queue.
-    // For this applet, we search the subcollections.
-    
-    const usersSnapshot = await adminDb.collection("users").get();
     const batch = adminDb.batch();
     let opsCount = 0;
 
-    for (const userDoc of usersSnapshot.docs) {
-      const userId = userDoc.id;
-      
-      // 1. Prune savedArticles subcollection
-      const savedDocRef = adminDb.collection("users").doc(userId).collection("savedArticles").doc(articleId);
-      const savedDoc = await savedDocRef.get();
-      
-      if (savedDoc.exists) {
-        batch.delete(savedDocRef);
-        opsCount++;
-      }
+    // 1. Prune savedArticles using collectionGroup
+    // This finds all "savedArticles" subcollections across all users that have this articleId
+    const savedSnapshot = await adminDb.collectionGroup("savedArticles")
+      .where("articleId", "==", articleId)
+      .get();
+    
+    savedSnapshot.docs.forEach(doc => {
+      batch.delete(doc.ref);
+      opsCount++;
+    });
 
-      // 2. Mark related notifications as orphaned/dead
-      const notificationsSnapshot = await adminDb.collection("users").doc(userId).collection("notifications")
-        .where("articleId", "==", articleId)
-        .get();
-      
-      notificationsSnapshot.docs.forEach(notifDoc => {
+    // 2. Mark related notifications using collectionGroup
+    const notificationsSnapshot = await adminDb.collectionGroup("notifications")
+      .where("articleId", "==", articleId)
+      .get();
+    
+    notificationsSnapshot.docs.forEach(notifDoc => {
+      if (!notifDoc.data().articleDeleted) {
         batch.update(notifDoc.ref, { 
           articleDeleted: true,
-          message: isAr ? `${notifDoc.data().message} (هذا المقال لم يعد متاحاً)` : `${notifDoc.data().message} (This article is no longer available)`
+          message: isAr 
+            ? `${notifDoc.data().message} (هذا المقال لم يعد متاحاً)` 
+            : `${notifDoc.data().message} (This article is no longer available)`
         });
         opsCount++;
-      });
-    }
+      }
+    });
 
     if (opsCount > 0) {
       await batch.commit();

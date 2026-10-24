@@ -427,6 +427,32 @@ export default function App() {
       console.warn('Failed to update article in MongoDB:', e);
     }
   };
+  
+  const handleDeleteArticle = async (articleId: string) => {
+    // 1. Remove from local state
+    setArticles(prev => {
+      const updated = prev.filter(a => a.id !== articleId);
+      saveArticlesToLocal(updated);
+      return updated;
+    });
+
+    // 2. Permanent deletion from MongoDB + Firebase cleanup
+    try {
+      const idToken = await user?.getIdToken();
+      const res = await fetch(`/api/articles?id=${articleId}`, {
+        method: 'DELETE',
+        headers: { 
+          'Authorization': idToken ? `Bearer ${idToken}` : ''
+        }
+      });
+      
+      if (!res.ok) {
+        console.warn('Permanent deletion API report:', await res.text());
+      }
+    } catch (e) {
+      console.warn('Failed to delete article permanently:', e);
+    }
+  };
 
   const handleAddNewDraft = async (newArticle: Article) => {
     setArticles(prev => {
@@ -725,6 +751,7 @@ export default function App() {
             onUpdateArticleStatus={handleUpdateArticleStatus}
             onAddNewDraft={handleAddNewDraft}
             onSaveArticle={handleSaveArticle}
+            onDeleteArticle={handleDeleteArticle}
             onPreviewArticle={handleSelectArticle}
             lang={lang}
             secondsUntilNextCycle={secondsUntilNextCycle}

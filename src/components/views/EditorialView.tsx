@@ -51,16 +51,21 @@ import {
   getOfficialSourcesForCountry 
 } from '../../lib/agents/officialSourcesLedger';
 import { NewsroomSidebar, NewsroomTab } from '../editorial/NewsroomSidebar';
+import { NewsroomTabsMobile } from '../editorial/NewsroomTabsMobile';
 import { SimulationWorkbench } from '../editorial/SimulationWorkbench';
 import { SectorNewsGrid } from '../editorial/SectorNewsGrid';
 import { EditorialArticleCard } from '../editorial/EditorialArticleCard';
-import { NewsroomTabsMobile } from '../editorial/NewsroomTabsMobile';
+import { PendingQueueView } from '../editorial/PendingQueueView';
+import { AgentTrainingView } from '../editorial/AgentTrainingView';
+import { EditorialLibraryView } from '../editorial/EditorialLibraryView';
+import { RevisionModal } from '../editorial/RevisionModal';
 
 interface EditorialViewProps {
   articles: Article[];
   onUpdateArticleStatus: (articleId: string, status: Article['status'], reviewer: string, note?: string) => void;
   onAddNewDraft: (newArticle: Article) => void;
   onSaveArticle?: (updatedArticle: Article) => void;
+  onDeleteArticle?: (articleId: string) => void;
   onPreviewArticle?: (article: Article) => void;
   lang: 'ar' | 'en';
   secondsUntilNextCycle?: number;
@@ -142,6 +147,7 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
   onUpdateArticleStatus,
   onAddNewDraft,
   onSaveArticle,
+  onDeleteArticle,
   onPreviewArticle,
   lang,
   secondsUntilNextCycle: propsSecondsUntilNextCycle,
@@ -938,91 +944,33 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
 
               {/* SECTOR SECTIONS (الأقسام حسب القطاعات) */}
               <div className="space-y-10 w-full">
-                {SECTOR_SECTIONS.map((sector) => {
-                  const sectorArticles = sectorArticlesMap[sector.id] || [];
-                  const SectorIcon = sector.icon;
-
-                  return (
-                    <section key={sector.id} className="space-y-4 w-full max-w-full min-w-0 overflow-hidden">
-                      {/* Sector Header with Desktop Controls */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3 w-full max-w-full min-w-0">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br ${sector.accentColor} border flex items-center justify-center shrink-0`}>
-                            <SectorIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-                          </div>
-                          <div className="min-w-0">
-                            <h3 className="text-base sm:text-lg md:text-xl font-black text-white flex items-center gap-2 truncate">
-                              <span className="truncate">{isAr ? sector.nameAr : sector.nameEn}</span>
-                              <span className="text-[10px] sm:text-[11px] font-mono px-2 py-0.2 rounded-full bg-slate-800 text-amber-300 border border-slate-700 shrink-0">
-                                {sectorArticles.length} {isAr ? 'تقارير' : 'reports'}
-                              </span>
-                            </h3>
-                            <p className="text-[11px] sm:text-xs text-slate-400 line-clamp-1">
-                              {isAr ? sector.descriptionAr : sector.descriptionEn}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Desktop Controls (عرض كل المقالات / السابق والتالي) */}
-                        <div className="flex items-center gap-2 shrink-0">
-                          {sectorArticles.length > 3 && (
-                            <button
-                              type="button"
-                              onClick={() => toggleSectorExpansion(sector.id)}
-                              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition-colors cursor-pointer"
-                            >
-                              <span>
-                                {expandedSectors[sector.id]
-                                  ? (isAr ? 'عرض أقل' : 'Show less')
-                                  : (isAr ? `عرض كل التقارير (${sectorArticles.length})` : `View all (${sectorArticles.length})`)}
-                              </span>
-                            </button>
-                          )}
-
-                          {/* أزرار السلايدر على الهاتف والشاشات الصغيرة */}
-                          <div className="flex sm:hidden items-center gap-1">
-                            <button
-                              type="button"
-                              onClick={() => handleScrollSector(sector.id, 'prev')}
-                              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer border border-slate-700 shadow-sm"
-                              title={isAr ? 'السابق' : 'Previous'}
-                            >
-                              <ChevronRight className="w-3.5 h-3.5 rtl:rotate-0 ltr:rotate-180" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleScrollSector(sector.id, 'next')}
-                              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer border border-slate-700 shadow-sm"
-                              title={isAr ? 'التالي' : 'Next'}
-                            >
-                              <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-0 ltr:rotate-180" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 1. على الهاتف: شريط انسيابي بطاقة كاملة 100% دون خروج */}
-                      <div 
-                        id={`sector-slider-${sector.id}`}
-                        className="md:hidden overflow-x-auto no-scrollbar scroll-smooth flex gap-3 pb-2 snap-x snap-mandatory w-full max-w-full min-w-0"
-                      >
-                        {sectorArticles.map((art, idx) => 
-                          renderSectorArticleCard(art, idx, true, sectorArticles.length)
-                        )}
-                      </div>
-
-                      {/* 2. على الحاسوب: شبكة متجاوبة منضبطة تماماً ضمن حدود الصفحة دون أي تجاوز */}
-                      <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 w-full max-w-full min-w-0">
-                        {(expandedSectors[sector.id] ? sectorArticles : sectorArticles.slice(0, 3)).map((art, idx) => 
-                          renderSectorArticleCard(art, idx, false, sectorArticles.length)
-                        )}
-                      </div>
-                    </section>
-                  );
-                })}
+                {SECTOR_SECTIONS.map((sector) => (
+                  <SectorNewsGrid
+                    key={sector.id}
+                    isAr={isAr}
+                    sector={sector}
+                    articles={sectorArticlesMap[sector.id] || []}
+                    expanded={expandedSectors[sector.id] || false}
+                    onToggleExpansion={() => toggleSectorExpansion(sector.id)}
+                    onScroll={(dir) => handleScrollSector(sector.id, dir)}
+                    onOpenInEditor={handleOpenInEditor}
+                    renderArticleCard={(art, idx, isMobile, total) => (
+                      <EditorialArticleCard
+                        key={art.id}
+                        article={art}
+                        idx={idx}
+                        isMobile={isMobile}
+                        totalCount={total}
+                        isAr={isAr}
+                        onClick={handleOpenInEditor}
+                      />
+                    )}
+                  />
+                ))}
               </div>
             </div>
           )}
+
 
           {/* =====================================================================
               VIEW 2: DIRECT EDITOR (صفحة التحرير مع أدوات التحرير وانتقال من الحالية للتالي والسابق)
@@ -1066,6 +1014,14 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
                 }
                 setSaveSuccessNotice(isAr ? '💾 تم حفظ التعديلات على المسودة بنجاح.' : '💾 Manual edits saved.');
                 setTimeout(() => setSaveSuccessNotice(null), 3000);
+              }}
+              onDelete={(articleId) => {
+                if (onDeleteArticle) {
+                  onDeleteArticle(articleId);
+                  setActiveTab('overview');
+                  setSaveSuccessNotice(isAr ? '🗑️ تم حذف المقال وتطهير كافة المراجع بنجاح.' : '🗑️ Article and all references deleted successfully.');
+                  setTimeout(() => setSaveSuccessNotice(null), 3500);
+                }
               }}
               onAiRefine={async (customNotes, promptHeadline) => {
                 setIsAiRefining(true);
@@ -1123,916 +1079,101 @@ export const EditorialView: React.FC<EditorialViewProps> = ({
               VIEW 3: PENDING QUEUE (المقالات التي تحتاج إلى معالجة: نوعان منفصلان للمشرف)
              ===================================================================== */}
           {activeTab === 'pending' && (
-            <div className="space-y-6 animate-in fade-in duration-200 w-full max-w-full min-w-0 mx-auto">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3 w-full max-w-full min-w-0">
-                <div className="min-w-0">
-                  <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0" />
-                    <span className="truncate">{isAr ? 'منصة مراجعة واعتماد المقالات (غرفة إشراف المحررين والذكاء الاصطناعي)' : 'Pending Ingestion & Editorial Desk'}</span>
-                  </h2>
-                  <p className="text-xs text-slate-400">
-                    {isAr 
-                      ? 'يظهر للمشرف نوعان: مقالات مولدة بالذكاء الاصطناعي، ومقالات مرسلة من المحررين البشريين للاعتماد أو لإعادة التعديل.' 
-                      : 'Dual streams: Autonomous AI agent pipeline and Human Editor draft submissions awaiting review.'}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="px-3 py-1 rounded-full bg-rose-500/15 text-rose-300 text-xs font-bold border border-rose-500/30">
-                    {pendingArticles.length} {isAr ? 'إجمالي بانتظار الإجراء' : 'pending total'}
-                  </span>
-                </div>
-              </div>
-
-              {/* أزرار التبديل بين نوعي المقالات عند المشرف */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar scroll-smooth w-full max-w-full min-w-0">
-                <button
-                  type="button"
-                  onClick={() => setPendingSubFilter('all')}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
-                    pendingSubFilter === 'all'
-                      ? 'bg-amber-500 text-slate-950 shadow-md ring-2 ring-amber-400 font-black'
-                      : 'bg-slate-900/80 hover:bg-slate-850 text-slate-300 border border-slate-800'
-                  }`}
-                >
-                  <span>{isAr ? 'كافة المقالات المعلقة' : 'All Pending'}</span>
-                  <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-950/20 font-mono font-bold">
-                    {pendingArticles.length}
-                  </span>
-                </button>
-
-                {/* 1. النوع الأول: مقالات الذكاء الاصطناعي والتوليد المباشر */}
-                <button
-                  type="button"
-                  onClick={() => setPendingSubFilter('ai')}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
-                    pendingSubFilter === 'ai'
-                      ? 'bg-amber-500 text-slate-950 shadow-md ring-2 ring-amber-400 font-black'
-                      : 'bg-slate-900/80 hover:bg-slate-850 text-slate-300 border border-slate-800'
-                  }`}
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  <span>{isAr ? '1. مقالات الذكاء الاصطناعي والتوليد المباشر' : '1. AI Generated & Direct Ingestion'}</span>
-                  <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-950/20 font-mono font-bold">
-                    {aiGeneratedArticles.length}
-                  </span>
-                </button>
-
-                {/* 2. النوع الثاني: مقالات المحررين البشريين */}
-                <button
-                  type="button"
-                  onClick={() => setPendingSubFilter('editor')}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
-                    pendingSubFilter === 'editor'
-                      ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-400 font-black'
-                      : 'bg-slate-900/80 hover:bg-slate-850 text-slate-300 border border-slate-800'
-                  }`}
-                >
-                  <Edit3 className="w-3.5 h-3.5 text-blue-400" />
-                  <span>{isAr ? '2. مقالات ومسودات المحررين (للاعتماد أو التعديل)' : '2. Editor Submissions & Revisions'}</span>
-                  <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20 font-mono font-bold">
-                    {editorArticles.length}
-                  </span>
-                </button>
-              </div>
-
-              {/* بطاقة توضيحية للمحرر والمشرف */}
-              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-blue-950/40 via-slate-900 to-amber-950/30 border border-slate-800 text-xs text-slate-300 flex items-center justify-between gap-3 shadow-sm w-full max-w-full min-w-0">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
-                  <span className="leading-relaxed">
-                    {isSupervisor 
-                      ? (isAr ? 'صلاحيات المشرف: قراءة كامل المسودة، اعتماد النشر المباشر للجمهور، أو إعادة طلب التعديل من المحررين مع كتابة الملاحظات وتوثيقها بالإشعارات.' : 'Supervisor Privileges: Read drafts, approve live publication, or request editorial revisions with feedback.')
-                      : (isAr ? 'صلاحيات المحرر: صياغة وتعديل التقارير، وإرسالها للمشرف للاعتماد والمصادقة، ومتابعة الملاحظات المطلوبة.' : 'Editor Privileges: Draft & modify articles, submit to supervisor for review, and iterate on critiques.')}
-                  </span>
-                </div>
-              </div>
-
-              {/* قائمة المقالات وفق التصفية المحددة */}
-              {(() => {
-                const listToDisplay = pendingSubFilter === 'ai' 
-                  ? aiGeneratedArticles 
-                  : pendingSubFilter === 'editor' 
-                  ? editorArticles 
-                  : pendingArticles;
-
-                if (listToDisplay.length === 0) {
-                  return (
-                    <div className="p-12 text-center rounded-2xl bg-[#090D18] border border-slate-800 space-y-3 w-full max-w-full min-w-0">
-                      <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
-                      <h3 className="text-base font-bold text-white">
-                        {isAr ? 'لا توجد مقالات معلقة في هذا القسم حالياً' : 'No pending articles in this section'}
-                      </h3>
-                      <p className="text-xs text-slate-400">
-                        {isAr 
-                          ? 'كافة المقالات تمت معالجتها. يمكنك استخدام "توليد فوري عشوائي" أو قيام المحررين بإرسال مسودات جديدة.' 
-                          : 'Queue clear. Commission a new report or submit an editor draft.'}
-                      </p>
-                    </div>
-                  );
-                }
-
-                return (
-                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full max-w-full min-w-0">
-                    {listToDisplay.map((art) => {
-                      const isHumanEditorSubmission = art.editorSubmission || art.authorType === 'HUMAN_JOURNALIST' || art.authorType === 'HYBRID';
-                      const isRevisionRequested = art.status === 'revision_requested';
-
-                      return (
-                        <div
-                          key={art.id}
-                          className={`p-4 sm:p-5 rounded-2xl border transition-all space-y-3 shadow-md min-w-0 overflow-hidden break-words ${
-                            isHumanEditorSubmission
-                              ? 'bg-[#0B1220] border-blue-500/40 hover:border-blue-400'
-                              : 'bg-slate-900 border-slate-800 hover:border-amber-500/50'
-                          }`}
-                        >
-                          {/* الهيدر: نوع المقال + الدولة والقطاع */}
-                          <div className="flex items-center justify-between text-xs gap-2">
-                            <span className="px-2 py-0.5 rounded bg-slate-800 text-amber-300 font-bold truncate">
-                              {art.countryName} · {art.sector || art.category}
-                            </span>
-
-                            {/* شارة تمييز نوع المقال */}
-                            {isHumanEditorSubmission ? (
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 border ${
-                                isRevisionRequested 
-                                  ? 'bg-rose-950/60 text-rose-300 border-rose-500/50' 
-                                  : 'bg-blue-950/60 text-blue-300 border-blue-500/50'
-                              }`}>
-                                <Edit3 className="w-3 h-3" />
-                                <span>{isRevisionRequested ? (isAr ? 'مطلوب تعديل من المحرر' : 'Revision Pending') : (isAr ? 'مرسل من محرر اقتصادي' : 'Editor Submission')}</span>
-                              </span>
-                            ) : (
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-950/50 text-amber-300 border border-amber-500/30 flex items-center gap-1">
-                                <Sparkles className="w-3 h-3 text-amber-400" />
-                                <span>{isAr ? 'وكيل الذكاء الاصطناعي (AI)' : 'AI Autonomous'}</span>
-                              </span>
-                            )}
-                          </div>
-
-                          {/* اسم الكاتب وتاريخ التقديم */}
-                          <div className="text-[11px] text-slate-400 flex items-center justify-between border-b border-slate-800/80 pb-2">
-                            <div className="flex items-center gap-1.5 text-slate-300">
-                              <User className="w-3 h-3 text-amber-400" />
-                              <span className="font-semibold">
-                                {isHumanEditorSubmission 
-                                  ? (art.authorName || art.editorSubmission?.editorName || (isAr ? 'المحرر الاقتصادي' : 'Economic Editor'))
-                                  : (isAr ? 'وكيل الذكاء الاصطناعي Gemini 3.6' : 'Autonomous Agent')}
-                              </span>
-                            </div>
-                            <span className="font-mono text-slate-500 text-[10px]">{art.createdAt}</span>
-                          </div>
-
-                          {/* العنوان والملخص */}
-                          <h4 
-                            onClick={() => handleOpenInEditor(art)}
-                            className="text-sm sm:text-base font-bold text-white hover:text-amber-400 transition-colors cursor-pointer line-clamp-2"
-                          >
-                            {art.title}
-                          </h4>
-                          <p className="text-xs text-slate-400 line-clamp-2">
-                            {art.summary}
-                          </p>
-
-                          {/* إذا كان هناك ملاحظات وتوجيهات سابقة من المشرف */}
-                          {art.reviewNotes && (
-                            <div className="p-2.5 rounded-xl bg-rose-950/40 border border-rose-500/40 text-[11px] space-y-1">
-                              <span className="font-bold text-rose-300 flex items-center gap-1">
-                                <MessageSquare className="w-3 h-3" />
-                                <span>{isAr ? 'ملاحظات وتوجيهات المشرف للمحرر:' : 'Supervisor Revision Directive:'}</span>
-                              </span>
-                              <p className="text-rose-200 leading-snug line-clamp-2">
-                                {art.reviewNotes}
-                              </p>
-                            </div>
-                          )}
-
-                          {/* شريط الإجراءات المباشرة للمشرف أو المحرر */}
-                          <div className="pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-xs">
-                            <button
-                              type="button"
-                              onClick={() => handleOpenInEditor(art)}
-                              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                            >
-                              <FileEdit className="w-3.5 h-3.5 text-amber-400" />
-                              <span>{isAr ? 'فتح في محرر الأخبار' : 'Open in Editor'}</span>
-                            </button>
-
-                            {/* أزرار المشرف: اعتماد ونشر أو طلب إعادة تعديل */}
-                            {isSupervisor ? (
-                              <div className="flex items-center gap-1.5">
-                                {/* زر طلب إعادة التعديل مع كتابة الملاحظات */}
-                                {isHumanEditorSubmission && (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setRevisionModalArticle(art);
-                                      setRevisionDirectiveNote(art.reviewNotes || '');
-                                    }}
-                                    className="px-2.5 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold border border-rose-500/40 flex items-center gap-1 cursor-pointer transition-colors"
-                                    title={isAr ? 'إعادة طلب التعديل من المحرر مع كتابة الملاحظات' : 'Request Revision with Directive'}
-                                  >
-                                    <RotateCcw className="w-3.5 h-3.5" />
-                                    <span>{isAr ? 'طلب تعديل' : 'Revise'}</span>
-                                  </button>
-                                )}
-
-                                {/* زر اعتماد ونشر المقال للجمهور */}
-                                <button
-                                  type="button"
-                                  onClick={() => handlePublish(art.id)}
-                                  className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black flex items-center gap-1 shadow-md cursor-pointer transition-all active:scale-95"
-                                >
-                                  <CheckCircle2 className="w-3.5 h-3.5" />
-                                  <span>{isAr ? 'اعتماد ونشر' : 'Publish'}</span>
-                                </button>
-                              </div>
-                            ) : (
-                              /* إجراءات المحرر: إذا كان المقال مرجعاً للمراجعة، زر إرسال للمشرف */
-                              <button
-                                type="button"
-                                onClick={() => handleEditorSubmitToSupervisor(art)}
-                                className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black flex items-center gap-1 shadow-md cursor-pointer transition-all active:scale-95"
-                              >
-                                <Send className="w-3.5 h-3.5" />
-                                <span>{isAr ? 'إرسال للمشرف للاعتماد' : 'Submit to Supervisor'}</span>
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })()}
-            </div>
+            <PendingQueueView
+              isAr={isAr}
+              isSupervisor={isSupervisor}
+              pendingArticles={pendingArticles}
+              aiGeneratedArticles={aiGeneratedArticles}
+              editorArticles={editorArticles}
+              pendingSubFilter={pendingSubFilter}
+              setPendingSubFilter={setPendingSubFilter}
+              handleOpenInEditor={handleOpenInEditor}
+              handlePublish={handlePublish}
+              handleRequestEditorRevision={setRevisionModalArticle}
+              handleEditorSubmitToSupervisor={handleEditorSubmitToSupervisor}
+            />
           )}
+
+
+
 
           {/* =====================================================================
               VIEW 4: AGENT TRAINING (تدريب وتطوير وكلاء الذكاء الاصطناعي الصحفيين)
              ===================================================================== */}
           {activeTab === 'training' && (
-            <div className="space-y-6 animate-in fade-in duration-200 w-full max-w-full mx-auto">
-              {/* Header with Metrics */}
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-                <div>
-                  <h2 className="text-lg sm:text-xl font-black text-white flex items-center gap-2.5">
-                    <Brain className="w-6 h-6 text-purple-400" />
-                    <span>{isAr ? 'منصة تدريب وهندسة وكلاء الذكاء الاصطناعي الصحفيين' : 'Journalistic AI Agents Training & Persona Engine'}</span>
-                  </h2>
-                  <p className="text-xs text-slate-400 mt-1">
-                    {isAr 
-                      ? 'تدريب وتخصيص هويات الوكلاء وفق مصفوفة ثلاثية الأبعاد: 18 نوعاً صحفياً × 28 قطاعاً اقتصادياً × 54 دولة إفريقية، ببروتوكول Zero Trust.' 
-                      : 'Training 3D Specialized Agent Matrix: 18 Genres × 28 Economic Sectors × 54 African Nations with Zero-Trust safeguards.'}
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="px-3 py-1 rounded-full bg-purple-500/15 text-purple-300 text-xs font-mono font-bold border border-purple-500/30 flex items-center gap-1.5">
-                    <Layers className="w-3.5 h-3.5 text-purple-400" />
-                    <span>18 {isAr ? 'وكيل نوع صحفي' : 'Genre Agents'}</span>
-                  </span>
-                  <span className="px-3 py-1 rounded-full bg-amber-500/15 text-amber-300 text-xs font-mono font-bold border border-amber-500/30 flex items-center gap-1.5">
-                    <Database className="w-3.5 h-3.5 text-amber-400" />
-                    <span>28 {isAr ? 'وكيل قطاع' : 'Sector Agents'}</span>
-                  </span>
-                  <span className="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 text-xs font-mono font-bold border border-emerald-500/30 flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>54 {isAr ? 'دولة جاهزة' : 'Nations'}</span>
-                  </span>
-                </div>
-              </div>
-
-              {trainingSavedAlert && (
-                <div className="p-3.5 rounded-xl bg-purple-950/40 border border-purple-500/40 text-purple-200 text-xs font-bold flex items-center gap-2 w-full max-w-full">
-                  <Check className="w-4 h-4 text-purple-400 shrink-0" />
-                  <span>{isAr ? 'تم حفظ معايير التدريب بنجاح وتطبيقها على خط الإنتاج والوكلاء!' : 'Agent directives updated successfully!'}</span>
-                </div>
-              )}
-
-              {/* Training Sub-navigation Tabs */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar border-b border-slate-800/80">
-                {[
-                  { id: 'matrix', nameAr: '⚡ محاكاة المصفوفة الثلاثية الحية', nameEn: '3D Matrix Sandbox', icon: Sparkles },
-                  { id: 'genres', nameAr: '📰 تدريب وكلاء الأنواع الصحفية (18)', nameEn: '18 Journalistic Genres', icon: FileText },
-                  { id: 'sectors', nameAr: '📊 تدريب وكلاء القطاعات (28)', nameEn: '28 Economic Sectors', icon: Database },
-                  { id: 'sources', nameAr: '🏛️ سجل المصادر وتدقيق الحقائق', nameEn: 'Official Sources & Fact-Check', icon: ShieldCheck },
-                  { id: 'directives', nameAr: '⚙️ الحوكمة والنبرة والذكاء الاصطناعي', nameEn: 'Directives & Models', icon: SlidersHorizontal }
-                ].map((st) => {
-                  const Icon = st.icon;
-                  const isActive = trainingSubTab === st.id;
-                  return (
-                    <button
-                      key={st.id}
-                      type="button"
-                      onClick={() => setTrainingSubTab(st.id as any)}
-                      className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
-                        isActive
-                          ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20 ring-1 ring-purple-400'
-                          : 'bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-850 border border-slate-800'
-                      }`}
-                    >
-                      <Icon className="w-4 h-4" />
-                      <span>{isAr ? st.nameAr : st.nameEn}</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* -------------------------------------------------------------
-                  SUB-TAB 1: 3D MATRIX SANDBOX & SIMULATOR (المحاكاة الثلاثية)
-                 ------------------------------------------------------------- */}
-              {trainingSubTab === 'matrix' && (
-                <SimulationWorkbench
-                  isAr={isAr}
-                  simCountry={simCountry}
-                  setSimCountry={setSimCountry}
-                  simSector={simSector}
-                  setSimSector={setSimSector}
-                  simGenre={simGenre}
-                  setSimGenre={setSimGenre}
-                  isSimulating={isSimulating}
-                  handleRunMatrixSimulation={handleRunMatrixSimulation}
-                  simulationResult={simulationResult}
-                  setActiveTab={setActiveTab}
-                  setPendingSubFilter={setPendingSubFilter}
-                />
-              )}
-
-              {/* -------------------------------------------------------------
-                  SUB-TAB 2: 18 JOURNALISTIC GENRES (تدريب الأنواع الصحفية الـ 18)
-                 ------------------------------------------------------------- */}
-              {trainingSubTab === 'genres' && (
-                <div className="space-y-5">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
-                    {JOURNALISTIC_GENRES.map((g) => {
-                      const isSelected = activeGenreDetailId === g.id;
-                      return (
-                        <button
-                          key={g.id}
-                          type="button"
-                          onClick={() => setActiveGenreDetailId(g.id)}
-                          className={`p-3 rounded-xl border text-right transition-all cursor-pointer ${
-                            isSelected
-                              ? 'bg-purple-600/20 border-purple-500 text-white shadow-md ring-1 ring-purple-400'
-                              : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
-                          }`}
-                        >
-                          <div className="text-xs font-bold truncate">{g.nameAr}</div>
-                          <div className="text-[10px] text-slate-500 truncate mt-0.5">{g.category}</div>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Active Genre Detailed Dossier */}
-                  {(() => {
-                    const directive = getGenreDirective(activeGenreDetailId);
-                    return (
-                      <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-5 shadow-xl">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
-                          <div>
-                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                              {directive.nameEn}
-                            </span>
-                            <h3 className="text-base font-black text-white mt-1 flex items-center gap-2">
-                              <span>{directive.nameAr}</span>
-                              <span className="text-xs text-amber-400 font-normal">({directive.agentRoleAr})</span>
-                            </h3>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs px-3 py-1 rounded-full bg-slate-950 border border-slate-800 text-slate-300 font-mono">
-                              {isAr ? 'النطاق اللفظي:' : 'Target:'} {directive.wordCountTarget.min} - {directive.wordCountTarget.max} {isAr ? 'كلمة' : 'words'}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {/* Structural Template */}
-                          <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5">
-                            <h4 className="text-xs font-black text-purple-300 flex items-center gap-1.5">
-                              <Layers className="w-3.5 h-3.5" />
-                              <span>{isAr ? 'الهيكل التحريري الإلزامي للوكيل:' : 'Mandatory Structural Rubric:'}</span>
-                            </h4>
-                            <ol className="space-y-1.5 text-xs text-slate-300 pr-4 list-decimal">
-                              {directive.structuralTemplate.map((step, idx) => (
-                                <li key={idx} className="leading-relaxed">{step}</li>
-                              ))}
-                            </ol>
-                          </div>
-
-                          {/* Mandatory Questions */}
-                          <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5">
-                            <h4 className="text-xs font-black text-amber-300 flex items-center gap-1.5">
-                              <Sparkles className="w-3.5 h-3.5" />
-                              <span>{isAr ? 'الأسئلة الصحفية الإلزامية التي يتقصى عنها:' : 'Core Investigative Questions:'}</span>
-                            </h4>
-                            <ul className="space-y-1.5 text-xs text-slate-300 pr-4 list-disc">
-                              {directive.mandatoryQuestions.map((q, idx) => (
-                                <li key={idx} className="leading-relaxed">{q}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-
-                        {/* Tone & Citations */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                          <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800">
-                            <span className="text-slate-500 font-bold block mb-1">{isAr ? 'ضوابط النبرة والصوت الصحفي:' : 'Tone & Voice Guidelines:'}</span>
-                            <p className="text-slate-300 leading-relaxed">{directive.toneGuidelines}</p>
-                          </div>
-                          <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800">
-                            <span className="text-slate-500 font-bold block mb-1">{isAr ? 'شرط التوثيق والمصادر المعتمدة:' : 'Citation Rule:'}</span>
-                            <p className="text-emerald-400 leading-relaxed">{directive.citationRequirement}</p>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
-
-              {/* -------------------------------------------------------------
-                  SUB-TAB 3: 28 ECONOMIC SECTORS (تدريب وكلاء القطاعات الـ 28)
-                 ------------------------------------------------------------- */}
-              {trainingSubTab === 'sectors' && (
-                <div className="space-y-5">
-                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 max-h-52 overflow-y-auto p-1 border border-slate-800/80 rounded-2xl bg-slate-950/50 no-scrollbar">
-                    {ECONOMIC_SECTORS.map((s) => {
-                      const isSelected = activeSectorDetailId === s.id;
-                      return (
-                        <button
-                          key={s.id}
-                          type="button"
-                          onClick={() => setActiveSectorDetailId(s.id)}
-                          className={`p-2.5 rounded-xl border text-right transition-all cursor-pointer ${
-                            isSelected
-                              ? 'bg-amber-500/20 border-amber-500 text-white shadow-md ring-1 ring-amber-400'
-                              : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
-                          }`}
-                        >
-                          <div className="text-xs font-bold truncate">{s.nameAr}</div>
-                          <div className="text-[9px] text-slate-500 truncate mt-0.5">{s.groupNameAr}</div>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Active Sector Detailed Dossier */}
-                  {(() => {
-                    const sectorDir = getSectorDirective(activeSectorDetailId);
-                    return (
-                      <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-5 shadow-xl">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
-                          <div>
-                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                              {sectorDir.nameEn}
-                            </span>
-                            <h3 className="text-base font-black text-white mt-1 flex items-center gap-2">
-                              <span>{sectorDir.nameAr}</span>
-                              <span className="text-xs text-purple-400 font-normal">({sectorDir.specialistTitleAr})</span>
-                            </h3>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          {/* Key Terminology */}
-                          <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-                            <h4 className="text-xs font-black text-amber-400">{isAr ? 'المعجم المالي والمصطلحات الإلزامية:' : 'Domain Lexicon:'}</h4>
-                            <div className="flex flex-wrap gap-1.5">
-                              {sectorDir.keyTerminologies.map((t, idx) => (
-                                <span key={idx} className="px-2 py-0.5 rounded bg-slate-900 text-slate-300 text-[11px] border border-slate-800">
-                                  {t}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Benchmark Metrics */}
-                          <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-                            <h4 className="text-xs font-black text-purple-400">{isAr ? 'المؤشرات الحسابية المعيارية:' : 'Benchmark Metrics:'}</h4>
-                            <div className="flex flex-wrap gap-1.5">
-                              {sectorDir.benchmarkMetrics.map((m, idx) => (
-                                <span key={idx} className="px-2 py-0.5 rounded bg-slate-900 text-purple-300 font-mono text-[11px] border border-slate-800">
-                                  {m}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Trusted Institutions */}
-                          <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-                            <h4 className="text-xs font-black text-emerald-400">{isAr ? 'المؤسسات الرسمية المعتمدة:' : 'Trusted Institutions:'}</h4>
-                            <ul className="space-y-1 text-xs text-slate-300">
-                              {sectorDir.trustedInstitutions.map((inst, idx) => (
-                                <li key={idx} className="flex items-center gap-1.5">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                                  <span>{inst}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-
-                        <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 text-xs">
-                          <span className="text-slate-500 font-bold block mb-1">{isAr ? 'التوجيه المنهجي لوكيل القطاع:' : 'Sector Directive:'}</span>
-                          <p className="text-slate-300 leading-relaxed font-mono">{sectorDir.systemDirectivePrompt}</p>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
-
-              {/* -------------------------------------------------------------
-                  SUB-TAB 4: OFFICIAL SOURCES & FACT-CHECK LEDGER (سجل المصادر وتدقيق الحقائق)
-                 ------------------------------------------------------------- */}
-              {trainingSubTab === 'sources' && (
-                <div className="space-y-6">
-                  {/* Search and Category Filter */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl">
-                    <div className="flex-1 min-w-0">
-                      <input
-                        type="text"
-                        value={sourcesSearchQuery}
-                        onChange={(e) => setSourcesSearchQuery(e.target.value)}
-                        placeholder={isAr ? "بحث في البنوك المركزية والبورصات والمؤسسات الإفريقية (مثال: مصر، BCEAO، JSE، SARB)..." : "Search central banks and bourses..."}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
-                      />
-                    </div>
-                    <div className="flex items-center gap-1.5 overflow-x-auto shrink-0 no-scrollbar">
-                      {[
-                        { id: 'all', labelAr: 'الكل', labelEn: 'All' },
-                        { id: 'central_bank', labelAr: 'البنوك المركزية', labelEn: 'Central Banks' },
-                        { id: 'stock_exchange', labelAr: 'البورصات', labelEn: 'Exchanges' },
-                        { id: 'continental_body', labelAr: 'المؤسسات القارية', labelEn: 'Continental' }
-                      ].map((f) => (
-                        <button
-                          key={f.id}
-                          type="button"
-                          onClick={() => setSourcesCategoryFilter(f.id as any)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
-                            sourcesCategoryFilter === f.id
-                              ? 'bg-emerald-500 text-slate-950 font-black shadow-md'
-                              : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
-                          }`}
-                        >
-                          {isAr ? f.labelAr : f.labelEn}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Sources List */}
-                  {(() => {
-                    const filteredSources = ALL_OFFICIAL_GROUNDING_SOURCES.filter(s => {
-                      const matchesCat = sourcesCategoryFilter === 'all' || s.institutionType === sourcesCategoryFilter;
-                      const q = sourcesSearchQuery.toLowerCase().trim();
-                      const matchesQuery = !q || 
-                        s.countryNameAr.includes(q) || 
-                        s.countryNameEn.toLowerCase().includes(q) || 
-                        s.institutionNameAr.includes(q) || 
-                        s.institutionNameEn.toLowerCase().includes(q) ||
-                        (s.currencySymbol && s.currencySymbol.toLowerCase().includes(q));
-                      return matchesCat && matchesQuery;
-                    });
-
-                    return (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {filteredSources.map((source) => (
-                          <div
-                            key={source.id}
-                            className="p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-emerald-500/50 transition-all space-y-3 shadow-md group flex flex-col justify-between"
-                          >
-                            <div className="space-y-2">
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="px-2 py-0.5 rounded bg-slate-800 text-amber-300 font-bold">
-                                  🌍 {source.countryNameAr}
-                                </span>
-                                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold">
-                                  {source.credibilityScore}% {isAr ? 'موثوقية رسمية' : 'Trust Score'}
-                                </span>
-                              </div>
-
-                              <h4 className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">
-                                {source.institutionNameAr}
-                              </h4>
-                              <p className="text-[11px] text-slate-400 font-mono">
-                                {source.institutionNameEn}
-                              </p>
-
-                              {/* Key Indicators Provided */}
-                              <div className="pt-2 border-t border-slate-800/80 space-y-1">
-                                <span className="text-[10px] text-slate-500 font-bold block">{isAr ? 'المؤشرات والبيانات المفحوصة:' : 'Grounded Indicators:'}</span>
-                                <div className="flex flex-wrap gap-1">
-                                  {source.keyIndicatorsProvided.map((ind, i) => (
-                                    <span key={i} className="px-2 py-0.5 rounded bg-slate-950 text-slate-300 text-[10px] border border-slate-800">
-                                      {ind}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Footer with Portal Link & Currency */}
-                            <div className="pt-2.5 border-t border-slate-800 flex items-center justify-between text-xs">
-                              {source.currencySymbol ? (
-                                <span className="font-mono text-xs font-bold text-purple-300">
-                                  🪙 {source.currencySymbol}
-                                </span>
-                              ) : (
-                                <span className="text-[10px] text-slate-500 font-mono">PAN-REGIONAL</span>
-                              )}
-                              <a
-                                href={source.feedPortal}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 text-[11px] hover:underline"
-                              >
-                                <span>{isAr ? 'بوابة الإفصاح الرسمي ↗' : 'Official Portal ↗'}</span>
-                              </a>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
-
-              {/* -------------------------------------------------------------
-                  SUB-TAB 5: DIRECTIVES & MODELS (الحوكمة والنبرة والذكاء الاصطناعي)
-                 ------------------------------------------------------------- */}
-              {trainingSubTab === 'directives' && (
-                <div className="p-5 sm:p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-6 shadow-xl w-full max-w-full">
-                  {/* 1. النبرة التحريرية */}
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-white flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-amber-400" />
-                      <span>{isAr ? 'المدرسة التحريرية والنبرة الصحفية المعتمدة:' : 'Editorial Tone of Voice:'}</span>
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {[
-                        { id: 'financial_times', nameAr: 'Financial Times', descAr: 'رصانة تحليلية وأرقام دقيقة وحياد توثيقي' },
-                        { id: 'the_economist', nameAr: 'The Economist', descAr: 'عمق استشرافي وتحليل هيكلي وتفكيك سياسات' },
-                        { id: 'bloomberg', nameAr: 'Bloomberg Africa', descAr: 'سرعة الأسواق اللحظية وتدفقات السيولة الاستثمارية' }
-                      ].map((tone) => (
-                        <div
-                          key={tone.id}
-                          onClick={() => setTrainingTone(tone.id as any)}
-                          className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
-                            trainingTone === tone.id
-                              ? 'bg-purple-500/15 border-purple-500/50 text-purple-200 ring-1 ring-purple-400'
-                              : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
-                          }`}
-                        >
-                          <div className="font-bold text-xs text-white">{tone.nameAr}</div>
-                          <div className="text-[11px] text-slate-400 mt-1">{tone.descAr}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* 2. صرامة الاستشهاد بالمصادر */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-xs font-bold text-white">
-                      <span>{isAr ? 'الحد الأدنى لصرامة مطابقة المصادر الرسمية:' : 'Mandatory Citation Strictness:'}</span>
-                      <span className="font-mono text-emerald-400">{mandatoryCitationsStrictness}%</span>
-                    </div>
-                    <input
-                      type="range"
-                      min={90}
-                      max={100}
-                      value={mandatoryCitationsStrictness}
-                      onChange={(e) => setMandatoryCitationsStrictness(Number(e.target.value))}
-                      className="w-full accent-purple-500"
-                    />
-                    <p className="text-[11px] text-slate-400">
-                      {isAr ? 'يتم رفض أي مقال آلياً إذا كانت المصادر غير رسمية أو تقل موثوقيتها عن هذه النسبة.' : 'Automated rejection triggered if primary source matching falls below threshold.'}
-                    </p>
-                  </div>
-
-                  {/* 3. نموذج الذكاء الاصطناعي */}
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-white flex items-center gap-2">
-                      <Cpu className="w-4 h-4 text-blue-400" />
-                      <span>{isAr ? 'محرك الذكاء الاصطناعي المعتمد في السيرفر:' : 'Primary Inference Engine:'}</span>
-                    </label>
-                    <select
-                      value={selectedAiModel}
-                      onChange={(e) => setSelectedAiModel(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-purple-500"
-                    >
-                      <option value="gemini-2.5-flash">Gemini 2.5 Flash (توليد وتحليل فائق السرعة والرصانة)</option>
-                      <option value="gemini-1.5-pro">Gemini 1.5 Pro (تحليل استقصائي عميق وسياق مليوني)</option>
-                    </select>
-                  </div>
-
-                  {/* Save Directives Button */}
-                  <div className="pt-2 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setTrainingSavedAlert(true);
-                        setTimeout(() => setTrainingSavedAlert(false), 3500);
-                      }}
-                      className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-bold text-xs shadow-lg transition-all cursor-pointer"
-                    >
-                      {isAr ? 'حفظ وتثبيت معايير تدريب الوكلاء' : 'Save & Deploy Agent Directives'}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+            <AgentTrainingView
+              isAr={isAr}
+              trainingSavedAlert={trainingSavedAlert}
+              trainingSubTab={trainingSubTab}
+              setTrainingSubTab={setTrainingSubTab}
+              simCountry={simCountry}
+              setSimCountry={setSimCountry}
+              simSector={simSector}
+              setSimSector={setSimSector}
+              simGenre={simGenre}
+              setSimGenre={setSimGenre}
+              isSimulating={isSimulating}
+              handleRunMatrixSimulation={handleRunMatrixSimulation}
+              simulationResult={simulationResult}
+              setActiveTab={setActiveTab}
+              setPendingSubFilter={setPendingSubFilter}
+              activeGenreDetailId={activeGenreDetailId}
+              setActiveGenreDetailId={setActiveGenreDetailId}
+              activeSectorDetailId={activeSectorDetailId}
+              setActiveSectorDetailId={setActiveSectorDetailId}
+              sourcesSearchQuery={sourcesSearchQuery}
+              setSourcesSearchQuery={setSourcesSearchQuery}
+              sourcesCategoryFilter={sourcesCategoryFilter}
+              setSourcesCategoryFilter={setSourcesCategoryFilter}
+              trainingTone={trainingTone}
+              setTrainingTone={setTrainingTone}
+              mandatoryCitationsStrictness={mandatoryCitationsStrictness}
+              setMandatoryCitationsStrictness={setMandatoryCitationsStrictness}
+              selectedAiModel={selectedAiModel}
+              setSelectedAiModel={setSelectedAiModel}
+              setTrainingSavedAlert={setTrainingSavedAlert}
+            />
           )}
+
+
 
           {/* =====================================================================
               VIEW 5: LIBRARY (المكتبة)
              ===================================================================== */}
           {activeTab === 'library' && (
-            <div className="space-y-5 animate-in fade-in duration-200 w-full max-w-full mx-auto">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                <div>
-                  <h2 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-teal-600" />
-                    <span>{isAr ? 'مكتبة التقارير والمصادر المعتمدة' : 'Verified Editorial Library'}</span>
-                  </h2>
-                  <p className="text-xs text-slate-600">
-                    {isAr ? 'أرشيف المقالات والتحقيقات التي أجازها المشرف البشري ونُشرت للجمهور.' : 'Comprehensive repository of human-approved and published reports.'}
-                  </p>
-                </div>
-                <span className="px-3 py-1 rounded-full bg-teal-500/15 text-teal-700 text-xs font-bold border border-teal-500/30">
-                  {publishedArticles.length} {isAr ? 'تقارير منشورة' : 'published'}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-full min-w-0">
-                {publishedArticles.map((art) => (
-                  <div
-                    key={art.id}
-                    onClick={() => handleOpenInEditor(art)}
-                    className="p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-teal-500/50 transition-all cursor-pointer space-y-3 shadow-md group min-w-0 max-w-full overflow-hidden break-words"
-                  >
-                    <div className="flex items-center justify-between text-xs gap-1.5">
-                      <span className="px-2 py-0.5 rounded bg-slate-800 text-teal-300 font-bold truncate">
-                        {art.countryName} · {art.sector || art.category}
-                      </span>
-                      <span className="text-[10px] text-emerald-400 font-mono px-2 py-0.5 rounded bg-emerald-950/40 border border-emerald-500/30 shrink-0">
-                        {isAr ? 'منشور للجمهور' : 'Live'}
-                      </span>
-                    </div>
-                    <h4 className="text-base sm:text-lg font-bold text-white group-hover:text-teal-400 transition-colors line-clamp-2 break-words">
-                      {art.title}
-                    </h4>
-                    <p className="text-xs text-slate-400 line-clamp-2 break-words">
-                      {art.summary}
-                    </p>
-                    <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
-                      <span className="text-slate-500 font-mono shrink-0">{art.createdAt}</span>
-                      <span className="text-teal-400 font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform shrink-0">
-                        <span>{isAr ? 'مراجعة وتعديل' : 'View in Editor'}</span>
-                        <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-0 ltr:rotate-180" />
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <EditorialLibraryView
+              isAr={isAr}
+              articles={publishedArticles}
+              onOpenInEditor={handleOpenInEditor}
+              mode="library"
+            />
           )}
+
 
           {/* =====================================================================
               VIEW 6: ARCHIVE (الأرشيف)
              ===================================================================== */}
           {activeTab === 'archive' && (
-            <div className="space-y-5 animate-in fade-in duration-200 w-full max-w-full mx-auto">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                <div>
-                  <h2 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
-                    <Archive className="w-5 h-5 text-slate-600" />
-                    <span>{isAr ? 'الأرشيف والتقارير المستبعدة' : 'Editorial Archive & Shelved Records'}</span>
-                  </h2>
-                  <p className="text-xs text-slate-600">
-                    {isAr ? 'المقالات التي تم استبعادها أو أرشفتها لحين استكمال الوثائق الرسمية.' : 'Shelved articles held for further document verification.'}
-                  </p>
-                </div>
-                <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold border border-slate-300">
-                  {archivedArticles.length} {isAr ? 'مقالات مؤرشفة' : 'archived'}
-                </span>
-              </div>
-
-              {archivedArticles.length === 0 ? (
-                <div className="p-12 text-center rounded-2xl bg-slate-50 border border-slate-200 space-y-3 w-full max-w-full">
-                  <Archive className="w-10 h-10 text-slate-400 mx-auto" />
-                  <h3 className="text-base font-bold text-slate-900">{isAr ? 'الأرشيف فارغ حالياً' : 'Archive empty'}</h3>
-                  <p className="text-xs text-slate-600">{isAr ? 'لم يتم أرشفة أي مقالات بعد.' : 'No archived articles.'}</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-full min-w-0">
-                  {archivedArticles.map((art) => (
-                    <div
-                      key={art.id}
-                      onClick={() => handleOpenInEditor(art)}
-                      className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-600 transition-all cursor-pointer space-y-3 group min-w-0 max-w-full overflow-hidden break-words"
-                    >
-                      <div className="flex items-center justify-between text-xs gap-1.5">
-                        <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-bold truncate">
-                          {art.countryName} · {art.sector || art.category}
-                        </span>
-                        <span className="text-[10px] text-slate-400 font-mono px-2 py-0.5 rounded bg-slate-800 shrink-0">
-                          {isAr ? 'مؤرشف' : 'Archived'}
-                        </span>
-                      </div>
-                      <h4 className="text-base sm:text-lg font-bold text-slate-300 group-hover:text-white transition-colors line-clamp-2 break-words">
-                        {art.title}
-                      </h4>
-                      <p className="text-xs text-slate-500 line-clamp-2 break-words">
-                        {art.summary}
-                      </p>
-                      <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
-                        <span className="text-slate-600 font-mono shrink-0">{art.createdAt}</span>
-                        <span className="text-slate-400 font-bold flex items-center gap-1 group-hover:text-amber-400 transition-colors shrink-0">
-                          <span>{isAr ? 'استرجاع للمحرر' : 'Restore to Editor'}</span>
-                          <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-0 ltr:rotate-180" />
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <EditorialLibraryView
+              isAr={isAr}
+              articles={archivedArticles}
+              onOpenInEditor={handleOpenInEditor}
+              mode="archive"
+            />
           )}
+
           {/* نافذة توجيه ملاحظات المشرف للمحرر لإعادة التعديل */}
           {revisionModalArticle && (
-            <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150">
-              <div className="w-full max-w-lg bg-[#0e172a] border border-rose-500/40 rounded-3xl p-6 shadow-2xl space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                  <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4 text-rose-400" />
-                    <span>{isAr ? 'طلب إعادة التعديل من المحرر مع كتابة الملاحظات' : 'Request Revision with Directive'}</span>
-                  </h3>
-                  <button
-                    type="button"
-                    onClick={() => setRevisionModalArticle(null)}
-                    className="p-1 rounded-lg text-slate-400 hover:text-white bg-slate-800/80 cursor-pointer"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <div className="space-y-1">
-                  <span className="text-[11px] text-slate-400 block">{isAr ? 'المقال المستهدف:' : 'Target Article:'}</span>
-                  <p className="text-xs font-bold text-amber-300 line-clamp-2">
-                    {revisionModalArticle.title}
-                  </p>
-                  <p className="text-[11px] text-slate-400">
-                    {isAr ? 'المحرر الكاتب:' : 'Author/Editor:'}{' '}
-                    <span className="text-white font-semibold">
-                      {revisionModalArticle.authorName || revisionModalArticle.editorSubmission?.editorName || (isAr ? 'محرر اقتصادي' : 'Economic Editor')}
-                    </span>
-                  </p>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-white block">
-                    {isAr ? 'ملاحظات ونقد وتوجيهات المشرف للمحرر:' : 'Supervisor Critique Directive:'}
-                  </label>
-                  <textarea
-                    rows={4}
-                    value={revisionDirectiveNote}
-                    onChange={(e) => setRevisionDirectiveNote(e.target.value)}
-                    placeholder={isAr 
-                      ? "اكتب توجيهاتك التحريرية المحددة (مثال: تدقيق أرقام البنك المركزي، تعديل صياغة المقدمة، تعميق فقرة السيولة النقدية، أو إضافة مصادر رسمية)..."
-                      : "Enter critique notes for the editor..."}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-rose-500/70 leading-relaxed"
-                  />
-                  <p className="text-[10px] text-slate-400">
-                    {isAr 
-                      ? 'سيتم إشعار المحرر فوراً بملاحظاتك وتثبيت التوجيهات في سجل المقال ليقوم بتعديله وإعادة إرساله.'
-                      : 'The editor will receive an immediate notification with these notes.'}
-                  </p>
-                </div>
-
-                <div className="pt-2 border-t border-slate-800 flex items-center justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setRevisionModalArticle(null)}
-                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold cursor-pointer"
-                  >
-                    {isAr ? 'إلغاء' : 'Cancel'}
-                  </button>
-
-                  <button
-                    type="button"
-                    disabled={!revisionDirectiveNote.trim()}
-                    onClick={() => handleRequestEditorRevision(revisionModalArticle.id, revisionDirectiveNote)}
-                    className="px-5 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-lg disabled:opacity-50 cursor-pointer"
-                  >
-                    <Send className="w-3.5 h-3.5" />
-                    <span>{isAr ? 'إرسال الملاحظات للمحرر وتوثيقها' : 'Dispatch Directive to Editor'}</span>
-                  </button>
-                </div>
-              </div>
-            </div>
+            <RevisionModal
+              isAr={isAr}
+              article={revisionModalArticle}
+              revisionDirectiveNote={revisionDirectiveNote}
+              setRevisionDirectiveNote={setRevisionDirectiveNote}
+              onClose={() => setRevisionModalArticle(null)}
+              onSubmit={(note) => handleRequestEditorRevision(revisionModalArticle.id, note)}
+            />
           )}
+
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getArticlesCollection } from "@/lib/services/mongodb";
 import { validateAuth } from "@/lib/auth-server";
 import { pruneArticleReferencesAcrossUsers } from "@/lib/integrity-service";
+import { deleteArticle } from "@/lib/services/article-service";
 
 export const dynamic = "force-dynamic";
 
@@ -115,6 +116,38 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ success: false, error: "إجراء غير معروف" }, { status: 400 });
   } catch (error: any) {
     console.error("Error updating article:", error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
+
+// DELETE: حذف المقال نهائياً من كافة الأنظمة (مؤمنة للمشرفين والأدمن فقط)
+export async function DELETE(req: Request) {
+  try {
+    const auth = await validateAuth(req, ['ADMIN', 'SUPERVISOR']);
+    if (!auth) {
+      return NextResponse.json({ success: false, error: "غير مصرح لك بحذف المقالات" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: "معرف المقال مطلوب للحذف" }, { status: 400 });
+    }
+
+    const result = await deleteArticle(id, true);
+
+    if (!result.success) {
+      return NextResponse.json({ success: false, error: result.error }, { status: 404 });
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      message: "تم حذف المقال وتطهير كافة المراجع بنجاح",
+      details: result
+    });
+  } catch (error: any) {
+    console.error("Error deleting article:", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

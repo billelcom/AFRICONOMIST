@@ -3,12 +3,12 @@ export type UserRole = 'ADMIN' | 'SUPERVISOR' | 'EDITOR' | 'READER';
 export interface UserProfile {
   uid: string;
   email: string;
-  displayName: string;
+  displayName: string | null;
   firstName?: string;
   lastName?: string;
   whatsapp?: string;
   country?: string;
-  photoURL?: string;
+  photoURL?: string | null;
   coverURL?: string;
   bio?: string;
   role: UserRole;
@@ -19,8 +19,8 @@ export interface UserProfile {
   publishedArticlesCount?: number;
   roleAssignedBy?: string;
   roleAssignedAt?: string;
-  createdAt: string;
-  updatedAt?: string;
+  createdAt: any;
+  updatedAt?: any;
 }
 
 export interface SavedArticle {
@@ -68,11 +68,12 @@ export interface AccountActivity {
 export interface AppNotification {
   id: string;
   userId: string;
-  type: 'editorial_review' | 'revision_requested' | 'article_published' | 'system' | 'mention' | 'saved';
+  type: 'editorial_review' | 'revision_requested' | 'article_published' | 'system' | 'mention' | 'saved' | string;
   title: string;
   message: string;
   read: boolean;
   articleId?: string;
+  articleDeleted?: boolean;
   countrySlug?: string;
   createdAt: string;
 }

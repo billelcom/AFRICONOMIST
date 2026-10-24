@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { 
-  getAuth, 
+  getAuth,
   GoogleAuthProvider, 
   signInWithPopup, 
   signInWithRedirect, 
@@ -10,33 +10,34 @@ import {
 import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
+// Initialize Firebase App
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
-// Reverting to getAuth to fix "INTERNAL ASSERTION FAILED: Expected a class definition"
+/**
+ * Universal Auth initialization.
+ * getAuth(app) is safe for both Client and Server in Next.js.
+ * On the client, it automatically handles persistence.
+ * On the server, it uses in-memory persistence.
+ */
 export const auth = getAuth(app);
 
+// Initialize Firestore
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const googleProvider = new GoogleAuthProvider();
 
-// Mobile-friendly: force account selection to avoid silent failures on some mobile browsers
+// Mobile-friendly configuration
 googleProvider.setCustomParameters({
-  prompt: 'select_account',
-  // auth_type: 'popup' // Keep simple for maximum compatibility
+  prompt: 'select_account'
 });
 
 export const dbRealtime = db;
 
-// Connection test as required by skill
+// Connection test for client-side only
 async function testConnection() {
   try {
-    // Attempting to get a non-existent doc to verify connectivity
     await getDocFromServer(doc(db, '_system_', 'connectivity_test'));
   } catch (error) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.error("Firebase connection test failed: Client is offline.");
-    }
-    // "Missing or insufficient permissions" is actually a success for connectivity
-    // as it means we reached the server and rules blocked us.
+    // Expected to fail if offline or no permissions, but confirms SDK is working
   }
 }
 

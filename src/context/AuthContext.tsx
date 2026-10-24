@@ -16,39 +16,14 @@ import {
   where,
   addDoc
 } from 'firebase/firestore';
-import { auth, db, googleProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut } from '@/lib/firebase';
-import { Article } from '@/types';
+import { auth, db, googleProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut } from '../lib/firebase';
+import { Article } from '../types';
 
-export interface UserProfile {
-  uid: string;
-  email: string;
-  displayName: string | null;
-  photoURL: string | null;
-  role: 'reader' | 'editor' | 'admin' | 'supervisor';
-  createdAt: any;
-  updatedAt: any;
-}
-
-export interface ActivityLog {
-  id?: string;
-  userId: string;
-  type: string;
-  title: string;
-  description: string;
-  timestamp: any;
-}
-
-export interface AppNotification {
-  id?: string;
-  userId: string;
-  title: string;
-  message: string;
-  type: string;
-  read: boolean;
-  articleId?: string;
-  countrySlug?: string;
-  createdAt: string;
-}
+import { 
+  UserProfile, 
+  AppNotification, 
+  AccountActivity as ActivityLog 
+} from '../types/auth';
 
 interface AuthContextType {
   user: FirebaseUser | null;
@@ -72,6 +47,7 @@ interface AuthContextType {
   markAllNotificationsAsRead: () => Promise<void>;
   sendNotification: (notification: Omit<AppNotification, 'id' | 'read' | 'createdAt'>) => Promise<void>;
   isMobile: boolean;
+  isAr: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -86,16 +62,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [isAr, setIsAr] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setIsMobile(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+      setIsAr(document.documentElement.lang === 'ar' || document.documentElement.dir === 'rtl');
     }
   }, []);
 
   useEffect(() => {
     // 0. Handle Redirect Result (Mobile Fallback)
-    getRedirectResult(auth).catch(console.error);
+    const handleRedirect = async () => {
+      try {
+        setLoading(true);
+        const result = await getRedirectResult(auth);
+        if (result?.user) {
+          setUser(result.user);
+        }
+      } catch (error) {
+        console.error("Redirect Auth Error:", error);
+      } finally {
+        // Don't set loading false yet, onAuthStateChanged will handle it
+      }
+    };
+
+    handleRedirect();
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
@@ -237,23 +229,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async () => {
     try {
-      // Execute popup directly to minimize async delay which can trigger mobile popup blockers
-      await signInWithPopup(auth, googleProvider);
+      setLoading(true);
+      if (isMobile) {
+        // Root fix for mobile: Use redirect. 
+        // Note: In an iframe (like AI Studio), this might still have issues.
+        // We ensure we call signInWithRedirect and then the app will reload.
+        await signInWithRedirect(auth, googleProvider);
+      } else {
+        // Desktop: Use popup for seamless experience
+        const result = await signInWithPopup(auth, googleProvider);
+        if (result.user) {
+          setUser(result.user);
+        }
+      }
     } catch (error: any) {
       console.error("Auth Exception:", error);
       
-      // Handle mobile-specific blocked popup errors
+      // Fallback for desktop if popup is blocked
       if (error.code === 'auth/popup-blocked') {
-        alert(isAr ? 
-          '⚠️ تم حظر النافذة المنبثقة. يرجى السماح بالنوافذ المنبثقة من إعدادات المتصفح لإتمام تسجيل الدخول.' : 
-          '⚠️ Popup blocked. Please enable popups in your browser settings to continue.');
+        const confirmRedirect = confirm(isAr ? 
+          '⚠️ تم حظر النافذة المنبثقة. هل تريد المتابعة عبر إعادة التوجيه؟' : 
+          '⚠️ Popup was blocked. Would you like to continue via redirect?');
+        
+        if (confirmRedirect) {
+          try {
+            await signInWithRedirect(auth, googleProvider);
+          } catch (redirError: any) {
+            alert(isAr ? 'فشل إعادة التوجيه.' : 'Redirect failed.');
+          }
+        }
       } else if (error.code === 'auth/cancelled-popup-request') {
-        // User closed the window before finishing, no action needed
+        // No action needed
+      } else if (error.code === 'auth/internal-error' || error.code === 'auth/network-request-failed') {
+        alert(isAr ?
+          'خطأ في الاتصال: يرجى التحقق من الإنترنت أو المحاولة من متصفح آخر.' :
+          'Connection error: Please check your internet or try another browser.');
       } else {
         alert(isAr ?
-          `فشل الدخول: يرجى التأكد من استقرار الإنترنت والمحاولة مجدداً. (${error.code})` :
-          `Login Failed: Please check your connection and try again. (${error.code})`);
+          `فشل الدخول: ${error.message}` :
+          `Login Failed: ${error.message}`);
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -381,7 +398,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       markNotificationAsRead,
       markAllNotificationsAsRead,
       sendNotification,
-      isMobile
+      isMobile,
+      isAr
     }}>
       {children}
     </AuthContext.Provider>
